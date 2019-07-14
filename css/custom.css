@@ -1,0 +1,38 @@
+* {
+    margin:0;
+    padding:0;
+    overflow: hidden;
+}
+.upper-half {
+    height:50vh;
+    border-bottom: 2px solid #ddd;
+}
+
+.down-half {
+    height:50vh;
+    border-top: 2px solid #ddd;
+    display: flex;
+    background-color: #0b2e13;
+}
+
+.down-left {
+    width:34%;
+    border-right:1px solid #ccc;
+}
+
+.down-middle {
+    width:32%;
+    border-right:1px solid #ccc;
+    border-left:1px solid #ccc;
+}
+
+.down-right {
+    width:34%;
+    border-left:1px solid #ccc;
+}
+
+.heading-html, .heading-css, .heading-javascript {
+    color:white;
+    padding:4px;
+    border-bottom: 1px solid #ccc;
+}
