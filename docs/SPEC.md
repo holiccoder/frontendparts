@@ -513,6 +513,77 @@ All open items were ruled by the owner on 2026-07-19: **all proposals approved**
 
 ---
 
+## 15. Sitemap 🔒
+
+Complete page inventory by rendering zone (§10.1).
+
+### 15.1 Public (SSR, SEO-indexed)
+
+| Page | URL | Purpose | Phase |
+|---|---|---|---|
+| Home | `/` | Hero, featured components, industries grid, how-it-works, pricing teaser, latest drops, blog teaser | P0 |
+| Catalog index | `/components` | Full grid + filters (industry, usage, level, framework, access) | P0 |
+| Usage category | `/components/{usage}` | Keyword landing pages (e.g. `/components/pricing`) | P0 |
+| Component detail | `/components/{usage}/{slug}` | Preview modal content, citation, docs, related components | P0 |
+| Industry index | `/industries` | All 12 industries | P0 |
+| Industry detail | `/industries/{industry}` | Curated per-industry collection + copy | P0 |
+| Pricing | `/pricing` | Plan × period toggle, feature comparison, FAQ | P1 |
+| Blog | `/blog`, `/blog/{slug}`, `/blog/category/{slug}` | Content marketing | P1 |
+| Docs | `/docs/{section}/{page}` | Documentation with sidebar nav | P0 (basic) |
+| License | `/license` | License terms | P1 |
+| Legal pages | see §15.7 | Terms · Privacy · Refund · Cookies · Copyright & Takedown · Legal Notice | P1 |
+| Search results | `/search?q=` | Site search | P1 |
+| 404 | — | Branded, links to catalog | P0 |
+| Collections | `/collections/{slug}` | Curated bundles ("restaurant landing kit") | P3 🟡 |
+
+### 15.2 Auth (public, `noindex`) — starter kit ✅
+
+Login · Register · Forgot/Reset password · Verify email · Confirm password
+
+### 15.3 Checkout (CSR, `noindex`)
+
+| Page | Purpose |
+|---|---|
+| `/checkout/{plan}` | Paddle overlay host (period selector) |
+| `/checkout/success` | Post-payment confirmation + next steps |
+| `/pay/domestic/{order}` (P2) | Domestic QR payment + result polling |
+
+### 15.4 User dashboard (CSR, auth)
+
+| Page | Purpose |
+|---|---|
+| `/dashboard` | Overview: plan status, projects, recent downloads, new drops |
+| `/dashboard/projects` | Project list |
+| `/dashboard/projects/{id}` | Component set, dependency view, export actions (zip / scaffold / GitHub) |
+| `/dashboard/orders` | Orders, invoices, license state, renewal dates |
+| `/dashboard/tickets` · `/{id}` · `/new` | Support threads |
+| `/settings/profile` · `/password` · `/appearance` | Starter kit ✅ |
+| `/settings/connections` | GitHub OAuth connect/disconnect |
+
+### 15.5 Admin (Filament, `/admin`)
+
+Dashboard (§8.6 widgets) · Components · Categories · Tags · Sources · Users · Orders · Plan Prices · Blogs · Tickets · Settings (§8.7) · admin login
+
+### 15.6 Infrastructure (not indexed)
+
+`sitemap.xml` · `robots.txt` · RSS feed · preview iframe URLs (`/previews/…`) · library standalone previews (`/preview/{slug}`, dev only)
+
+### 15.7 Legal pages (must-have) 🔒
+
+| Page | URL | Covers | Phase |
+|---|---|---|---|
+| Terms of Service | `/terms` | Accounts, acceptable use, subscriptions, termination | P1 |
+| Privacy Policy | `/privacy` | **GDPR + CCPA/CPRA + PIPL** (China) — accounts, GitHub tokens, `component_events` analytics; Paddle processes payment data as MoR | P1 |
+| Component License | `/license` | Usage rights / redistribution ban (§7.4) | P1 |
+| Refund Policy | `/refund-policy` | 14-day window, both payment backends | P1 |
+| Cookie Policy | `/cookie-policy` | EU ePrivacy; strictly-necessary vs analytics cookies | P1 |
+| **Copyright & Takedown Policy** | `/copyright` | **Critical for this product** — attribution statement (§9), recreate-don't-copy commitment, takedown request procedure + response SLA, links the `takedown` ticket category | P1 |
+| Legal Notice / Imprint | `/legal-notice` | Operator identity + contact (EU compliance, e.g. German §5 DDG); Paddle shown as MoR on invoices | P1 |
+
+Notes: Paddle's own buyer terms appear at checkout/invoices (MoR) — site legal pages reference that relationship; all legal pages are SSR + indexed except where law requires otherwise; Chinese translations of Privacy/Terms recommended when domestic payments ship (P2).
+
+---
+
 ## Change Log
 
 - **2026-07-19** — Initial compilation from design discussion (all modules)
@@ -523,3 +594,5 @@ All open items were ruled by the owner on 2026-07-19: **all proposals approved**
 - **2026-07-19** — Tier-2 rejected by owner: no Radix/Reka primitives — all behavior hand-rolled, components stay dependency-light (§2.5)
 - **2026-07-19** — All 7 open items ruled: proposals approved; new §8.7 Platform Settings — every tunable value admin-editable in Filament (plans & limits, pricing, feature flags, goals). Open-items list cleared.
 - **2026-07-19** — Domestic payments locked (§7.5): dual backends (Paddle international + Alipay/WeChat CNY), 个体工商户 + ICP备案 approved, manual-renewal domestic subscriptions at launch, WS-1 paperwork in P0 / WS-2 build in P2
+- **2026-07-19** — Sitemap locked (§15): complete page inventory across 6 zones (public SSR, auth, checkout, dashboard, admin, infrastructure) with phasing
+- **2026-07-19** — Legal pages expanded (§15.7): 7 must-have pages incl. Cookie Policy, Copyright & Takedown Policy (§9-critical), Legal Notice/Imprint; Privacy must cover GDPR + CCPA + PIPL

@@ -234,6 +234,7 @@ Component source files, `params.json`, `data.json`, preview HTML artifacts, scre
 
 ## 8. UX Specifications (key surfaces)
 
+- **Sitemap / page inventory:** SPEC §15 (all pages across public SSR, auth, checkout, dashboard, admin, infrastructure zones, with phasing).
 - **Preview modal anatomy:** SPEC §5.4 (header / toolbar / tabs / editable panes / gating / keyboard).
 - **Structure tree:** SPEC §5.5 (folding, instance chips, hover/pin highlight, navigation).
 - **Admin dashboard layout:** SPEC §8.6 (six rows + phasing).
