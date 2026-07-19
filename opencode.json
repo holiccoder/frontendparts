@@ -5,7 +5,7 @@
             "type": "local",
             "enabled": true,
             "command": [
-                "php",
+                "C:\\Users\\workw\\.config\\herd\\bin\\php84\\php.exe",
                 "artisan",
                 "boost:mcp"
             ]
