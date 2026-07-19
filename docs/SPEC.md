@@ -559,6 +559,7 @@ Login · Register · Forgot/Reset password · Verify email · Confirm password
 | `/dashboard/tickets` · `/{id}` · `/new` | Support threads |
 | `/settings/profile` · `/password` · `/appearance` | Starter kit ✅ |
 | `/settings/connections` | GitHub OAuth connect/disconnect |
+| `/settings/notifications` | Email preference center (§16) |
 
 ### 15.5 Admin (Filament, `/admin`)
 
@@ -584,6 +585,48 @@ Notes: Paddle's own buyer terms appear at checkout/invoices (MoR) — site legal
 
 ---
 
+## 16. Email & Notifications 🔒
+
+Event-driven transactional mail plus scheduled lifecycle sequences. All sends are queued Laravel Notifications (mail + database channels, so the Filament bell and the email share one system); sequences run as daily scheduled commands. Provider: **Resend or Postmark 🟡** (deliverability-focused; `log` driver in dev).
+
+### 16.1 Transactional (event-triggered)
+
+| Email | Trigger | Phase |
+|---|---|---|
+| Welcome + verify address | Register | P0 |
+| Password / email change confirmations | Security events | P0 |
+| Order paid → welcome-to-Pro (license summary + first steps) | Paddle `transaction.completed` | P1 |
+| Refund processed | Refund confirmed | P1 |
+| Ticket created / replied / resolved (thread link) | Ticket events | P1 |
+| Domestic payment confirmed + access unlocked | Alipay/WeChat notify | P2 |
+| GitHub connected (security notice) | OAuth connect | P2 |
+
+Paddle (MoR) sends its own receipts/invoices — we never duplicate them.
+
+### 16.2 Lifecycle sequences (scheduled commands)
+
+- **B1 — Free onboarding drip**: Day 0 welcome + 3 best components → Day 2 create first project/pack → Day 4 popular components in browsed industries → Day 7 upgrade pitch → Day 12 lifetime intro.
+- **B2 — Upgrade trigger**: ≥3 Pro blur-gate hits in a week → plan-comparison email (behavioral trigger 🟡).
+- **B3 — Paid onboarding**: Day 0 license + quickstart → Day 3 scaffolding/GitHub tips → Day 7 feedback ask.
+- **B4 — New-drops digest**: weekly/monthly opt-in; new components + blog highlights. **Retention-critical** — fresh drops are what justify subscriptions.
+- **B5 — Domestic renewal reminders**: T-7 / T-3 / T-1 / expired+1 / +7 for manual-renewal domestic subscriptions; Paddle yearly auto-charge gets a courtesy pre-charge notice.
+- **B6 — Dunning**: 5 touches over ~15 days, every email deep-links the update-payment page; target 25–35% recovery on top of Paddle's own card retries.
+- **B7 — Cancel flow**: required 1-question exit survey → save offer mapped to reason (price→discount/downgrade · not using→pause · missing feature→roadmap · project ended→pause · just testing→let go) → confirmation with access-until date + reactivation link → Day 7 reactivation → Day 30 win-back. Target 10–15% save rate.
+- **B8 — Re-engagement**: 30d "what you missed" → 60d final nudge → suppress.
+
+### 16.3 Preference center & compliance
+
+- `/settings/notifications` — transactional mandatory; digest/blog/product-updates individually opt-out; one-click unsubscribe in every non-transactional mail (CAN-SPAM / GDPR / PIPL).
+- Branded markdown templates (logo + single CTA per email); EN at launch, zh templates ship with domestic payments (P2).
+- Filament: full notification log + resend action.
+
+### 16.4 Phasing
+
+- **P0**: auth/system mail + Day-0 welcome.
+- **P1**: order/ticket lifecycle + sequences B1–B4, B6, B7.
+- **P2**: B5 + zh templates.
+- **P3**: behavioral personalization (B2-style triggers beyond blur-gate).
+
 ## Change Log
 
 - **2026-07-19** — Initial compilation from design discussion (all modules)
@@ -596,3 +639,4 @@ Notes: Paddle's own buyer terms appear at checkout/invoices (MoR) — site legal
 - **2026-07-19** — Domestic payments locked (§7.5): dual backends (Paddle international + Alipay/WeChat CNY), 个体工商户 + ICP备案 approved, manual-renewal domestic subscriptions at launch, WS-1 paperwork in P0 / WS-2 build in P2
 - **2026-07-19** — Sitemap locked (§15): complete page inventory across 6 zones (public SSR, auth, checkout, dashboard, admin, infrastructure) with phasing
 - **2026-07-19** — Legal pages expanded (§15.7): 7 must-have pages incl. Cookie Policy, Copyright & Takedown Policy (§9-critical), Legal Notice/Imprint; Privacy must cover GDPR + CCPA + PIPL
+- **2026-07-19** — Email & notifications locked (§16): transactional + 8 lifecycle sequences (onboarding drips, upgrade trigger, new-drops digest, renewal reminders, dunning, cancel/win-back, re-engagement), preference center at `/settings/notifications`, provider TBD (Resend/Postmark 🟡); phasing P0–P3

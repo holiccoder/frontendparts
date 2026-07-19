@@ -164,7 +164,7 @@ Targets approved by owner 2026-07-19; admin-editable as goal tracking in Filamen
 - FR-7.4 Checkout via Paddle (Cashier Paddle); webhooks maintain `orders` state (active / cancelled-valid-until-ends_at / expired); lifetime orders have `ends_at = null`.
 - FR-7.5 `plan_prices` table maps plan × period → Paddle price ID + amount; repricing needs no deploy.
 - FR-7.6 Free subset (20–30%) via `components.access_level`.
-- FR-7.7 Dashboard (CSR): profile, password, appearance, my projects, my downloads, my license/orders, connected GitHub account, my tickets.
+- FR-7.7 Dashboard (CSR): profile, password, appearance, my projects, my downloads, my license/orders, connected GitHub account, my tickets, email notification preferences (FR-13.4).
 - FR-7.8 Refunds: 14-day window 🔒 (admin-configurable), handled via the original payment provider's API.
 - FR-7.9 **Domestic payments (P2):** mainland buyers pay in CNY via **Alipay / WeChat Pay** (QR scan on desktop, app wake-up on mobile) through `yansongda/pay`; international buyers stay on Paddle. Region/currency routing at checkout; both backends normalize into the same order state machine (SPEC §7.5).
 - FR-7.10 Domestic subscriptions are **one-time payment per period** with renewal-reminder emails — no auto-deduct at launch; lifetime plans fully supported.
@@ -205,6 +205,16 @@ Targets approved by owner 2026-07-19; admin-editable as goal tracking in Filamen
 Per SPEC §8.6: KPI cards, revenue + plan-mix charts, growth charts, action tables (latest orders, drafts queue with inline publish), top components, coverage matrix heatmap, system health (failed builds, last sync, failed jobs); global date filter.
 
 Per SPEC §8.7: **all tunable product values are admin-editable in Filament** — plans & limits (project limits, refund window), pricing (`plan_prices`), feature flags (dark toggle, tree interactions, live-edit mode), and goal targets feeding dashboard tracking. No hardcoded product values.
+
+### FR-13 Email & Notifications
+
+Per SPEC §16:
+
+- FR-13.1 All sends are queued Laravel Notifications (mail + database channels — email and the Filament/user bell share one system). Transactional mail is event-triggered; lifecycle sequences run as daily scheduled commands. Provider: Resend or Postmark 🟡 (`log` driver in dev).
+- FR-13.2 **Transactional:** welcome + verify (P0), password/email change confirmations (P0), order-paid → welcome-to-Pro with license summary (P1; Paddle MoR receipts never duplicated), refund processed (P1), ticket created/replied/resolved (P1), domestic payment confirmed (P2), GitHub connected security notice (P2).
+- FR-13.3 **Lifecycle sequences:** B1 free onboarding drip (Day 0/2/4/7/12) · B2 upgrade trigger on ≥3 blur-gate hits/week 🟡 · B3 paid onboarding (Day 0/3/7) · B4 new-drops digest (weekly/monthly opt-in; retention-critical) · B5 domestic renewal reminders (T-7/T-3/T-1/expired+1/+7; P2) · B6 dunning (5 touches/15 days, deep-link to update-payment, 25–35% recovery target) · B7 cancel flow (required exit survey → reason-mapped save offer → Day 7 reactivation → Day 30 win-back; 10–15% save target) · B8 re-engagement (30d/60d → suppress).
+- FR-13.4 **Preference center** at `/settings/notifications`: transactional mandatory; digest/blog/product-updates individually opt-out; one-click unsubscribe in every non-transactional mail (CAN-SPAM / GDPR / PIPL).
+- FR-13.5 Branded markdown templates (logo + single CTA); EN at launch, zh templates with domestic payments (P2). Filament: full notification log + resend action.
 
 ---
 
@@ -291,9 +301,9 @@ Existing code reused: User/Admin models, Blog scaffolding, Order model + enums (
 
 | Phase | Ships | Exit criteria |
 |---|---|---|
-| **P0 — Foundation** | Data model · taxonomy seed · `library:sync` + preview pipeline · catalog browse · preview modal (prebuilt) · structure tree · free copy/download · basic docs | 20+ components published; sync→preview→publish pipeline proven end-to-end |
-| **P1 — Monetization** | Projects · pack zip · Paddle checkout (all plans/periods incl. lifetime) · Blog · full Docs · Ticketing | First paid order end-to-end; gated components enforced |
-| **P2 — Power features** | Live-edit mode · Next/Nuxt scaffolding · GitHub export · domestic payments (Alipay/WeChat, CNY) | Scaffold generated + repo pushed from UI; domestic QR order end-to-end |
+| **P0 — Foundation** | Data model · taxonomy seed · `library:sync` + preview pipeline · catalog browse · preview modal (prebuilt) · structure tree · free copy/download · basic docs · auth/system emails + Day-0 welcome | 20+ components published; sync→preview→publish pipeline proven end-to-end |
+| **P1 — Monetization** | Projects · pack zip · Paddle checkout (all plans/periods incl. lifetime) · Blog · full Docs · Ticketing · order/ticket emails + lifecycle sequences (B1–B4, B6, B7) | First paid order end-to-end; gated components enforced |
+| **P2 — Power features** | Live-edit mode · Next/Nuxt scaffolding · GitHub export · domestic payments (Alipay/WeChat, CNY) · domestic renewal reminders (B5) + zh email templates | Scaffold generated + repo pushed from UI; domestic QR order end-to-end |
 | **P3 — Growth** | Meilisearch · team tier · community submissions · AI features | post-launch planning |
 
 ---
