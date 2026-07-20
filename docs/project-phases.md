@@ -217,11 +217,11 @@
 
 ## 2.7 Blog (public + admin extension)
 
-- [ ] **2.7.1 Blog schema extension** — blog categories/tags tables + pivots, SEO meta fields, `related_components` pivot, reading time, scheduled publishing (SPEC §13.1).
+- [x] **2.7.1 Blog schema extension** — blog categories/tags tables + pivots, SEO meta fields, `related_components` pivot, reading time, scheduled publishing (SPEC §13.1).
   - Acceptance: `Blog/BlogModelTest::test_categories_tags_relations`, `test_related_components_pivot`, `test_scheduled_posts_hidden_until_published_at`, `test_reading_time_computed`.
-- [ ] **2.7.2 Public blog (SSR)** — `/blog`, `/blog/{slug}`, `/blog/category/{slug}`: TOC, related posts + related components, Article structured data, RSS feed, sitemap inclusion (SPEC §13.1, §15.1).
+- [x] **2.7.2 Public blog (SSR)** — `/blog`, `/blog/{slug}`, `/blog/category/{slug}`: TOC, related posts + related components, Article structured data, RSS feed, sitemap inclusion (SPEC §13.1, §15.1).
   - Acceptance: `Blog/BlogPageTest::test_index_and_article_ssr_200`, `test_only_published_visible`, `test_related_components_in_props`, `test_article_structured_data_present`, `test_rss_feed_valid_xml`, `test_blog_urls_in_sitemap`.
-- [ ] **2.7.3 Filament blog resource extension** — categories/tags/SEO/related-components fields on the existing resource (SPEC §13.1).
+- [x] **2.7.3 Filament blog resource extension** — categories/tags/SEO/related-components fields on the existing resource (SPEC §13.1).
   - Acceptance: `Admin/BlogResourceTest::test_save_with_all_extended_fields`, `test_related_components_picker_persists`.
 
 ## 2.8 Documentation (full)
