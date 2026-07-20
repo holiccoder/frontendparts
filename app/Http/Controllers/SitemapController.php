@@ -8,17 +8,22 @@ use App\Models\BlogCategory;
 use App\Models\Category;
 use App\Models\Component;
 use App\Services\Docs\DocsRepository;
+use App\Services\Legal\LegalPages;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Response;
 
 /**
  * `/sitemap.xml` (SPEC §10.2, §15.6): static pages plus DB-driven
- * taxonomy and published component URLs, every configured docs page, and
- * the live blog URLs (index, categories, posts).
+ * taxonomy and published component URLs, every configured docs page,
+ * the live blog URLs (index, categories, posts), and the seven legal
+ * pages (§15.7 — SSR + indexed like the rest of the public zone).
  */
 class SitemapController extends Controller
 {
-    public function __construct(private readonly DocsRepository $docs) {}
+    public function __construct(
+        private readonly DocsRepository $docs,
+        private readonly LegalPages $legal,
+    ) {}
 
     public function __invoke(): Response
     {
@@ -28,6 +33,10 @@ class SitemapController extends Controller
             ['loc' => route('industries.index'), 'lastmod' => null],
             ['loc' => route('pricing'), 'lastmod' => null],
         ];
+
+        foreach ($this->legal->slugs() as $slug) {
+            $urls[] = ['loc' => route("legal.{$slug}"), 'lastmod' => null];
+        }
 
         foreach ($this->docs->allPages() as $docsPage) {
             $urls[] = ['loc' => route('docs.show', $docsPage), 'lastmod' => null];

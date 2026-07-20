@@ -73,6 +73,39 @@ class TicketUserTest extends TestCase
             ->assertSessionHasErrors('category');
     }
 
+    public function test_create_form_preselects_category_from_query()
+    {
+        Notification::fake();
+
+        $user = User::factory()->create();
+
+        // Deep link from the copyright page (SPEC §9, §15.7): the takedown
+        // category arrives preselected.
+        $this->actingAs($user)
+            ->get('/dashboard/tickets/new?category=takedown')
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('dashboard/tickets/new')
+                ->where('presetCategory', 'takedown')
+            );
+
+        // Unknown values fall back to no preselection instead of erroring.
+        $this->actingAs($user)
+            ->get('/dashboard/tickets/new?category=nonsense')
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('presetCategory', null)
+            );
+
+        // No query at all keeps the blank default.
+        $this->actingAs($user)
+            ->get('/dashboard/tickets/new')
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('presetCategory', null)
+            );
+    }
+
     public function test_threaded_reply_appends()
     {
         Notification::fake();

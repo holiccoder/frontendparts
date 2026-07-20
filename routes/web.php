@@ -20,11 +20,13 @@ use App\Http\Controllers\Dashboard\TicketMessageController;
 use App\Http\Controllers\DocsController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\IndustryController;
+use App\Http\Controllers\LegalController;
 use App\Http\Controllers\Projects\ProjectComponentController;
 use App\Http\Controllers\Projects\ProjectController;
 use App\Http\Controllers\Projects\ProjectExportController;
 use App\Http\Controllers\Projects\ProjectExportDownloadController;
 use App\Http\Controllers\RobotsController;
+use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\UnsubscribeController;
 use Illuminate\Support\Facades\Route;
@@ -77,6 +79,22 @@ Route::get('/docs/{section}/{page}', [DocsController::class, 'show'])
     ->name('docs.show');
 
 Route::get('/pricing', PricingController::class)->name('pricing');
+
+Route::get('/search', SearchController::class)->name('search');
+
+/*
+| Legal pages (SPEC §15.7, §15.1): seven SSR, SEO-indexed pages rendered by
+| one controller from markdown in resources/legal/. The footer links the
+| full set from every public page; `/affiliate-terms` ships with the
+| affiliate program at P2 (§17.7).
+*/
+Route::get('/terms', [LegalController::class, 'show'])->defaults('page', 'terms')->name('legal.terms');
+Route::get('/privacy', [LegalController::class, 'show'])->defaults('page', 'privacy')->name('legal.privacy');
+Route::get('/license', [LegalController::class, 'show'])->defaults('page', 'license')->name('legal.license');
+Route::get('/refund-policy', [LegalController::class, 'show'])->defaults('page', 'refund-policy')->name('legal.refund-policy');
+Route::get('/cookie-policy', [LegalController::class, 'show'])->defaults('page', 'cookie-policy')->name('legal.cookie-policy');
+Route::get('/copyright', [LegalController::class, 'show'])->defaults('page', 'copyright')->name('legal.copyright');
+Route::get('/legal-notice', [LegalController::class, 'show'])->defaults('page', 'legal-notice')->name('legal.legal-notice');
 
 /*
 | Blog (SPEC §13.1, §15.1): index, article and category pages plus the RSS

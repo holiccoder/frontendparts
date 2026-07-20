@@ -27,13 +27,16 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 interface NewTicketProps {
     categories: Record<string, string>;
+    presetCategory: string | null;
 }
 
 /**
  * New support ticket (SPEC §13.3, CSR): subject, category and the opening
- * message with optional attachments (private disk, max 3 × 5 MB).
+ * message with optional attachments (private disk, max 3 × 5 MB). The
+ * category may be preselected via `?category=` so public pages can
+ * deep-link the right queue (SPEC §9/§15.7 — copyright → takedown).
  */
-export default function NewTicket({ categories }: NewTicketProps) {
+export default function NewTicket({ categories, presetCategory }: NewTicketProps) {
     const { data, setData, post, processing, errors } = useForm<{
         subject: string;
         category: string;
@@ -41,7 +44,7 @@ export default function NewTicket({ categories }: NewTicketProps) {
         attachments: File[];
     }>({
         subject: '',
-        category: '',
+        category: presetCategory ?? '',
         body: '',
         attachments: [],
     });

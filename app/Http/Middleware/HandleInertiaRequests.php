@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Services\Billing\EntitlementService;
+use App\Services\Legal\LegalPages;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
@@ -52,6 +53,10 @@ class HandleInertiaRequests extends Middleware
                 // a Free entitlement, so this is always populated.
                 'entitlements' => fn (): array => $this->entitlements($request),
             ],
+            // Footer legal links (SPEC §15.7): every public page's footer
+            // renders the full seven from the LegalPages registry, so the
+            // sitemap, routes and footer can never drift apart.
+            'legalNav' => fn (): array => app(LegalPages::class)->navigation(),
             // Shared explicitly so the SSR bundle (no @routes script) can
             // build Ziggy's route() helper from page props.
             'ziggy' => fn (): array => [

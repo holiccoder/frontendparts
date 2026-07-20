@@ -48,10 +48,16 @@ class TicketController extends Controller
         ]);
     }
 
-    public function create(): Response
+    /**
+     * Create form. `?category=` preselects a category so public pages can
+     * deep-link straight into the right queue — the copyright page points
+     * rights holders at `?category=takedown` (SPEC §9, §15.7).
+     */
+    public function create(Request $request): Response
     {
         return Inertia::render('dashboard/tickets/new', [
             'categories' => TicketCategory::options(),
+            'presetCategory' => TicketCategory::tryFrom((string) $request->query('category', ''))?->value,
         ]);
     }
 

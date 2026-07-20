@@ -17,6 +17,7 @@ const FOOTER_COLUMNS = [
         links: [
             { label: 'All components', href: '/components' },
             { label: 'Industries', href: '/industries' },
+            { label: 'Search', href: '/search' },
         ],
     },
     {
@@ -27,23 +28,16 @@ const FOOTER_COLUMNS = [
             { label: 'Pricing', href: '/pricing' },
         ],
     },
-    {
-        title: 'Legal',
-        links: [
-            { label: 'Terms', href: '#' },
-            { label: 'Privacy', href: '#' },
-            { label: 'License', href: '#' },
-            { label: 'Refund policy', href: '#' },
-        ],
-    },
 ];
 
 /**
  * Marketing shell for the public SSR zone: light, generous whitespace,
- * explicit neutral palette so the theme toggle never affects it.
+ * explicit neutral palette so the theme toggle never affects it. The Legal
+ * footer column renders the shared `legalNav` prop (SPEC §15.7) so all
+ * seven legal pages are linked from every public page.
  */
 export default function PublicLayout({ children }: PropsWithChildren) {
-    const { auth } = usePage<SharedData>().props;
+    const { auth, legalNav } = usePage<SharedData>().props;
 
     return (
         <div className="flex min-h-screen flex-col bg-white text-neutral-900 antialiased">
@@ -125,6 +119,19 @@ export default function PublicLayout({ children }: PropsWithChildren) {
                                 </ul>
                             </div>
                         ))}
+
+                        <div>
+                            <h3 className="text-sm font-semibold">Legal</h3>
+                            <ul className="mt-4 space-y-2.5">
+                                {legalNav.map((link) => (
+                                    <li key={link.url}>
+                                        <Link href={link.url} className="text-sm text-neutral-500 transition hover:text-neutral-900">
+                                            {link.title}
+                                        </Link>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
                     </div>
 
                     <div className="mt-12 border-t border-neutral-200 pt-6 text-sm text-neutral-400">
