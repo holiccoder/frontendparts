@@ -240,15 +240,15 @@
 
 ## 2.10 Lifecycle email engine (SPEC §16)
 
-- [ ] **2.10.1 Sequence engine** — daily scheduled command; sequence definitions with day offsets; per-user progress tracking (no duplicates, idempotent); sends respect preferences (SPEC §16.2).
+- [x] **2.10.1 Sequence engine** — daily scheduled command; sequence definitions with day offsets; per-user progress tracking (no duplicates, idempotent); sends respect preferences (SPEC §16.2).
   - Acceptance: `Notifications/SequenceEngineTest::test_b1_day2_sent_only_to_users_registered_2_days_ago`, `test_idempotent_no_duplicate_sends`, `test_sequence_respects_opt_out`, `test_unsubscribed_user_gets_transactional_only`.
-- [ ] **2.10.2 Preference center** — `/settings/notifications`: digest/blog/product-updates individually opt-out; transactional mandatory; signed one-click unsubscribe links (SPEC §16.3).
+- [x] **2.10.2 Preference center** — `/settings/notifications`: digest/blog/product-updates individually opt-out; transactional mandatory; signed one-click unsubscribe links (SPEC §16.3).
   - Acceptance: `Settings/NotificationPreferenceTest::test_preference_page_updates_flags`, `test_signed_unsubscribe_link_opts_out`, `test_invalid_signature_rejected`, `test_transactional_not_disabled`.
-- [ ] **2.10.3 Sequences B1–B4** — B1 free onboarding drip (Day 0/2/4/7/12) · B2 upgrade trigger (≥3 blur-gate hits/week 🟡) · B3 paid onboarding (Day 0/3/7) · B4 new-drops digest (weekly/monthly opt-in, merges blog highlights) (SPEC §16.2).
+- [x] **2.10.3 Sequences B1–B4** — B1 free onboarding drip (Day 0/2/4/7/12) · B2 upgrade trigger (≥3 blur-gate hits/week 🟡) · B3 paid onboarding (Day 0/3/7) · B4 new-drops digest (weekly/monthly opt-in, merges blog highlights) (SPEC §16.2).
   - Acceptance: `Notifications/SequencesTest::test_b1_full_drip_schedule` (time-travel each offset), `test_b2_triggered_at_3_gate_events_within_week`, `test_b3_paid_onboarding_schedule`, `test_b4_digest_contains_new_components_and_blog_posts`, `test_b4_respects_weekly_vs_monthly_choice`.
-- [ ] **2.10.4 Dunning B6 + cancel flow B7** — dunning: 5 touches/15 days deep-linking update-payment (target 25–35% recovery); cancel: required 1-question exit survey → reason-mapped save offer → confirmation with access-until date + reactivation link → Day 7 reactivation → Day 30 win-back (SPEC §16.2).
+- [x] **2.10.4 Dunning B6 + cancel flow B7** — dunning: 5 touches/15 days deep-linking update-payment (target 25–35% recovery); cancel: required 1-question exit survey → reason-mapped save offer → confirmation with access-until date + reactivation link → Day 7 reactivation → Day 30 win-back (SPEC §16.2).
   - Acceptance: `Notifications/DunningTest::test_five_touch_schedule_on_past_due`, `test_every_mail_links_update_payment_page`, `test_stops_on_recovery`; `Billing/CancelFlowTest::test_survey_required_before_cancel`, `test_save_offer_mapped_to_each_reason`, `test_confirmation_contains_access_until_and_reactivation_link`, `test_day7_and_day30_followups_scheduled`.
-- [ ] **2.10.5 Filament notification log** — full log of sent notifications + resend action (SPEC §16.3).
+- [x] **2.10.5 Filament notification log** — full log of sent notifications + resend action (SPEC §16.3).
   - Acceptance: `Admin/NotificationLogTest::test_log_lists_sent_notifications`, `test_resend_action_requeues`.
 
 ## 2.11 Legal pages
