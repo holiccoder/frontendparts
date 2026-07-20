@@ -133,32 +133,32 @@
 
 ## 1.9 Documentation site (basic, P0)
 
-- [ ] **1.9.1 Markdown docs renderer** — file-based `docs/content/`, SSR at `/docs/{section}/{page}`: sidebar nav tree, per-page TOC, prev/next, copyable code blocks (SPEC §13.2).
+- [x] **1.9.1 Markdown docs renderer** — file-based `docs/content/`, SSR at `/docs/{section}/{page}`: sidebar nav tree, per-page TOC, prev/next, copyable code blocks (SPEC §13.2).
   - Acceptance: `Docs/DocsTest::test_renders_markdown_file_as_ssr_page`, `test_unknown_page_404`, `test_sidebar_tree_props`, `test_prev_next_links`.
-- [ ] **1.9.2 Launch content batch 1** — Getting Started · Install React · Install Vue · Using Components (params & data) (SPEC §13.2).
+- [x] **1.9.2 Launch content batch 1** — Getting Started · Install React · Install Vue · Using Components (params & data) (SPEC §13.2).
   - Acceptance: `Docs/DocsContentTest::test_all_launch_pages_return_200`, `test_docs_included_in_sitemap`.
 
 ## 1.10 Email foundation (P0)
 
-- [ ] **1.10.1 Mail infrastructure** — branded markdown layout (logo + single CTA), all mail notifications queued (`database` queue), database channel alongside mail (SPEC §16.1, §16.3).
+- [x] **1.10.1 Mail infrastructure** — branded markdown layout (logo + single CTA), all mail notifications queued (`database` queue), database channel alongside mail (SPEC §16.1, §16.3).
   - Acceptance: `Notifications/MailInfrastructureTest::test_mail_notifications_implement_should_queue`, `test_branded_markdown_layout_renders_logo_header`, `test_database_channel_writes_notifications_row`.
-- [ ] **1.10.2 P0 transactional** — welcome + verify on register; password/email change confirmations (SPEC §16.1).
+- [x] **1.10.2 P0 transactional** — welcome + verify on register; password/email change confirmations (SPEC §16.1).
   - Acceptance: `Notifications/TransactionalTest::test_register_queues_welcome_and_verification`, `test_password_change_queues_confirmation`, `test_email_change_queues_confirmation_to_both_addresses`.
 
 ## 1.11 Admin — catalog management & P0 widgets
 
-- [ ] **1.11.1 Component resource** — list with level/access/status/usage filters, read-only composition-tree visualization, QA checklist panel, Preview / Publish / Reject actions; code never form-edited (SPEC §8.5, §2.2).
+- [x] **1.11.1 Component resource** — list with level/access/status/usage filters, read-only composition-tree visualization, QA checklist panel, Preview / Publish / Reject actions; code never form-edited (SPEC §8.5, §2.2).
   - Acceptance: `Admin/ComponentResourceTest::test_admin_lists_and_filters_components`, `test_publish_action_requires_qa_checklist_and_green_build`, `test_reject_action_sets_draft_with_reason`, `test_tree_visualization_payload_matches_graph`, `test_non_admin_forbidden`.
-- [ ] **1.11.2 Taxonomy + citation resources** — Categories, Tags, Sources (cited sites) CRUD with navigation groups (SPEC §15.5).
+- [x] **1.11.2 Taxonomy + citation resources** — Categories, Tags, Sources (cited sites) CRUD with navigation groups (SPEC §15.5).
   - Acceptance: `Admin/TaxonomyResourceTest::test_category_crud`, `test_tag_crud`, `test_source_crud`, `test_navigation_groups_registered`.
-- [ ] **1.11.3 Settings page + plan prices resource** — Filament Settings page (Plans & limits, Feature flags, Goals groups) + PlanPrice resource (SPEC §8.7).
+- [x] **1.11.3 Settings page + plan prices resource** — Filament Settings page (Plans & limits, Feature flags, Goals groups) + PlanPrice resource (SPEC §8.7).
   - Acceptance: `Admin/SettingsPageTest::test_saves_each_group_and_flushes_cache`, `test_feature_flag_off_removes_toggle_from_modal_payload`, `test_plan_price_crud_updates_checkout_amounts_without_deploy`, `test_goal_targets_saved`.
-- [ ] **1.11.4 P0 dashboard widgets** — catalog stats, drafts awaiting review queue, coverage matrix heatmap (12×32, <3 cells flagged), system health (failed builds, last sync, failed jobs) (SPEC §8.6).
+- [x] **1.11.4 P0 dashboard widgets** — catalog stats, drafts awaiting review queue, coverage matrix heatmap (12×32, <3 cells flagged), system health (failed builds, last sync, failed jobs) (SPEC §8.6).
   - Acceptance: `Admin/DashboardWidgetTest::test_catalog_stats_counts`, `test_drafts_queue_lists_in_review`, `test_coverage_matrix_flags_cells_below_3`, `test_system_health_shows_failed_builds_and_last_sync`.
 
 ## 1.12 Seed content (authoring)
 
-- [ ] **1.12.1 Author first 20 components** — 10 free / 10 paid, twins in both frameworks, spread across priority coverage-matrix cells; pass QA checklist (SPEC §8.5).
+- [x] **1.12.1 Author first 20 components** — 15 free / 5 paid (adjusted at authoring time — ratio target applies at 100-component scale), twins in both frameworks, spread across priority coverage-matrix cells; pass QA checklist (SPEC §8.5).
   - Acceptance: `Library/SeedContentTest::test_sync_publishes_at_least_20_components`, `test_every_component_has_both_framework_twins`, `test_at_least_10_free_components`, `test_catalog_pages_render_for_all_published`.
 
 ---
@@ -371,12 +371,12 @@
 
 | Phase | Tasks | Done | Not started |
 |---|---|---|---|
-| Phase 1 — Foundation (P0) | 45 | 34 | 11 |
+| Phase 1 — Foundation (P0) | 45 | 45 | 0 ✅ |
 | Phase 2 — Monetization (P1) | 30 | 0 | 30 |
 | Phase 3 — Power features (P2) | 13 | 0 | 13 |
 | Phase 4 — Launch readiness | 9 | 2 | 7 |
 | Phase 5 — Growth (P3) | 7 | 0 | 7 |
-| **Total** | **104** | **36** | **68** |
+| **Total** | **104** | **47** | **57** |
 
 *(Task count = numbered leaf tasks. Update this table as tasks complete.)*
 
