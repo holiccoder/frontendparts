@@ -44,6 +44,7 @@ class Settings extends Page
         'billing_refund_window_days' => 'billing.refund_window_days',
         'features_preview_dark_toggle' => 'features.preview_dark_toggle',
         'features_tree_interactions' => 'features.tree_interactions',
+        'features_live_edit' => 'features.live_edit',
         'goals_launch_component_target' => 'goals.launch_component_target',
         'goals_components_per_month' => 'goals.components_per_month',
         'goals_organic_visits_monthly' => 'goals.organic_visits_monthly',
@@ -64,7 +65,7 @@ class Settings extends Page
     {
         $settings = app(PlatformSettings::class);
 
-        $state = ['features_live_edit' => $settings->get('features.live_edit')];
+        $state = [];
 
         foreach (self::FIELD_MAP as $field => $key) {
             $state[$field] = $settings->get($key);
@@ -113,8 +114,7 @@ class Settings extends Page
                                 ->label('Tree interactions (pin, navigate, scroll-to, keyboard)'),
                             Toggle::make('features_live_edit')
                                 ->label('Live-edit mode')
-                                ->disabled()
-                                ->hint('Ships in Phase 3'),
+                                ->helperText('In-browser Edit tab (React) in the preview modal. Phase 3.1.'),
                         ]),
                     Section::make('Goals')
                         ->description('Targets surfaced on the admin dashboard as target-vs-actual tracking.')

@@ -49,6 +49,25 @@ export interface ComponentFile {
     code: string;
 }
 
+/** Live edit (SPEC §5.6): one virtual source file of the edit payload. */
+export type LiveEditFile = ComponentFile;
+
+/** Live edit (SPEC §5.6, §2.5): per-framework client-bundler payload. */
+export interface LiveEditFrameworkPayload {
+    /** Full slug of the component being edited (e.g. `sections/pricing-01`). */
+    entry: string;
+    /** The full composition closure: parent + children, library-relative paths. */
+    files: LiveEditFile[];
+    /** Sample-data modules keyed by component slug. */
+    data: Record<string, Record<string, unknown>>;
+    /** Logical dep → registry-pinned `package@version` for esm.sh. */
+    deps: Record<string, string | null>;
+}
+
+export interface LiveEditPayload {
+    react?: LiveEditFrameworkPayload;
+}
+
 export interface TreeNode {
     slug: string;
     basename: string;
@@ -80,6 +99,7 @@ export interface ComponentDetailData {
     features: {
         dark_toggle: boolean;
         tree_interactions: boolean;
+        live_edit: boolean;
     };
     citation: {
         source_name: string | null;
@@ -104,6 +124,8 @@ export interface ComponentDetailData {
     tree: TreeNode;
     related: ComponentCardData[];
     og_image: string | null;
+    /** Present only when features.live_edit is on AND the reader is entitled. */
+    edit?: LiveEditPayload;
 }
 
 export interface PageMeta {

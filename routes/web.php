@@ -12,6 +12,7 @@ use App\Http\Controllers\ComponentApiController;
 use App\Http\Controllers\ComponentController;
 use App\Http\Controllers\ComponentCopyController;
 use App\Http\Controllers\ComponentDownloadController;
+use App\Http\Controllers\ComponentEditDownloadController;
 use App\Http\Controllers\ComponentPreviewController;
 use App\Http\Controllers\Dashboard\DashboardController;
 use App\Http\Controllers\Dashboard\OrdersController;
@@ -62,6 +63,17 @@ Route::post('/components/{usage}/{slug}/copy', ComponentCopyController::class)
     ->where('slug', '[a-z0-9\-]+')
     ->middleware('throttle:30,1')
     ->name('components.copy');
+
+/*
+| Instant download of live-edit sources (SPEC §5.6): the edit tab's edited
+| files zipped verbatim — no server-side build. Feature-flagged inside the
+| controller (404 while features.live_edit is off).
+*/
+Route::post('/components/{usage}/{slug}/edit-download', ComponentEditDownloadController::class)
+    ->where('usage', '[a-z0-9\-]+')
+    ->where('slug', '[a-z0-9\-]+')
+    ->middleware('throttle:10,1')
+    ->name('components.edit-download');
 
 Route::get('/industries', [IndustryController::class, 'index'])->name('industries.index');
 

@@ -33,6 +33,13 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->validateCsrfTokens(except: [
             'paddle/webhook',
         ]);
+
+        // Live-edit downloads (SPEC §5.6) zip the user's edited sources
+        // verbatim — trimming would silently strip edge whitespace (e.g. a
+        // file's trailing newline) from the posted code.
+        $middleware->trimStrings(except: [
+            'files.*.code',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         // Branded 404 (SPEC §15.1): web requests get the SSR Inertia error

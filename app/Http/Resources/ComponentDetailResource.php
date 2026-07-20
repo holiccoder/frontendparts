@@ -7,6 +7,7 @@ use App\Models\Component;
 use App\Services\Billing\EntitlementService;
 use App\Services\Catalog\ComponentContent;
 use App\Services\Catalog\CompositionTree;
+use App\Services\Catalog\LiveEditPayload;
 use App\Support\Settings;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -48,7 +49,15 @@ class ComponentDetailResource extends JsonResource
             ->limit(6)
             ->get();
 
-        return [
+        // Blur-gate (SPEC §5.4): paid components lock their Code/Data
+        // tabs behind a full-library plan entitlement (Starter/Pro);
+        // free components are always entitled.
+        $entitled = $this->access_level === AccessLevel::Free
+            || app(EntitlementService::class)->for($request->user())->hasFullLibrary();
+
+        $liveEdit = (bool) app(Settings::class)->get('features.live_edit');
+
+        $payload = [
             'id' => $this->id,
             'slug' => $this->slug,
             'basename' => $this->basename,
@@ -67,14 +76,11 @@ class ComponentDetailResource extends JsonResource
                 ->values()
                 ->all(),
             'access' => $this->access_level->value,
-            // Blur-gate (SPEC §5.4): paid components lock their Code/Data
-            // tabs behind a full-library plan entitlement (Starter/Pro);
-            // free components are always entitled.
-            'entitled' => $this->access_level === AccessLevel::Free
-                || app(EntitlementService::class)->for($request->user())->hasFullLibrary(),
+            'entitled' => $entitled,
             'features' => [
                 'dark_toggle' => (bool) app(Settings::class)->get('features.preview_dark_toggle'),
                 'tree_interactions' => (bool) app(Settings::class)->get('features.tree_interactions'),
+                'live_edit' => $liveEdit,
             ],
             'citation' => [
                 'source_name' => $this->source_name,
@@ -97,6 +103,19 @@ class ComponentDetailResource extends JsonResource
             'related' => ComponentCardResource::collection($related)->resolve($request),
             'og_image' => $this->screenshotUrl('react', 1280),
         ];
+
+        // Live edit (SPEC §5.6): the Edit tab's client-side bundler payload
+        // rides the same modal payload, but only while the feature is on AND
+        // the reader is entitled to sources — locked components get the tab's
+        // blur-gate state (via features.live_edit + entitled) without ever
+        // shipping closure code to the client.
+        if ($liveEdit && $entitled) {
+            $payload['edit'] = [
+                'react' => app(LiveEditPayload::class)->react($this->resource),
+            ];
+        }
+
+        return $payload;
     }
 
     /**

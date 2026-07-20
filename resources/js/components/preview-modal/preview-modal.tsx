@@ -1,15 +1,20 @@
 import { cn } from '@/lib/utils';
 import type { ComponentDetailData, Framework } from '@/types/catalog';
 import { ArrowLeftRight, ExternalLink } from 'lucide-react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { ModalHeader } from './modal-header';
 import { ModalToolbar, WIDTH_PRESETS } from './modal-toolbar';
 import { StructureTree, type HighlightPin } from './structure-tree';
 import { CodeTab, DataTab, DocsTab, GatedContent } from './tab-panels';
 import { usePreviewLayout } from './use-preview-layout';
 
-const TABS = ['Preview', 'Code', 'Data', 'Docs'] as const;
-type Tab = (typeof TABS)[number];
+/* Live edit (SPEC §5.6): the Edit tab and its esbuild-wasm runtime are
+ * lazy-loaded on first Edit click and cached after — they never land in
+ * the main bundle. */
+const EditTab = lazy(() => import('./edit-tab'));
+
+const BASE_TABS = ['Preview', 'Code', 'Data', 'Docs'] as const;
+type Tab = (typeof BASE_TABS)[number] | 'Edit';
 
 const MIN_STAGE_WIDTH = 320;
 
@@ -49,6 +54,11 @@ export function PreviewModal({ component, initialFramework, variant, onClose, cl
 
     const previewUrl = component.previews[framework] ?? component.previews.react ?? component.previews.vue;
     const interactions = component.features.tree_interactions;
+
+    /* The Edit tab exists whenever the feature flag is on; with a locked
+     * (unentitled) component it renders the same blur-gate state as the
+     * Code/Data tabs — the edit payload is simply absent from the JSON. */
+    const tabs: Tab[] = component.features.live_edit ? [...BASE_TABS, 'Edit'] : [...BASE_TABS];
 
     /* ------------------------------------------------------------------ */
     /* postMessage protocol (SPEC §5.3) — parent side                      */
@@ -324,7 +334,7 @@ export function PreviewModal({ component, initialFramework, variant, onClose, cl
 
             <div className="border-b border-neutral-200 px-6">
                 <div className="flex gap-1" role="tablist" aria-label="Component detail tabs">
-                    {TABS.map((candidate) => (
+                    {tabs.map((candidate) => (
                         <button
                             key={candidate}
                             type="button"
@@ -391,6 +401,33 @@ export function PreviewModal({ component, initialFramework, variant, onClose, cl
                 )}
 
                 {tab === 'Docs' && <DocsTab component={component} />}
+
+                {tab === 'Edit' && (
+                    <GatedContent entitled={component.entitled}>
+                        {component.edit?.react ? (
+                            <>
+                                {framework === 'vue' && (
+                                    <p className="mb-3 rounded-lg border border-neutral-200 bg-neutral-50 px-4 py-2 text-xs text-neutral-500">
+                                        Live edit is React-only for now (Vue arrives with Phase 3.2) — you’re editing the React sources.
+                                    </p>
+                                )}
+                                <Suspense
+                                    fallback={
+                                        <div className="space-y-4" aria-busy="true">
+                                            <div className="h-8 w-2/3 animate-pulse rounded-md bg-neutral-100" />
+                                            <div className="h-[560px] animate-pulse rounded-xl bg-neutral-100" />
+                                        </div>
+                                    }
+                                >
+                                    <EditTab component={component} darkMode={darkMode} />
+                                </Suspense>
+                            </>
+                        ) : (
+                            /* Locked (unentitled): decor behind the blur-gate overlay. */
+                            <div className="h-[560px] rounded-xl border border-neutral-200 bg-neutral-50" />
+                        )}
+                    </GatedContent>
+                )}
             </div>
         </section>
     );

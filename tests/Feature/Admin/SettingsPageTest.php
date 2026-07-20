@@ -39,6 +39,7 @@ class SettingsPageTest extends TestCase
                 'billing_refund_window_days' => 30,
                 'features_preview_dark_toggle' => false,
                 'features_tree_interactions' => false,
+                'features_live_edit' => true,
                 'goals_launch_component_target' => 120,
                 'goals_components_per_month' => 25,
                 'goals_organic_visits_monthly' => 20000,
@@ -61,6 +62,7 @@ class SettingsPageTest extends TestCase
         // Feature flags
         $this->assertFalse($settings->get('features.preview_dark_toggle'));
         $this->assertFalse($settings->get('features.tree_interactions'));
+        $this->assertTrue($settings->get('features.live_edit'));
 
         // Goals
         $this->assertSame(120, $settings->get('goals.launch_component_target'));
