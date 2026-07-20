@@ -33,6 +33,7 @@ class Component extends Model
         'source_name',
         'source_url',
         'deps',
+        'source_hash',
     ];
 
     /**

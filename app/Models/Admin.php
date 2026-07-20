@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Database\Factories\AdminFactory;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -10,7 +11,7 @@ use Illuminate\Notifications\Notifiable;
 
 class Admin extends Authenticatable implements FilamentUser
 {
-    /** @use HasFactory<\Database\Factories\AdminFactory> */
+    /** @use HasFactory<AdminFactory> */
     use HasFactory, Notifiable;
 
     /**

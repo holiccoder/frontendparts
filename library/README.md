@@ -70,6 +70,46 @@ cd library/vue   && npm install && npm run dev
 Resolution lives in `src/lib/registry.ts` in each app (`import.meta.glob` over
 `src/components/**/index.{tsx,vue}` + `data.json`).
 
+## Composition: imports become child edges
+
+The composition graph is **derived from code, never declared by hand** (SPEC §2.2).
+`library:sync` statically parses the ES `import` statements in each `index.tsx` /
+`index.vue`:
+
+- Relative imports (`./…`, `../…`) resolve against the importing file, and the `@/`
+  alias resolves to the app's `src/` directory.
+- An import that resolves **into another component directory** (a `{level}/{slug}`
+  folder containing `params.json`) registers a **child edge** — e.g. from
+  `sections/pricing-section-01/index.tsx`, `import PricingCard from
+  '../../blocks/pricing-card-01'` makes `blocks/pricing-card-01` a child.
+- npm packages, CSS, and anything outside `src/components` are ignored.
+
+Hard rules enforced at sync time:
+
+- **No cycles** — `A → B → A` fails the import with the cycle path in the error.
+- **Max nesting depth 10** (root = depth 1); an 11-deep chain is rejected.
+- **Shared children are deduplicated** — two parents importing the same slug
+  reference one component record.
+
+## Composition data: the `children` slice convention
+
+A composite's `data.json` may carry a reserved `children` key mapping **child slug →
+object or array of objects** (SPEC §3.3). Code passes each slice down as props, and
+`library:sync` validates every slice against the child's own `params.json` schema —
+a mismatch fails the import naming the child and the offending param:
+
+```json
+{
+    "heading": "Simple, transparent pricing",
+    "children": {
+        "pricing-card-01": [
+            { "plan": "Starter", "price": 9 },
+            { "plan": "Pro", "price": 29 }
+        ]
+    }
+}
+```
+
 ## Dependency registry (`deps.registry.json`)
 
 SPEC §2.5 three-tier policy: components are zero-dep by default (React/Vue + Tailwind
