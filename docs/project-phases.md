@@ -231,11 +231,11 @@
 
 ## 2.9 Support ticketing
 
-- [ ] **2.9.1 Ticket schema + user side (CSR)** — `support_tickets` (category enum `billing|technical|license|takedown|other`, status `open|pending|resolved|closed`) + `support_ticket_messages` (author type, attachments); dashboard pages `/dashboard/tickets`, `/new`, `/{id}` threaded replies (SPEC §13.3).
+- [x] **2.9.1 Ticket schema + user side (CSR)** — `support_tickets` (category enum `billing|technical|license|takedown|other`, status `open|pending|resolved|closed`) + `support_ticket_messages` (author type, attachments); dashboard pages `/dashboard/tickets`, `/new`, `/{id}` threaded replies (SPEC §13.3).
   - Acceptance: `Support/TicketUserTest::test_create_ticket_with_category`, `test_threaded_reply_appends`, `test_only_own_tickets_visible`, `test_create_rate_limited`, `test_status_flow_transitions_valid_only`.
-- [ ] **2.9.2 Filament ticket inbox** — status/category filters, reply UI, order context attached to billing tickets (SPEC §13.3).
+- [x] **2.9.2 Filament ticket inbox** — status/category filters, reply UI, order context attached to billing tickets (SPEC §13.3).
   - Acceptance: `Admin/TicketInboxTest::test_admin_filters_by_status_and_category`, `test_admin_reply_sets_pending`, `test_billing_ticket_shows_order_context`, `test_resolve_action`.
-- [ ] **2.9.3 Ticket email notifications** — created → admin; admin reply → user; resolved → user; thread link in every mail (SPEC §16.1).
+- [x] **2.9.3 Ticket email notifications** — created → admin; admin reply → user; resolved → user; thread link in every mail (SPEC §16.1).
   - Acceptance: `Notifications/TicketMailTest::test_new_ticket_notifies_admin`, `test_admin_reply_notifies_user`, `test_resolved_notifies_user`, `test_mails_contain_thread_link`.
 
 ## 2.10 Lifecycle email engine (SPEC §16)
