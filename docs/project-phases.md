@@ -203,9 +203,9 @@
 
 ## 2.5 Pack zip export
 
-- [ ] **2.5.1 Zip assembly** — `components/` by level (full transitive closure) + `data/` + merged `package.json` dependency snippet (deps resolved + deduped via registry) + Tailwind setup notes + README (SPEC §6.2, §2.4–2.5).
+- [x] **2.5.1 Zip assembly** — `components/` by level (full transitive closure) + `data/` + merged `package.json` dependency snippet (deps resolved + deduped via registry) + Tailwind setup notes + README (SPEC §6.2, §2.4–2.5).
   - Acceptance: `Projects/PackZipTest::test_zip_contains_full_closure_by_level`, `test_data_folder_present`, `test_merged_package_json_dedupes_closure_deps`, `test_readme_and_tailwind_notes_present`, `test_framework_chosen_at_export`.
-- [ ] **2.5.2 Queued export + download + event** — zip built by queued job, stored, streamed; `download` event recorded (SPEC §10.3 NFR-4, §8.6).
+- [x] **2.5.2 Queued export + download + event** — zip built by queued job, stored, streamed; `download` event recorded (SPEC §10.3 NFR-4, §8.6).
   - Acceptance: `Projects/PackZipTest::test_export_dispatches_job_and_streams_zip`, `test_download_event_recorded`.
 
 ## 2.6 User dashboard (CSR)
