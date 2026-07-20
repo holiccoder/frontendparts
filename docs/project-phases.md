@@ -321,6 +321,25 @@
 - [ ] **3.8.1 Downloads & popularity widgets** — downloads 30d (components + zips + scaffolds), top components (views + downloads), projects tracking (SPEC §8.6).
   - Acceptance: `Admin/PopularityWidgetTest::test_top_components_from_component_events`, `test_downloads_30d_aggregation`.
 
+## 3.9 Affiliate program (SPEC §17)
+
+- [ ] **3.9.1 Data model + settings** — `affiliates`, `affiliate_referrals`, `affiliate_commissions` (+payout pivot), `affiliate_payouts` tables; settings keys `affiliate.*` (commission_rate 30, cookie_days 30, recurring_months 12, holding_days 30, payout_threshold 50) (SPEC §17.2–17.3).
+  - Acceptance: `Affiliate/AffiliateModelTest::test_affiliate_code_unique_per_user`, `test_commission_status_enum_and_unique_order`, `test_settings_defaults_registered`.
+- [ ] **3.9.2 Referral tracking** — `/r/{code}` records click + sets 30d cookie + 301s to target; signup links referral to the new user; invalid code redirects silently (SPEC §17.1).
+  - Acceptance: `Affiliate/ReferralTrackingTest::test_click_recorded_and_cookie_set`, `test_signup_links_referral_to_user`, `test_invalid_code_redirects_without_recording`, `test_click_rate_limited`.
+- [ ] **3.9.3 Checkout attribution** — code passed as Paddle `custom_data` / domestic order meta; webhook links order → referral → affiliate (SPEC §17.1).
+  - Acceptance: `Affiliate/CheckoutAttributionTest::test_checkout_session_carries_referral_code`, `test_webhook_attributes_order_to_affiliate`, `test_order_without_code_unattributed`.
+- [ ] **3.9.4 Commission engine** — order paid → pending commission (rate × net); renewals within recurring window; refund/chargeback → voided; self-referral blocked; daily command flips eligible commissions to payable after refund window + holding (SPEC §17.2).
+  - Acceptance: `Affiliate/CommissionEngineTest::test_sale_creates_pending_commission_at_configured_rate`, `test_lifetime_one_time_vs_subscription_renewals_within_12_months`, `test_refund_voids_commission`, `test_self_referral_blocked`, `test_becomes_payable_after_refund_window_and_holding`.
+- [ ] **3.9.5 Affiliate dashboard (CSR)** — join flow (terms acceptance), overview stats, link card, commissions table, payout history, payout-method form (SPEC §17.4).
+  - Acceptance: `Affiliate/AffiliateDashboardTest::test_join_creates_affiliate_with_code`, `test_overview_props_clicks_signups_earnings`, `test_payout_method_saved`, `test_non_affiliate_sees_join_page`.
+- [ ] **3.9.6 Admin management** — Affiliates resource (suspend), Commissions (void), monthly payout batch ≥ threshold + mark-paid with reference (SPEC §17.5).
+  - Acceptance: `Admin/AffiliateAdminTest::test_batch_groups_payable_commissions_over_threshold`, `test_below_threshold_skipped`, `test_mark_paid_sets_commissions_paid`, `test_suspend_affiliate_stops_new_commissions`.
+- [ ] **3.9.7 Affiliate emails** — conversion credited, commission payable, payout sent (SPEC §17.6).
+  - Acceptance: `Notifications/AffiliateMailTest::test_conversion_credited_queued`, `test_payable_queued`, `test_payout_sent_queued`.
+- [ ] **3.9.8 Affiliate terms page** — `/affiliate-terms` SSR + indexed (FTC disclosure, no brand-bidding, clawbacks) + footer link + recorded terms acceptance at join (SPEC §17.7).
+  - Acceptance: `Legal/AffiliateTermsTest::test_terms_page_200_indexed`, `test_join_requires_terms_acceptance`.
+
 ---
 
 # Phase 4 — Launch Readiness & Ops
@@ -373,10 +392,10 @@
 |---|---|---|---|
 | Phase 1 — Foundation (P0) | 45 | 45 | 0 ✅ |
 | Phase 2 — Monetization (P1) | 30 | 0 | 30 |
-| Phase 3 — Power features (P2) | 13 | 0 | 13 |
+| Phase 3 — Power features (P2) | 21 | 0 | 21 |
 | Phase 4 — Launch readiness | 9 | 2 | 7 |
 | Phase 5 — Growth (P3) | 7 | 0 | 7 |
-| **Total** | **104** | **47** | **57** |
+| **Total** | **112** | **47** | **65** |
 
 *(Task count = numbered leaf tasks. Update this table as tasks complete.)*
 

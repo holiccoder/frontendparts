@@ -216,6 +216,19 @@ Per SPEC §16:
 - FR-13.4 **Preference center** at `/settings/notifications`: transactional mandatory; digest/blog/product-updates individually opt-out; one-click unsubscribe in every non-transactional mail (CAN-SPAM / GDPR / PIPL).
 - FR-13.5 Branded markdown templates (logo + single CTA); EN at launch, zh templates with domestic payments (P2). Filament: full notification log + resend action.
 
+### FR-14 Affiliate Program (P2)
+
+Per SPEC §17:
+
+- FR-14.1 Self-serve join with Affiliate Terms acceptance; unique referral code + `/r/{code}` tracked link (301 redirect, click recording, 30-day first-party cookie, last-click attribution).
+- FR-14.2 Signup attribution (referral ↔ user); checkout attribution via Paddle `custom_data` / domestic order meta so it survives cookie loss.
+- FR-14.3 Commission engine: settings-driven rate (default 30% of net), subscription renewals within 12 months, lifetime one-time; statuses `pending → payable → paid`; payable only after refund window + holding period; void on refund/chargeback; self-referral banned.
+- FR-14.4 Monthly payout batch for payable commissions ≥ threshold (default $50, CNY normalized); manual methods (PayPal/Wise), admin marks paid with reference.
+- FR-14.5 Affiliate dashboard (CSR): overview stats, link card, commissions, payout history, payout-method form, join flow.
+- FR-14.6 Admin (Filament): affiliates (suspend), commissions (void), payout batches, Affiliate settings group — all knobs admin-editable (§ SPEC 8.7).
+- FR-14.7 Emails: conversion credited, commission payable, payout sent.
+- FR-14.8 Affiliate Program Terms page (`/affiliate-terms`, SSR + indexed) linked from join flow and footer.
+
 ---
 
 ## 7. Data Model
@@ -237,6 +250,10 @@ Per SPEC §16:
 | `blogs` (+ extensions) | categories/tags, seo meta, related components | existing, extended |
 | `support_tickets` | user_id, subject, category, status | FR-10 |
 | `support_ticket_messages` | ticket_id, author_type, body, attachments | FR-10 |
+| `affiliates` | user_id, code, status, payout_method, terms_accepted_at | FR-14 |
+| `affiliate_referrals` | affiliate_id, referred_user_id?, clicked_at, ip/ua, converted_at? | FR-14 |
+| `affiliate_commissions` | affiliate_id, order_id, amount, status (pending/payable/paid/voided), payable_at? | FR-14 |
+| `affiliate_payouts` | affiliate_id, amount, status, method, reference?, paid_at? | FR-14 |
 
 Component source files, `params.json`, `data.json`, preview HTML artifacts, screenshots, and export zips live on disk/storage — not in the DB.
 
@@ -303,7 +320,7 @@ Existing code reused: User/Admin models, Blog scaffolding, Order model + enums (
 |---|---|---|
 | **P0 — Foundation** | Data model · taxonomy seed · `library:sync` + preview pipeline · catalog browse · preview modal (prebuilt) · structure tree · free copy/download · basic docs · auth/system emails + Day-0 welcome | 20+ components published; sync→preview→publish pipeline proven end-to-end |
 | **P1 — Monetization** | Projects · pack zip · Paddle checkout (all plans/periods incl. lifetime) · Blog · full Docs · Ticketing · order/ticket emails + lifecycle sequences (B1–B4, B6, B7) | First paid order end-to-end; gated components enforced |
-| **P2 — Power features** | Live-edit mode · Next/Nuxt scaffolding · GitHub export · domestic payments (Alipay/WeChat, CNY) · domestic renewal reminders (B5) + zh email templates | Scaffold generated + repo pushed from UI; domestic QR order end-to-end |
+| **P2 — Power features** | Live-edit mode · Next/Nuxt scaffolding · GitHub export · domestic payments (Alipay/WeChat, CNY) · domestic renewal reminders (B5) + zh email templates · affiliate program | Scaffold generated + repo pushed from UI; domestic QR order end-to-end |
 | **P3 — Growth** | Meilisearch · team tier · community submissions · AI features | post-launch planning |
 
 ---
@@ -321,6 +338,7 @@ Existing code reused: User/Admin models, Blog scaffolding, Order model + enums (
 | Lifetime cannibalizing subscriptions | MRR ceiling | Plan-mix donut monitored; reprice via `plan_prices` without deploy |
 | Paddle seller approval delayed/rejected | P1 payments blocked | Chinese citizens eligible via passport KYC (payouts via Wise/Payoneer) per 2026 guides, but apply during P0 — approval is discretionary; fallback: Lemon Squeezy / Polar (also MoR) |
 | Domestic merchant/ICP approval delays (Alipay/WeChat) | P2 domestic payments blocked | Entity + ICP filing workstream starts in P0 (4–8 wk lead); Paddle revenue unaffected in the meantime (SPEC §7.5) |
+| Affiliate fraud (self-referrals, cookie-stuffing, fake signups) | Margin leakage, chargebacks | Self-referral ban, click rate-limiting, holding period + refund clawback before payout, admin suspend, manual payout review (SPEC §17) |
 
 ---
 

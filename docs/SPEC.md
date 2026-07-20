@@ -560,6 +560,7 @@ Login · Register · Forgot/Reset password · Verify email · Confirm password
 | `/settings/profile` · `/password` · `/appearance` | Starter kit ✅ |
 | `/settings/connections` | GitHub OAuth connect/disconnect |
 | `/settings/notifications` | Email preference center (§16) |
+| `/dashboard/affiliate` (P2) | Affiliate program: join flow, stats, link, commissions, payouts (§17) |
 
 ### 15.5 Admin (Filament, `/admin`)
 
@@ -580,6 +581,7 @@ Dashboard (§8.6 widgets) · Components · Categories · Tags · Sources · User
 | Cookie Policy | `/cookie-policy` | EU ePrivacy; strictly-necessary vs analytics cookies | P1 |
 | **Copyright & Takedown Policy** | `/copyright` | **Critical for this product** — attribution statement (§9), recreate-don't-copy commitment, takedown request procedure + response SLA, links the `takedown` ticket category | P1 |
 | Legal Notice / Imprint | `/legal-notice` | Operator identity + contact (EU compliance, e.g. German §5 DDG); Paddle shown as MoR on invoices | P1 |
+| Affiliate Program Terms | `/affiliate-terms` | FTC-style disclosure duty, no brand-bidding/spam, clawback policy, payout terms (§17.7) | P2 |
 
 Notes: Paddle's own buyer terms appear at checkout/invoices (MoR) — site legal pages reference that relationship; all legal pages are SSR + indexed except where law requires otherwise; Chinese translations of Privacy/Terms recommended when domestic payments ship (P2).
 
@@ -627,6 +629,62 @@ Paddle (MoR) sends its own receipts/invoices — we never duplicate them.
 - **P2**: B5 + zh templates.
 - **P3**: behavioral personalization (B2-style triggers beyond blur-gate).
 
+---
+
+## 17. Affiliate Program 🔒 (structure) · 🟡 (knob defaults)
+
+Revenue-share referral program: affiliates send buyers through a tracked link and earn commission on qualifying purchases. All knobs are admin-editable in platform settings (§8.7); defaults below are 🟡 pending owner ruling.
+
+### 17.1 Flow
+
+1. Any registered user joins **self-serve** from the dashboard (accepts Affiliate Terms) → receives a unique referral code and link `https://frontendparts.com/r/{code}` 🟡 (open self-serve vs approval-required).
+2. The link **301-redirects** to the target page, records the click (ip, user agent, landing URL, timestamp), and sets a **30-day first-party cookie** 🟡.
+3. Referred visitor signs up → referral record linked to the new user.
+4. Purchase → checkout passes the code (Paddle `custom_data`; domestic: order meta) → the webhook attributes the order to the affiliate — attribution survives cookie loss at this point.
+5. Commission created `pending` → becomes `payable` after the **14-day refund window + 30-day holding period** → monthly payout batch pays `payable` commissions ≥ threshold 🟡 **$50**.
+6. Refund/chargeback any time before payout → commission `voided`.
+
+### 17.2 Mechanics (defaults 🟡)
+
+| Knob | Default | Setting key |
+|---|---|---|
+| Commission rate (% of net amount, excl. taxes) | **30%** | `affiliate.commission_rate` |
+| Subscription renewals earning commission | first **12 months** | `affiliate.recurring_months` |
+| Lifetime plans | one-time commission | — |
+| Attribution | **last-click**, 30-day cookie | `affiliate.cookie_days` |
+| Holding period (after refund window) | **30 days** | `affiliate.holding_days` |
+| Payout threshold | **$50** (CNY orders normalized via `fx.cny_to_usd`) | `affiliate.payout_threshold` |
+| Payout methods | PayPal / Wise (manual batch, admin marks paid); CN methods with domestic payments | — |
+| Self-referral | **banned** (same user or email) | hard rule |
+| Fraud controls | click rate-limiting, admin suspend, void-before-payout on refund/chargeback | hard rules |
+
+### 17.3 Data model
+
+- `affiliates`: id, user_id unique, code unique, status (`active | suspended`), payout_method json, terms_accepted_at, timestamps.
+- `affiliate_referrals`: id, affiliate_id, referred_user_id nullable (linked at signup), clicked_at, ip, user_agent, landing_url, converted_at nullable.
+- `affiliate_commissions`: id, affiliate_id, order_id, referral_id nullable, amount, currency, status (`pending | payable | paid | voided`), payable_at nullable, voided_reason nullable, timestamps; unique (order_id, affiliate_id).
+- `affiliate_payouts`: id, affiliate_id, amount, currency, status (`processing | paid | failed`), method json, reference nullable, paid_at, timestamps; pivot `affiliate_commission_payout` (a commission belongs to at most one payout).
+
+### 17.4 Affiliate dashboard (CSR, `/dashboard/affiliate`)
+
+Overview (clicks, signups, conversion rate, pending/payable/paid totals) · referral link + code card · commissions table · payout history + payout-method form · join flow with terms acceptance for non-affiliates.
+
+### 17.5 Admin (Filament)
+
+Affiliates resource (status, suspend) · Commissions table (status filters, void action) · Payouts: monthly batch generation (all `payable` ≥ threshold, grouped by affiliate), mark-paid with reference · Settings group **Affiliate** (all §17.2 knobs, per §8.7).
+
+### 17.6 Emails (§16 additions)
+
+Referral conversion credited · commission payable · payout sent — transactional, queued.
+
+### 17.7 Legal & compliance
+
+**Affiliate Program Terms** page (`/affiliate-terms`, 8th legal page): FTC-style disclosure requirement for affiliates, no paid brand-bidding, no spam/cookie-stuffing, clawback policy, payout terms. Linked from the join flow and footer.
+
+### 17.8 Phasing
+
+**P2 (Phase 3.9)** — built after the unified order state machine (Paddle P1 + domestic P2) so commissions work for both backends from day one; can slide to P3 if launch pressure requires 🟡.
+
 ## Change Log
 
 - **2026-07-19** — Initial compilation from design discussion (all modules)
@@ -641,3 +699,4 @@ Paddle (MoR) sends its own receipts/invoices — we never duplicate them.
 - **2026-07-19** — Legal pages expanded (§15.7): 7 must-have pages incl. Cookie Policy, Copyright & Takedown Policy (§9-critical), Legal Notice/Imprint; Privacy must cover GDPR + CCPA + PIPL
 - **2026-07-19** — Email & notifications locked (§16): transactional + 8 lifecycle sequences (onboarding drips, upgrade trigger, new-drops digest, renewal reminders, dunning, cancel/win-back, re-engagement), preference center at `/settings/notifications`, provider TBD (Resend/Postmark 🟡); phasing P0–P3
 - **2026-07-20** — Correction: §4.2's table enumerates **32** usage patterns (heading previously said 26); count fixed across SPEC/PRD/phases. Seeded taxonomy uses the verbatim 32-pattern table.
+- **2026-07-20** — Affiliate program added (§17): self-serve referral links, 30% default commission (12-month renewals / one-time lifetime), last-click 30-day attribution with checkout passthrough, pending→payable→paid with refund clawback, monthly payouts ≥ $50, affiliate dashboard + Filament management, 8th legal page. Structure 🔒, knob defaults 🟡. Ships as Phase 3.9 (P2).
