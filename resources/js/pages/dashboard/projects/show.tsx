@@ -1,12 +1,13 @@
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
-import { Download, Trash2, X } from 'lucide-react';
-import { FormEventHandler } from 'react';
+import { Download, Loader2, Trash2, X } from 'lucide-react';
+import { FormEventHandler, useEffect, useState } from 'react';
 
 import HeadingSmall from '@/components/heading-small';
 import InputError from '@/components/input-error';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem, type SharedData } from '@/types';
 
@@ -21,6 +22,13 @@ interface ProjectComponent {
     url: string;
 }
 
+interface ProjectExport {
+    id: number;
+    status: 'pending' | 'ready' | 'failed';
+    framework: string;
+    download_url: string | null;
+}
+
 interface ProjectShowProps {
     project: {
         id: number;
@@ -31,6 +39,7 @@ interface ProjectShowProps {
     export: {
         url: string;
         available: boolean;
+        latest: ProjectExport | null;
     };
 }
 
@@ -38,7 +47,8 @@ interface ProjectShowProps {
  * Project detail (SPEC §15.4, CSR): the component set with the dependency
  * view — direct picks are removable, auto-added closure members are marked
  * and follow the removal cascade (SPEC §6.1) — plus the pack-zip export
- * action (stub until 2.5).
+ * (SPEC §6.2): pick a framework, POST queues the build, and this page polls
+ * the `export` prop until the zip is ready to download.
  */
 export default function ProjectShow({ project, components, export: exportAction }: ProjectShowProps) {
     const { flash, errors: pageErrors } = usePage<SharedData & { flash?: { notice?: string | null } }>().props;
@@ -59,6 +69,20 @@ export default function ProjectShow({ project, components, export: exportAction 
     ];
 
     const renameForm = useForm({ name: project.name });
+
+    const [framework, setFramework] = useState<'react' | 'vue'>('react');
+
+    const building = exportAction.latest?.status === 'pending';
+
+    useEffect(() => {
+        if (!building) {
+            return;
+        }
+
+        const timer = setInterval(() => router.reload({ only: ['export'] }), 2500);
+
+        return () => clearInterval(timer);
+    }, [building]);
 
     const submitRename: FormEventHandler = (e) => {
         e.preventDefault();
@@ -85,7 +109,7 @@ export default function ProjectShow({ project, components, export: exportAction 
     };
 
     const exportProject = () => {
-        router.post(exportAction.url, {}, { preserveScroll: true });
+        router.post(exportAction.url, { framework }, { preserveScroll: true });
     };
 
     const direct = components.filter((component) => !component.is_dependency);
@@ -99,8 +123,17 @@ export default function ProjectShow({ project, components, export: exportAction 
                 <div className="flex flex-wrap items-start justify-between gap-4">
                     <HeadingSmall title={project.name} description="Your picks and the dependencies they pull in." />
                     <div className="flex items-center gap-2">
-                        <Button variant="outline" onClick={exportProject}>
-                            <Download className="size-4" />
+                        <Select value={framework} onValueChange={(value) => setFramework(value as 'react' | 'vue')}>
+                            <SelectTrigger className="w-28" aria-label="Export framework">
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="react">React</SelectItem>
+                                <SelectItem value="vue">Vue</SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <Button variant="outline" onClick={exportProject} disabled={building}>
+                            {building ? <Loader2 className="size-4 animate-spin" /> : <Download className="size-4" />}
                             Export zip
                         </Button>
                         <Button variant="destructive" onClick={destroyProject}>
@@ -110,11 +143,30 @@ export default function ProjectShow({ project, components, export: exportAction 
                     </div>
                 </div>
 
-                {!exportAction.available && (
+                {building && (
                     <p className="rounded-xl border border-dashed border-neutral-300 px-4 py-3 text-sm text-neutral-500 dark:border-neutral-700">
-                        Pack zip export is coming soon — the button above is already wired and will build your full component closure.
+                        Building your zip — components, sample data, dependencies and setup notes. The download link appears here when it's ready.
                     </p>
                 )}
+
+                {exportAction.latest?.status === 'ready' && exportAction.latest.download_url && (
+                    <p className="flex flex-wrap items-center gap-3 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800 dark:border-green-900 dark:bg-green-950 dark:text-green-200">
+                        Your {exportAction.latest.framework} pack is ready.
+                        <Button size="sm" asChild>
+                            <a href={exportAction.latest.download_url}>
+                                <Download className="size-4" />
+                                Download zip
+                            </a>
+                        </Button>
+                    </p>
+                )}
+
+                {exportAction.latest?.status === 'failed' && (
+                    <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 dark:border-red-900 dark:bg-red-950 dark:text-red-200">
+                        The export build failed — please try again.
+                    </p>
+                )}
+
                 <InputError message={pageErrors.export} />
 
                 {flash?.notice && (

@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * A user's project: a framework-agnostic set of catalog components
@@ -30,6 +31,14 @@ class Project extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Pack zip exports of this project (SPEC §6.2), newest first.
+     */
+    public function exports(): HasMany
+    {
+        return $this->hasMany(ProjectExport::class);
     }
 
     public function components(): BelongsToMany

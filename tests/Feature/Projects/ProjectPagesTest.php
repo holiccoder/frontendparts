@@ -4,12 +4,14 @@ namespace Tests\Feature\Projects;
 
 use App\Enums\OrderPlan;
 use App\Enums\OrderStatus;
+use App\Jobs\BuildProjectPackZip;
 use App\Models\Component;
 use App\Models\Order;
 use App\Models\Project;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Queue;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
@@ -17,7 +19,7 @@ use Tests\TestCase;
  * Dashboard project pages (SPEC §15.4, CSR zone): `/dashboard/projects` lists
  * the user's projects with plan-limit usage; `/dashboard/projects/{id}` shows
  * the component set with direct picks vs auto-added dependencies clearly
- * marked, plus the pack-zip export placeholder (2.5).
+ * marked, plus the pack-zip export action (SPEC §6.2).
  */
 class ProjectPagesTest extends TestCase
 {
@@ -55,7 +57,8 @@ class ProjectPagesTest extends TestCase
                 ->where('project.name', 'Marketing site')
                 ->has('components', 0)
                 ->where('export.url', route('dashboard.projects.export', $project))
-                ->where('export.available', false)
+                ->where('export.available', true)
+                ->where('export.latest', null)
             );
     }
 
@@ -114,18 +117,32 @@ class ProjectPagesTest extends TestCase
             ->assertForbidden();
     }
 
-    public function test_export_stub_501_until_pack_zip_ships()
+    public function test_export_post_from_dashboard_queues_build_and_flashes_notice()
     {
+        Queue::fake();
+
         $user = User::factory()->create();
         $project = Project::factory()->for($user)->create();
 
         $this->actingAs($user)
-            ->postJson("/dashboard/projects/{$project->id}/export")
-            ->assertStatus(501)
-            ->assertJsonPath('error', 'export_not_implemented');
+            ->post("/dashboard/projects/{$project->id}/export", ['framework' => 'vue'])
+            ->assertRedirect()
+            ->assertSessionHas('notice');
 
+        $this->assertDatabaseHas('project_exports', [
+            'project_id' => $project->id,
+            'user_id' => $user->id,
+            'framework' => 'vue',
+            'status' => 'pending',
+        ]);
+
+        Queue::assertPushed(BuildProjectPackZip::class);
+
+        // JSON consumers get 202 + the pending export payload instead.
         $this->actingAs($user)
-            ->post("/dashboard/projects/{$project->id}/export")
-            ->assertSessionHasErrors('export');
+            ->postJson("/dashboard/projects/{$project->id}/export")
+            ->assertAccepted()
+            ->assertJsonPath('export.status', 'pending')
+            ->assertJsonPath('export.download_url', null);
     }
 }

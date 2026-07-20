@@ -113,6 +113,8 @@ class ProjectController extends Controller
                 'url' => $component->publicUrl(),
             ]);
 
+        $latestExport = $project->exports()->orderByDesc('created_at')->orderByDesc('id')->first();
+
         return Inertia::render('dashboard/projects/show', [
             'project' => [
                 'id' => $project->id,
@@ -120,11 +122,17 @@ class ProjectController extends Controller
                 'created_at' => $project->created_at->toIso8601String(),
             ],
             'components' => $components,
-            // Pack zip export arrives with sub-phase 2.5 (SPEC §6.2); the
-            // endpoint is a 501 stub until then.
+            // Pack zip export (SPEC §6.2): POST queues the build; the page
+            // polls this prop until `latest.status` flips to ready.
             'export' => [
                 'url' => route('dashboard.projects.export', $project),
-                'available' => false,
+                'available' => true,
+                'latest' => $latestExport === null ? null : [
+                    'id' => $latestExport->id,
+                    'status' => $latestExport->status->value,
+                    'framework' => $latestExport->framework,
+                    'download_url' => $latestExport->downloadUrl(),
+                ],
             ],
         ]);
     }
