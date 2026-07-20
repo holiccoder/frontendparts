@@ -253,12 +253,12 @@
 
 ## 2.11 Legal pages
 
-- [ ] **2.11.1 Seven legal pages (SSR, indexed)** — `/terms` · `/privacy` (GDPR + CCPA/CPRA + PIPL) · `/license` (§7.4 terms) · `/refund-policy` · `/cookie-policy` · `/copyright` (attribution + takedown procedure + SLA, links `takedown` ticket category) · `/legal-notice`; footer links everywhere (SPEC §15.7).
+- [x] **2.11.1 Seven legal pages (SSR, indexed)** — `/terms` · `/privacy` (GDPR + CCPA/CPRA + PIPL) · `/license` (§7.4 terms) · `/refund-policy` · `/cookie-policy` · `/copyright` (attribution + takedown procedure + SLA, links `takedown` ticket category) · `/legal-notice`; footer links everywhere (SPEC §15.7).
   - Acceptance: `Legal/LegalPagesTest::test_all_seven_pages_ssr_200`, `test_pages_are_indexed_no_noindex`, `test_footer_contains_all_links`, `test_copyright_page_links_takedown_ticket_category`.
 
 ## 2.12 Site search
 
-- [ ] **2.12.1 `/search?q=` (SSR)** — DB-driven search over components (name/tags/categories) + blog posts (SPEC §15.1, FR-1.3).
+- [x] **2.12.1 `/search?q=` (SSR)** — DB-driven search over components (name/tags/categories) + blog posts (SPEC §15.1, FR-1.3).
   - Acceptance: `Catalog/SearchTest::test_matches_components_by_name_tag_category`, `test_matches_blog_posts`, `test_drafts_excluded`, `test_empty_state`.
 
 ## 2.13 Admin — P1 widgets
