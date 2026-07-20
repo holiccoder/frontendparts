@@ -113,4 +113,18 @@ return [
         'name' => env('MAIL_FROM_NAME', 'Example'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Support Inbox Address
+    |--------------------------------------------------------------------------
+    |
+    | The mailbox that receives support-ticket alerts (SPEC §13.3, §16.1) —
+    | new-ticket notifications are routed here on demand.
+    |
+    */
+
+    'admin' => [
+        'address' => env('MAIL_ADMIN_ADDRESS', 'support@example.com'),
+    ],
+
 ];

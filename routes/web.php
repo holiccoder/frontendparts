@@ -12,6 +12,8 @@ use App\Http\Controllers\ComponentDownloadController;
 use App\Http\Controllers\ComponentPreviewController;
 use App\Http\Controllers\Dashboard\DashboardController;
 use App\Http\Controllers\Dashboard\OrdersController;
+use App\Http\Controllers\Dashboard\TicketController;
+use App\Http\Controllers\Dashboard\TicketMessageController;
 use App\Http\Controllers\DocsController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\IndustryController;
@@ -142,6 +144,24 @@ Route::middleware(['auth', 'verified', 'ssr.skip', 'noindex'])->group(function (
         Route::get('/{project}/export/{export}/download', ProjectExportDownloadController::class)
             ->scopeBindings()
             ->name('export.download');
+    });
+
+    /*
+    |----------------------------------------------------------------------
+    | Support tickets (SPEC §13.3, §15.4): list, create (rate-limited per
+    | NFR-10), threaded replies and user-close. Users only ever see and
+    | touch their own tickets (owner check in the controllers).
+    |----------------------------------------------------------------------
+    */
+    Route::prefix('dashboard/tickets')->name('dashboard.tickets.')->group(function () {
+        Route::get('/', [TicketController::class, 'index'])->name('index');
+        Route::get('/new', [TicketController::class, 'create'])->name('create');
+        Route::post('/', [TicketController::class, 'store'])
+            ->middleware('throttle:5,1')
+            ->name('store');
+        Route::get('/{ticket}', [TicketController::class, 'show'])->name('show');
+        Route::patch('/{ticket}', [TicketController::class, 'update'])->name('update');
+        Route::post('/{ticket}/messages', [TicketMessageController::class, 'store'])->name('messages.store');
     });
 
     /*
