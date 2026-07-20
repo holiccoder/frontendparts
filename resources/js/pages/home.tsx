@@ -14,6 +14,7 @@ interface BlogTeaser {
     title: string;
     slug: string;
     excerpt: string;
+    url: string;
     published_at: string | null;
 }
 
@@ -212,7 +213,11 @@ export default function Home({ featuredComponents, industries, pricing, latestCo
                             {posts.map((post) => (
                                 <article key={post.slug} className="rounded-xl border border-neutral-200 bg-white p-6">
                                     {post.published_at && <time className="text-xs font-medium text-neutral-400">{post.published_at}</time>}
-                                    <h3 className="mt-2 text-base font-semibold">{post.title}</h3>
+                                    <h3 className="mt-2 text-base font-semibold">
+                                        <Link href={post.url} className="transition hover:text-neutral-600">
+                                            {post.title}
+                                        </Link>
+                                    </h3>
                                     <p className="mt-2 line-clamp-3 text-sm leading-6 text-neutral-500">{post.excerpt}</p>
                                 </article>
                             ))}

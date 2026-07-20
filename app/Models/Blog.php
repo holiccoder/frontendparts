@@ -4,14 +4,21 @@ namespace App\Models;
 
 use Database\Factories\BlogFactory;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Blog extends Model
 {
     /** @use HasFactory<BlogFactory> */
     use HasFactory;
+
+    /**
+     * Words-per-minute used for the reading-time estimate (SPEC §13.1).
+     */
+    public const READING_WORDS_PER_MINUTE = 200;
 
     /**
      * @var list<string>
@@ -25,6 +32,15 @@ class Blog extends Model
         'featured_image',
         'status',
         'published_at',
+        'meta_title',
+        'meta_description',
+    ];
+
+    /**
+     * @var list<string>
+     */
+    protected $appends = [
+        'reading_time',
     ];
 
     /**
@@ -42,12 +58,55 @@ class Blog extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
+    public function categories(): BelongsToMany
+    {
+        return $this->belongsToMany(BlogCategory::class, 'blog_category');
+    }
+
+    public function tags(): BelongsToMany
+    {
+        return $this->belongsToMany(BlogTag::class, 'blog_tag');
+    }
+
     /**
-     * Publicly visible posts — same cut as the home page's blog teaser
-     * (status flag plus an actual publication timestamp).
+     * Catalog components cross-linked from the article (SPEC §13.1 — the
+     * core SEO interlinking mechanic between blog and catalog).
+     */
+    public function relatedComponents(): BelongsToMany
+    {
+        return $this->belongsToMany(Component::class, 'blog_component');
+    }
+
+    /**
+     * Reading-time estimate in whole minutes, derived from the body so it
+     * can never drift out of sync with the content (SPEC §13.1).
+     */
+    protected function readingTime(): Attribute
+    {
+        return Attribute::get(function (): int {
+            $words = str_word_count(strip_tags((string) $this->body));
+
+            return max(1, (int) ceil($words / self::READING_WORDS_PER_MINUTE));
+        });
+    }
+
+    /**
+     * Canonical public URL `/blog/{slug}`.
+     */
+    public function publicUrl(): string
+    {
+        return route('blog.show', ['slug' => $this->slug]);
+    }
+
+    /**
+     * Publicly visible posts (SPEC §13.1): the published status flag plus a
+     * publication timestamp that has actually passed — a future
+     * `published_at` is a scheduled post and stays hidden until then.
      */
     public function scopePublished(Builder $query): void
     {
-        $query->where('status', 'published')->whereNotNull('published_at');
+        $query->where('status', 'published')
+            ->whereNotNull('published_at')
+            ->where('published_at', '<=', now());
     }
 }

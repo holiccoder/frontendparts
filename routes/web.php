@@ -5,6 +5,8 @@ use App\Http\Controllers\Billing\CheckoutSuccessController;
 use App\Http\Controllers\Billing\PaddleWebhookController;
 use App\Http\Controllers\Billing\PricingController;
 use App\Http\Controllers\Billing\ReactivateOrderController;
+use App\Http\Controllers\BlogController;
+use App\Http\Controllers\BlogFeedController;
 use App\Http\Controllers\CatalogController;
 use App\Http\Controllers\ComponentApiController;
 use App\Http\Controllers\ComponentController;
@@ -73,6 +75,23 @@ Route::get('/docs/{section}/{page}', [DocsController::class, 'show'])
     ->name('docs.show');
 
 Route::get('/pricing', PricingController::class)->name('pricing');
+
+/*
+| Blog (SPEC §13.1, §15.1): index, article and category pages plus the RSS
+| feed. Feed and category routes are declared before the article slug so
+| `/blog/feed` and `/blog/category/…` are never captured as a post slug.
+*/
+Route::get('/blog', [BlogController::class, 'index'])->name('blog.index');
+
+Route::get('/blog/feed', BlogFeedController::class)->name('blog.feed');
+
+Route::get('/blog/category/{slug}', [BlogController::class, 'category'])
+    ->where('slug', '[a-z0-9\-]+')
+    ->name('blog.category');
+
+Route::get('/blog/{slug}', [BlogController::class, 'show'])
+    ->where('slug', '[a-z0-9\-]+')
+    ->name('blog.show');
 
 /*
 |--------------------------------------------------------------------------

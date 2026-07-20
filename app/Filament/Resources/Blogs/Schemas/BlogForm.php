@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Blogs\Schemas;
 
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Schema;
@@ -14,24 +15,87 @@ class BlogForm
     {
         return $schema
             ->components([
-                TextInput::make('user_id')
-                    ->required()
-                    ->numeric(),
+                Select::make('user_id')
+                    ->label('Author')
+                    ->relationship('author', 'name')
+                    ->searchable()
+                    ->preload()
+                    ->required(),
                 TextInput::make('title')
-                    ->required(),
+                    ->required()
+                    ->maxLength(255),
                 TextInput::make('slug')
-                    ->required(),
+                    ->required()
+                    ->maxLength(255)
+                    ->alphaDash()
+                    ->unique(ignoreRecord: true),
                 Textarea::make('excerpt')
                     ->columnSpanFull(),
                 Textarea::make('body')
                     ->required()
+                    ->rows(14)
+                    ->helperText('Markdown. H2/H3 headings feed the per-article table of contents.')
                     ->columnSpanFull(),
                 FileUpload::make('featured_image')
                     ->image(),
-                TextInput::make('status')
+                Select::make('status')
+                    ->options([
+                        'draft' => 'Draft',
+                        'published' => 'Published',
+                        'archived' => 'Archived',
+                    ])
                     ->required()
                     ->default('draft'),
-                DateTimePicker::make('published_at'),
+                DateTimePicker::make('published_at')
+                    ->helperText('A future date schedules the post: it stays hidden until then.'),
+                TextInput::make('reading_time')
+                    ->label('Reading time (min)')
+                    ->disabled()
+                    ->dehydrated(false),
+                Select::make('categories')
+                    ->relationship('categories', 'name')
+                    ->multiple()
+                    ->searchable()
+                    ->preload()
+                    ->createOptionForm([
+                        TextInput::make('name')
+                            ->required()
+                            ->maxLength(255),
+                        TextInput::make('slug')
+                            ->required()
+                            ->maxLength(255)
+                            ->alphaDash()
+                            ->unique('blog_categories', 'slug'),
+                    ]),
+                Select::make('tags')
+                    ->relationship('tags', 'name')
+                    ->multiple()
+                    ->searchable()
+                    ->preload()
+                    ->createOptionForm([
+                        TextInput::make('name')
+                            ->required()
+                            ->maxLength(255),
+                        TextInput::make('slug')
+                            ->required()
+                            ->maxLength(255)
+                            ->alphaDash()
+                            ->unique('blog_tags', 'slug'),
+                    ]),
+                Select::make('relatedComponents')
+                    ->label('Related components')
+                    ->relationship('relatedComponents', 'name')
+                    ->multiple()
+                    ->searchable()
+                    ->preload()
+                    ->helperText('Catalog components cross-linked at the end of the article.'),
+                TextInput::make('meta_title')
+                    ->maxLength(255)
+                    ->helperText('Defaults to the post title when empty.'),
+                Textarea::make('meta_description')
+                    ->rows(2)
+                    ->helperText('Defaults to the excerpt when empty.')
+                    ->columnSpanFull(),
             ]);
     }
 }

@@ -23,6 +23,12 @@ class BlogsTable
                 TextColumn::make('slug')
                     ->searchable(),
                 ImageColumn::make('featured_image'),
+                TextColumn::make('categories.name')
+                    ->badge()
+                    ->toggleable(),
+                TextColumn::make('reading_time')
+                    ->label('Read')
+                    ->suffix(' min'),
                 TextColumn::make('status')
                     ->searchable(),
                 TextColumn::make('published_at')

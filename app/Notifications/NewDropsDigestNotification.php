@@ -17,8 +17,8 @@ use Illuminate\Notifications\Notification;
 /**
  * B4 — new-drops digest (SPEC §16.2/§16.3): components published in the
  * period plus blog highlights, weekly or monthly per the user's
- * digest_frequency preference. Blog posts have no public pages yet, so
- * highlights are listed by title and excerpt without per-post links.
+ * digest_frequency preference. Blog highlights deep-link to the public
+ * article pages (`/blog/{slug}`, SPEC §13.1).
  */
 class NewDropsDigestNotification extends Notification implements MarketingNotification, ShouldQueue
 {
@@ -60,7 +60,7 @@ class NewDropsDigestNotification extends Notification implements MarketingNotifi
             $message->line('**From the blog**');
 
             foreach ($this->posts as $post) {
-                $message->line("- {$post->title} — {$post->excerpt}");
+                $message->line("- [{$post->title}]({$post->publicUrl()}) — {$post->excerpt}");
             }
         }
 

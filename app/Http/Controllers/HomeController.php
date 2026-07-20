@@ -65,8 +65,7 @@ class HomeController extends Controller
             ->all();
 
         $posts = Blog::query()
-            ->where('status', 'published')
-            ->whereNotNull('published_at')
+            ->published()
             ->orderByDesc('published_at')
             ->limit(3)
             ->get()
@@ -74,6 +73,7 @@ class HomeController extends Controller
                 'title' => $post->title,
                 'slug' => $post->slug,
                 'excerpt' => $post->excerpt,
+                'url' => $post->publicUrl(),
                 'published_at' => $post->published_at?->toDateString(),
             ])
             ->all();

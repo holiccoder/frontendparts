@@ -29,6 +29,42 @@ class BlogFactory extends Factory
             'featured_image' => null,
             'status' => $status,
             'published_at' => $status === 'published' ? fake()->dateTimeBetween('-6 months', 'now') : null,
+            'meta_title' => null,
+            'meta_description' => null,
         ];
+    }
+
+    /**
+     * Live post: published with a past publication timestamp.
+     */
+    public function published(): static
+    {
+        return $this->state(fn (): array => [
+            'status' => 'published',
+            'published_at' => fake()->dateTimeBetween('-6 months', '-1 day'),
+        ]);
+    }
+
+    /**
+     * Unpublished draft: never publicly visible.
+     */
+    public function draft(): static
+    {
+        return $this->state(fn (): array => [
+            'status' => 'draft',
+            'published_at' => null,
+        ]);
+    }
+
+    /**
+     * Scheduled post (SPEC §13.1): published flag set but the publication
+     * timestamp is in the future, so it stays hidden until then.
+     */
+    public function scheduled(): static
+    {
+        return $this->state(fn (): array => [
+            'status' => 'published',
+            'published_at' => fake()->dateTimeBetween('+1 day', '+1 month'),
+        ]);
     }
 }
