@@ -4,8 +4,10 @@ namespace Tests\Feature\Auth;
 
 use App\Models\User;
 use Illuminate\Auth\Events\Verified;
+use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\URL;
 use Tests\TestCase;
 
@@ -54,5 +56,36 @@ class EmailVerificationTest extends TestCase
         $this->actingAs($user)->get($verificationUrl);
 
         $this->assertFalse($user->fresh()->hasVerifiedEmail());
+    }
+
+    public function test_unverified_users_are_redirected_from_dashboard()
+    {
+        $user = User::factory()->unverified()->create();
+
+        $this->actingAs($user)->get('/dashboard')->assertRedirect(route('verification.notice'));
+    }
+
+    public function test_verified_users_can_access_dashboard()
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)->get('/dashboard')->assertOk();
+    }
+
+    public function test_verification_notification_queued_on_register()
+    {
+        Notification::fake();
+
+        $this->post('/register', [
+            'name' => 'Test User',
+            'email' => 'test@example.com',
+            'password' => 'password',
+            'password_confirmation' => 'password',
+        ]);
+
+        Notification::assertSentTo(
+            User::where('email', 'test@example.com')->firstOrFail(),
+            VerifyEmail::class
+        );
     }
 }
