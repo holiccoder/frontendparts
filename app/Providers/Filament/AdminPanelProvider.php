@@ -5,6 +5,10 @@ namespace App\Providers\Filament;
 use App\Filament\Widgets\CatalogStatsWidget;
 use App\Filament\Widgets\CoverageMatrixWidget;
 use App\Filament\Widgets\DraftsReviewWidget;
+use App\Filament\Widgets\LatestOrdersWidget;
+use App\Filament\Widgets\PlanMixChartWidget;
+use App\Filament\Widgets\RevenueStatsWidget;
+use App\Filament\Widgets\RevenueTrendChartWidget;
 use App\Filament\Widgets\SystemHealthWidget;
 use App\Models\Admin;
 use DutchCodingCompany\FilamentDeveloperLogins\FilamentDeveloperLoginsPlugin;
@@ -49,6 +53,10 @@ class AdminPanelProvider extends PanelProvider
                 DraftsReviewWidget::class,
                 CoverageMatrixWidget::class,
                 SystemHealthWidget::class,
+                RevenueStatsWidget::class,
+                RevenueTrendChartWidget::class,
+                PlanMixChartWidget::class,
+                LatestOrdersWidget::class,
             ])
             ->navigationGroups([
                 'Library',
