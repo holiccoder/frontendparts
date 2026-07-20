@@ -391,11 +391,11 @@
 | Phase | Tasks | Done | Not started |
 |---|---|---|---|
 | Phase 1 — Foundation (P0) | 45 | 45 | 0 ✅ |
-| Phase 2 — Monetization (P1) | 30 | 0 | 30 |
+| Phase 2 — Monetization (P1) | 30 | 30 | 0 ✅ |
 | Phase 3 — Power features (P2) | 21 | 0 | 21 |
 | Phase 4 — Launch readiness | 9 | 2 | 7 |
 | Phase 5 — Growth (P3) | 7 | 0 | 7 |
-| **Total** | **112** | **47** | **65** |
+| **Total** | **112** | **77** | **35** |
 
 *(Task count = numbered leaf tasks. Update this table as tasks complete.)*
 
@@ -405,6 +405,6 @@
 2. **`OrderPlan::enterprise`** — exists in code with a hardcoded $199 price; per SPEC §7.1 the team tier is v2, so task 1.2.5 removes it (replaced by `plan_prices` lookup). Flag if you want to keep it dormant instead.
 3. **`MustVerifyEmail`** — currently commented out in `User`; task 1.1.2 re-enforces it (SPEC lists verification as a starter-kit flow). Flag if you want open registration during early beta instead.
 4. **QA-gate items** — client-side interactions (hover outlines, keyboard shortcuts, drag-resize, live-edit compiling) have no PHPUnit surface; they are covered by the SPEC §8.5 authoring QA checklist until the Phase 5.7 browser suite.
-5. **🟡 open decisions carried from SPEC** — mail provider (Resend/Postmark, blocks 4.1.5), B2 behavioral trigger (2.10.3), collections pages (5.5).
+5. **🟡 open decisions carried from SPEC** — mail provider (Resend/Postmark, blocks 4.1.5), collections pages (5.5). ~~B2 behavioral trigger~~ resolved in 2.10.3: ≥3 gate hits in a rolling week, max 1 email per 7 days.
 
 *End of project-phases.md v1.0. Changes flow: update SPEC.md (change log) → revise PRD.md → renumber/patch this file.*
