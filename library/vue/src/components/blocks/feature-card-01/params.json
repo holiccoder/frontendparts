@@ -1,0 +1,17 @@
+{
+    "icon": {
+        "type": "string",
+        "default": "Rocket",
+        "description": "Lucide icon name: Rocket, Zap, ShieldCheck, ChartBar, Globe, Users, Gauge, Layers, Lock, Cloud, Blocks or Sparkles."
+    },
+    "title": {
+        "type": "string",
+        "default": "Feature title",
+        "description": "Feature title."
+    },
+    "description": {
+        "type": "text",
+        "default": "",
+        "description": "Supporting description. Hidden when empty."
+    }
+}

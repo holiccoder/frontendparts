@@ -183,7 +183,7 @@ class DownloadTest extends TestCase
 
     public function test_paid_component_guest_gets_403_with_upgrade_payload()
     {
-        $usage = Category::factory()->usage()->create(['slug' => 'hero']);
+        $usage = Category::query()->where('slug', 'hero')->firstOrFail();
         $paid = Component::factory()->published()->paid()->create([
             'slug' => 'elements/paid-01',
             'usage_category_id' => $usage->id,
@@ -207,7 +207,7 @@ class DownloadTest extends TestCase
 
     public function test_authenticated_user_passes_paid_gate_until_phase_2()
     {
-        $usage = Category::factory()->usage()->create(['slug' => 'hero']);
+        $usage = Category::query()->where('slug', 'hero')->firstOrFail();
         Component::factory()->published()->paid()->create([
             'slug' => 'elements/paid-01',
             'usage_category_id' => $usage->id,

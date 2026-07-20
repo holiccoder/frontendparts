@@ -81,34 +81,111 @@ class PreviewScreenshotter
     }
 
     /**
+     * Chrome on Windows clamps the window to a minimum width of ~500px, so a
+     * direct capture below that floor renders the page at 500px and crops the
+     * right side. Under the floor we instead render the preview inside a
+     * fixed-width iframe shim — media queries evaluate against the iframe's
+     * viewport — capture at 500px, then crop the shim region back to the
+     * requested width with GD. Without GD we fall back to a direct capture.
+     *
      * @throws PreviewScreenshotException
      */
     private function captureViaChromeCli(string $chrome, string $htmlPath, string $outPath, int $width, int $height): void
     {
         $url = 'file:///'.str_replace('\\', '/', $htmlPath);
 
-        foreach (['--headless=new', '--headless'] as $headlessFlag) {
-            $process = new Process([
-                $chrome,
-                $headlessFlag,
-                '--disable-gpu',
-                '--no-sandbox',
-                '--hide-scrollbars',
-                '--force-device-scale-factor=1',
-                "--window-size={$width},{$height}",
-                '--virtual-time-budget=4000',
-                "--screenshot={$outPath}",
-                $url,
-            ], null, null, null, 60);
+        $shimPath = null;
+        $capturePath = $outPath;
+        $windowWidth = $width;
 
-            $process->run();
-
-            if ($process->isSuccessful() && is_file($outPath)) {
-                return;
-            }
+        if ($width < 500 && extension_loaded('gd')) {
+            $windowWidth = 500;
+            $capturePath = $outPath.'.uncropped.png';
+            $shimPath = $this->writeIframeShim($url, $width, $height);
+            $url = 'file:///'.str_replace('\\', '/', $shimPath);
         }
 
-        throw PreviewScreenshotException::captureFailed(trim($process->getErrorOutput().' '.$process->getOutput()));
+        try {
+            foreach (['--headless=new', '--headless'] as $headlessFlag) {
+                $process = new Process([
+                    $chrome,
+                    $headlessFlag,
+                    '--disable-gpu',
+                    '--no-sandbox',
+                    '--hide-scrollbars',
+                    '--force-device-scale-factor=1',
+                    "--window-size={$windowWidth},{$height}",
+                    '--virtual-time-budget=4000',
+                    "--screenshot={$capturePath}",
+                    $url,
+                ], null, null, null, 60);
+
+                $process->run();
+
+                if ($process->isSuccessful() && is_file($capturePath)) {
+                    if ($capturePath !== $outPath) {
+                        $this->cropToWidth($capturePath, $outPath, $width, $height);
+                    }
+
+                    return;
+                }
+            }
+
+            throw PreviewScreenshotException::captureFailed(trim($process->getErrorOutput().' '.$process->getOutput()));
+        } finally {
+            if ($shimPath !== null) {
+                @unlink($shimPath);
+            }
+
+            if ($capturePath !== $outPath) {
+                @unlink($capturePath);
+            }
+        }
+    }
+
+    /**
+     * Write a throwaway outer page that embeds the preview in a `{width}px`
+     * iframe anchored at the top-left corner of a 500px window.
+     */
+    private function writeIframeShim(string $url, int $width, int $height): string
+    {
+        $path = sys_get_temp_dir().DIRECTORY_SEPARATOR.'fp-shim-'.bin2hex(random_bytes(6)).'.html';
+
+        $html = <<<HTML
+        <!doctype html>
+        <html>
+        <head><meta charset="utf-8"><style>html,body{margin:0;padding:0;background:#fff}iframe{display:block;border:0;width:{$width}px;height:{$height}px}</style></head>
+        <body><iframe src="{$url}" width="{$width}" height="{$height}"></iframe></body>
+        </html>
+        HTML;
+
+        file_put_contents($path, $html);
+
+        return $path;
+    }
+
+    /**
+     * Crop the top-left `{width}×{height}` region of a full capture (GD).
+     *
+     * @throws PreviewScreenshotException
+     */
+    private function cropToWidth(string $fullPath, string $outPath, int $width, int $height): void
+    {
+        $source = @imagecreatefrompng($fullPath);
+
+        if ($source === false) {
+            throw PreviewScreenshotException::captureFailed('GD could not read the uncropped capture');
+        }
+
+        $cropped = imagecreatetruecolor($width, $height);
+        imagecopy($cropped, $source, 0, 0, 0, 0, $width, $height);
+        imagepng($cropped, $outPath);
+        imagedestroy($source);
+        imagedestroy($cropped);
+
+        if (! is_file($outPath)) {
+            throw PreviewScreenshotException::captureFailed('GD crop produced no file');
+        }
     }
 
     private function puppeteerAvailable(): bool

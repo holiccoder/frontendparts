@@ -1,0 +1,18 @@
+{
+    "plan": "Pro",
+    "price": 29,
+    "currency": "$",
+    "period": "/mo",
+    "description": "For growing teams that ship every week.",
+    "features": [
+        "Unlimited projects",
+        "Every component, React + Vue",
+        "New drops included",
+        "Private Slack channel",
+        "Priority support"
+    ],
+    "ctaLabel": "Start free trial",
+    "ctaHref": "#",
+    "featured": true,
+    "badgeLabel": "Most popular"
+}

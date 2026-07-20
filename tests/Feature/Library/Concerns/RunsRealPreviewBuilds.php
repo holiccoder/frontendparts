@@ -2,11 +2,10 @@
 
 namespace Tests\Feature\Library\Concerns;
 
-use App\Enums\CategoryType;
 use App\Jobs\BuildComponentPreview;
-use App\Models\Category;
 use App\Models\Component;
 use App\Services\Library\LibrarySync;
+use Database\Seeders\CategorySeeder;
 use Illuminate\Support\Facades\Queue;
 use Symfony\Component\Process\Process;
 
@@ -32,14 +31,12 @@ trait RunsRealPreviewBuilds
     /**
      * Import the real library into the test database without letting the
      * sync-dispatched preview jobs execute (they are faked; builds are run
-     * explicitly per test).
+     * explicitly per test). The full production taxonomy is seeded so every
+     * authored usage/industry slug validates.
      */
     protected function syncRealLibrary(): void
     {
-        Category::query()->firstOrCreate(
-            ['type' => CategoryType::Usage->value, 'slug' => 'feature-grid'],
-            ['name' => 'Feature Grid', 'zone' => 'Content', 'sort_order' => 0],
-        );
+        $this->seed(CategorySeeder::class);
 
         Queue::fake();
 

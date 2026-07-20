@@ -1,0 +1,17 @@
+{
+    "placeholder": {
+        "type": "string",
+        "default": "you@example.com",
+        "description": "Input placeholder text."
+    },
+    "buttonLabel": {
+        "type": "string",
+        "default": "Subscribe",
+        "description": "Submit button label."
+    },
+    "note": {
+        "type": "text",
+        "default": "",
+        "description": "Privacy note under the form. Hidden when empty."
+    }
+}

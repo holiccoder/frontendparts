@@ -1,0 +1,7 @@
+{
+    "children": {
+        "type": "object",
+        "default": {},
+        "description": "Child slices keyed by child slug; `section-title-01` takes one Section Title prop object, `feature-card-01` takes an array of six Feature Card prop objects."
+    }
+}

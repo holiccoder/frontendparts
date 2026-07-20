@@ -1,0 +1,44 @@
+{
+    "children": {
+        "section-title-01": {
+            "eyebrow": "Pricing",
+            "heading": "Simple, transparent pricing",
+            "description": "One license, every component, both frameworks. Start free and upgrade when you need the full catalog.",
+            "align": "center"
+        },
+        "pricing-card-01": [
+            {
+                "plan": "Starter",
+                "price": 9,
+                "currency": "$",
+                "period": "/mo",
+                "description": "For side projects and weekend hacks.",
+                "features": ["3 projects", "20 free components", "React + Vue source", "Community support"],
+                "ctaLabel": "Start free",
+                "ctaHref": "#"
+            },
+            {
+                "plan": "Pro",
+                "price": 29,
+                "currency": "$",
+                "period": "/mo",
+                "description": "For growing teams that ship every week.",
+                "features": ["Unlimited projects", "Every component, React + Vue", "New drops included", "Private Slack channel", "Priority support"],
+                "ctaLabel": "Start free trial",
+                "ctaHref": "#",
+                "featured": true,
+                "badgeLabel": "Most popular"
+            },
+            {
+                "plan": "Scale",
+                "price": 79,
+                "currency": "$",
+                "period": "/mo",
+                "description": "For agencies and larger product teams.",
+                "features": ["Everything in Pro", "10 team seats", "Client projects covered", "Priority feature requests", "SSO and audit log"],
+                "ctaLabel": "Talk to sales",
+                "ctaHref": "#"
+            }
+        ]
+    }
+}

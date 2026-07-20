@@ -1,0 +1,39 @@
+{
+    "children": {
+        "section-title-01": {
+            "eyebrow": "Testimonials",
+            "heading": "Teams ship faster with us",
+            "description": "From solo founders to product teams at growing companies — here's what people say after switching.",
+            "align": "center"
+        },
+        "testimonial-card-01": [
+            {
+                "quote": "We cut our launch timeline from six weeks to nine days. The components are clean, the defaults are sensible, and the whole team actually enjoys using them.",
+                "name": "Maya Chen",
+                "role": "Head of Product, Driftly",
+                "rating": 5,
+                "avatarSrc": "https://picsum.photos/seed/testimonials-01-1/96/96",
+                "avatarAlt": "Portrait of Maya Chen",
+                "avatarFallback": "MC"
+            },
+            {
+                "quote": "I was skeptical about paying for UI code, but the quality won me over in an afternoon. The dark-mode variants alone saved me a week.",
+                "name": "Jonas Weber",
+                "role": "Founder, Loopwerk",
+                "rating": 4.5,
+                "avatarSrc": "https://picsum.photos/seed/testimonials-01-2/96/96",
+                "avatarAlt": "Portrait of Jonas Weber",
+                "avatarFallback": "JW"
+            },
+            {
+                "quote": "Both frameworks, same design, zero surprises. Our React app and our Vue admin finally look like one product.",
+                "name": "Priya Nair",
+                "role": "Design Engineer, Crescent",
+                "rating": 5,
+                "avatarSrc": "https://picsum.photos/seed/testimonials-01-3/96/96",
+                "avatarAlt": "Portrait of Priya Nair",
+                "avatarFallback": "PN"
+            }
+        ]
+    }
+}

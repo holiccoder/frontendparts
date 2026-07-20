@@ -1,0 +1,42 @@
+{
+    "children": {
+        "section-title-01": {
+            "eyebrow": "Features",
+            "heading": "Everything you need to ship faster",
+            "description": "Thoughtfully designed, carefully coded, and ready for production the moment you paste them in.",
+            "align": "center"
+        },
+        "feature-card-01": [
+            {
+                "icon": "Rocket",
+                "title": "Ship in minutes",
+                "description": "Drop a component into your project, adjust the copy, and ship. No configuration, no lock-in, no surprises."
+            },
+            {
+                "icon": "Zap",
+                "title": "Fast by default",
+                "description": "Zero runtime dependencies for most components. Just markup and utility classes — your bundle stays lean."
+            },
+            {
+                "icon": "ShieldCheck",
+                "title": "Accessible out of the box",
+                "description": "Keyboard navigation, focus management, and ARIA roles are hand-rolled and tested in every interactive piece."
+            },
+            {
+                "icon": "ChartBar",
+                "title": "Built to convert",
+                "description": "Layouts modeled on the highest-converting SaaS pages, refined for clear hierarchy and honest spacing."
+            },
+            {
+                "icon": "Globe",
+                "title": "Responsive everywhere",
+                "description": "Every component is reviewed at 375, 768, and 1280 pixels before it ships. Mobile is never an afterthought."
+            },
+            {
+                "icon": "Users",
+                "title": "Two frameworks, one design",
+                "description": "React and Vue twins with visual parity, so mixed stacks finally share a single design language."
+            }
+        ]
+    }
+}

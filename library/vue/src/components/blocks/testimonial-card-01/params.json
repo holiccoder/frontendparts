@@ -1,0 +1,37 @@
+{
+    "quote": {
+        "type": "text",
+        "default": "This changed how our team ships.",
+        "description": "The quoted testimonial text."
+    },
+    "name": {
+        "type": "string",
+        "default": "Alex Rivera",
+        "description": "Person's full name."
+    },
+    "role": {
+        "type": "string",
+        "default": "Engineering Lead",
+        "description": "Role and company, e.g. \"Head of Product, Driftly\"."
+    },
+    "rating": {
+        "type": "number",
+        "default": 5,
+        "description": "Star rating from 0 to 5."
+    },
+    "avatarSrc": {
+        "type": "image",
+        "default": "",
+        "description": "Portrait image URL. Falls back to initials when empty."
+    },
+    "avatarAlt": {
+        "type": "string",
+        "default": "",
+        "description": "Alt text for the portrait."
+    },
+    "avatarFallback": {
+        "type": "string",
+        "default": "AR",
+        "description": "Initials shown when no portrait is set."
+    }
+}

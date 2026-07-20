@@ -1,0 +1,37 @@
+{
+    "brand": {
+        "type": "string",
+        "default": "Acme",
+        "description": "Brand name shown next to the logo mark."
+    },
+    "tagline": {
+        "type": "text",
+        "default": "",
+        "description": "Short tagline under the brand."
+    },
+    "newsletterHeading": {
+        "type": "string",
+        "default": "",
+        "description": "Heading above the newsletter form. Hidden when empty."
+    },
+    "columns": {
+        "type": "array",
+        "default": [],
+        "description": "Link columns; each item is an object with a `title` string and a `links` array of `{label, href}` objects."
+    },
+    "copyright": {
+        "type": "string",
+        "default": "",
+        "description": "Copyright line in the bottom bar."
+    },
+    "legalLinks": {
+        "type": "array",
+        "default": [],
+        "description": "Legal links in the bottom bar; each item is an object with `label` and `href` strings."
+    },
+    "children": {
+        "type": "object",
+        "default": {},
+        "description": "Child slices keyed by child slug; `newsletter-form-01` takes one Newsletter Form prop object."
+    }
+}

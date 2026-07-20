@@ -1,0 +1,17 @@
+{
+    "question": {
+        "type": "string",
+        "default": "How does this work?",
+        "description": "Question shown on the accordion trigger."
+    },
+    "answer": {
+        "type": "text",
+        "default": "",
+        "description": "Answer revealed when open."
+    },
+    "defaultOpen": {
+        "type": "boolean",
+        "default": false,
+        "description": "Render open on first paint."
+    }
+}

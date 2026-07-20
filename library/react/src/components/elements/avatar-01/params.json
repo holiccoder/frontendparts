@@ -1,0 +1,23 @@
+{
+    "src": {
+        "type": "image",
+        "default": "",
+        "description": "Image URL. Falls back to initials when empty."
+    },
+    "alt": {
+        "type": "string",
+        "default": "Team member",
+        "description": "Alt text describing the person."
+    },
+    "fallback": {
+        "type": "string",
+        "default": "FP",
+        "description": "Initials shown when no image is set."
+    },
+    "size": {
+        "type": "enum",
+        "options": ["sm", "md", "lg"],
+        "default": "md",
+        "description": "Size preset."
+    }
+}

@@ -1,0 +1,6 @@
+{
+    "src": "https://picsum.photos/seed/avatar-01-1/128/128",
+    "alt": "Portrait of Maya Chen",
+    "fallback": "MC",
+    "size": "lg"
+}
