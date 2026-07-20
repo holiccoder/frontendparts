@@ -37,4 +37,18 @@ class PaddleGateway
             'items' => $items,
         ])['data'];
     }
+
+    /**
+     * Cancel a Paddle subscription at the end of its current billing period
+     * (SPEC §16.2 B7) — the user keeps access until ends_at, mirroring the
+     * `subscription.canceled` webhook path.
+     *
+     * @return array<string, mixed> The updated Paddle subscription payload.
+     */
+    public function cancelSubscription(string $subscriptionId): array
+    {
+        return Cashier::api('POST', "subscriptions/{$subscriptionId}/cancel", [
+            'effective_from' => 'next_billing_period',
+        ])['data'];
+    }
 }

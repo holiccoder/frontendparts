@@ -30,6 +30,7 @@ class TransactionalTest extends TestCase
         $user = User::where('email', 'test@example.com')->firstOrFail();
 
         Notification::assertSentTo($user, WelcomeNotification::class);
+        Notification::assertSentTimes(WelcomeNotification::class, 1);
         Notification::assertSentTo($user, VerifyEmail::class);
     }
 

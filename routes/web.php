@@ -4,6 +4,7 @@ use App\Http\Controllers\Billing\CheckoutController;
 use App\Http\Controllers\Billing\CheckoutSuccessController;
 use App\Http\Controllers\Billing\PaddleWebhookController;
 use App\Http\Controllers\Billing\PricingController;
+use App\Http\Controllers\Billing\ReactivateOrderController;
 use App\Http\Controllers\CatalogController;
 use App\Http\Controllers\ComponentApiController;
 use App\Http\Controllers\ComponentController;
@@ -87,6 +88,22 @@ Route::get('/pricing', PricingController::class)->name('pricing');
 Route::get('/unsubscribe/{user}', UnsubscribeController::class)
     ->middleware(['signed', 'noindex'])
     ->name('unsubscribe');
+
+/*
+|--------------------------------------------------------------------------
+| Reactivation link (SPEC §16.2 B7)
+|--------------------------------------------------------------------------
+|
+| Carried by the cancellation confirmation and Day 7 / Day 30 followup
+| mails. Signature-authenticated so it works from a mail client; forwards
+| to checkout for the cancelled order's plan (a cancelled Paddle
+| subscription is re-bought, not un-cancelled). Not indexed.
+|
+*/
+
+Route::get('/billing/reactivate/{order}', ReactivateOrderController::class)
+    ->middleware(['signed', 'noindex'])
+    ->name('billing.reactivate');
 
 /*
 |--------------------------------------------------------------------------

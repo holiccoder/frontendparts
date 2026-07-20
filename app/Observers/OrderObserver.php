@@ -11,6 +11,19 @@ use Illuminate\Support\Facades\Notification;
 
 class OrderObserver
 {
+    /**
+     * Stamp the dunning anchor (SPEC §16.2 B6) whenever an order enters
+     * PastDue, from any writer (Paddle webhook, admin edit). A later
+     * recovery → re-failure cycle re-anchors the schedule to the new
+     * failure; sequence_sends idempotency still prevents duplicate touches.
+     */
+    public function updating(Order $order): void
+    {
+        if ($order->isDirty('status') && $order->status === OrderStatus::PastDue) {
+            $order->past_due_at = now();
+        }
+    }
+
     public function updated(Order $order): void
     {
         if (! $order->wasChanged('status')) {

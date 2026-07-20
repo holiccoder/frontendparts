@@ -32,6 +32,8 @@ class Order extends Model
         'starts_at',
         'ends_at',
         'cancelled_at',
+        'past_due_at',
+        'cancellation_reason',
         'paddle_customer_id',
         'paddle_transaction_id',
         'paddle_subscription_id',
@@ -50,6 +52,7 @@ class Order extends Model
             'starts_at' => 'datetime',
             'ends_at' => 'datetime',
             'cancelled_at' => 'datetime',
+            'past_due_at' => 'datetime',
         ];
     }
 

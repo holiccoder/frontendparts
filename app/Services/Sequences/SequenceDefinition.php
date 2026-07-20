@@ -23,10 +23,13 @@ interface SequenceDefinition
     public function key(): string;
 
     /**
-     * The marketing category this sequence bills against. The runner checks
-     * it against NotificationPreferences before every send. Lifecycle
-     * sequences are never Transactional — transactional mail is sent
+     * The category this sequence bills against. The runner checks it
+     * against NotificationPreferences before every send. Lifecycle
+     * sequences are marketing — transactional mail is normally sent
      * event-driven (SPEC §16.1) and does not flow through the engine.
+     * The one deliberate exception is B6 dunning: payment-failure mail is
+     * account-essential, so it declares Transactional and the preference
+     * gate (always true for Transactional) lets it through for everyone.
      */
     public function category(): NotificationCategory;
 

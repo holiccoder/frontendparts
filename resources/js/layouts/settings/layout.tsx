@@ -26,6 +26,11 @@ const sidebarNavItems: NavItem[] = [
         url: '/settings/notifications',
         icon: null,
     },
+    {
+        title: 'Billing',
+        url: '/settings/billing',
+        icon: null,
+    },
 ];
 
 export default function SettingsLayout({ children }: { children: React.ReactNode }) {

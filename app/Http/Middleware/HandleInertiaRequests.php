@@ -62,6 +62,9 @@ class HandleInertiaRequests extends Middleware
             // SPEC §6.1) flashed by dashboard-zone POST/DELETE endpoints.
             'flash' => [
                 'notice' => fn (): ?string => $request->session()->get('notice'),
+                // B7 cancel flow (SPEC §16.2): the reason-mapped save offer
+                // presented between the exit survey and confirmation.
+                'save_offer' => fn (): ?array => $request->session()->get('save_offer'),
             ],
         ]);
     }
