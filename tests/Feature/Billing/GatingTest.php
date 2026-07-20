@@ -8,6 +8,7 @@ use App\Enums\OrderStatus;
 use App\Models\Category;
 use App\Models\Component;
 use App\Models\Order;
+use App\Models\Project;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -100,6 +101,61 @@ class GatingTest extends TestCase
             'component_id' => $free->id,
             'type' => ComponentEventType::Download->value,
             'user_id' => $user->id,
+        ]);
+    }
+
+    public function test_free_user_adds_only_free_components_to_project()
+    {
+        $free = Component::factory()->published()->free()->create([
+            'slug' => 'elements/free-01',
+            'usage_category_id' => $this->usage->id,
+        ]);
+        $paid = $this->paidComponent();
+
+        // An authenticated user without an entitled order is Free.
+        $user = User::factory()->create();
+        $project = Project::factory()->for($user)->create();
+
+        // Free components attach (with their closure)…
+        $this->actingAs($user)
+            ->postJson("/dashboard/projects/{$project->id}/components", ['component_id' => $free->id])
+            ->assertCreated();
+
+        $this->assertDatabaseHas('project_components', [
+            'project_id' => $project->id,
+            'component_id' => $free->id,
+            'is_dependency' => false,
+        ]);
+
+        // …but a paid component answers the 403 upgrade payload.
+        $this->actingAs($user)
+            ->postJson("/dashboard/projects/{$project->id}/components", ['component_id' => $paid->id])
+            ->assertForbidden()
+            ->assertJsonPath('error', 'upgrade_required')
+            ->assertJsonPath('upgrade.pricing_url', '/pricing');
+
+        $this->assertDatabaseMissing('project_components', [
+            'project_id' => $project->id,
+            'component_id' => $paid->id,
+        ]);
+
+        // A full-library plan adds paid components too.
+        $starter = User::factory()->create();
+        Order::factory()->create([
+            'user_id' => $starter->id,
+            'plan' => OrderPlan::Starter,
+            'status' => OrderStatus::Active,
+        ]);
+        $starterProject = Project::factory()->for($starter)->create();
+
+        $this->actingAs($starter)
+            ->postJson("/dashboard/projects/{$starterProject->id}/components", ['component_id' => $paid->id])
+            ->assertCreated();
+
+        $this->assertDatabaseHas('project_components', [
+            'project_id' => $starterProject->id,
+            'component_id' => $paid->id,
+            'is_dependency' => false,
         ]);
     }
 

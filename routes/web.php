@@ -13,6 +13,9 @@ use App\Http\Controllers\ComponentPreviewController;
 use App\Http\Controllers\DocsController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\IndustryController;
+use App\Http\Controllers\Projects\ProjectComponentController;
+use App\Http\Controllers\Projects\ProjectController;
+use App\Http\Controllers\Projects\ProjectExportController;
 use App\Http\Controllers\RobotsController;
 use App\Http\Controllers\SitemapController;
 use Illuminate\Support\Facades\Route;
@@ -111,6 +114,24 @@ Route::middleware(['auth', 'verified', 'ssr.skip', 'noindex'])->group(function (
     Route::get('dashboard', function () {
         return Inertia::render('dashboard');
     })->name('dashboard');
+
+    /*
+    |----------------------------------------------------------------------
+    | Projects (SPEC §6.1, §15.4): list/detail pages, CRUD, component-set
+    | add/remove (JSON for the catalog "Add to project" UI, redirects for
+    | the Inertia pages) and the pack-zip export stub (2.5).
+    |----------------------------------------------------------------------
+    */
+    Route::prefix('dashboard/projects')->name('dashboard.projects.')->group(function () {
+        Route::get('/', [ProjectController::class, 'index'])->name('index');
+        Route::post('/', [ProjectController::class, 'store'])->name('store');
+        Route::get('/{project}', [ProjectController::class, 'show'])->name('show');
+        Route::patch('/{project}', [ProjectController::class, 'update'])->name('update');
+        Route::delete('/{project}', [ProjectController::class, 'destroy'])->name('destroy');
+        Route::post('/{project}/components', [ProjectComponentController::class, 'store'])->name('components.store');
+        Route::delete('/{project}/components/{component}', [ProjectComponentController::class, 'destroy'])->name('components.destroy');
+        Route::post('/{project}/export', ProjectExportController::class)->name('export');
+    });
 
     /*
     |----------------------------------------------------------------------

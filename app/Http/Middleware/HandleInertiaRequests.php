@@ -58,6 +58,11 @@ class HandleInertiaRequests extends Middleware
                 ...(new Ziggy)->toArray(),
                 'location' => $request->url(),
             ],
+            // One-shot user notices (e.g. project removal prune cascade,
+            // SPEC §6.1) flashed by dashboard-zone POST/DELETE endpoints.
+            'flash' => [
+                'notice' => fn (): ?string => $request->session()->get('notice'),
+            ],
         ]);
     }
 

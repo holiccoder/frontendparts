@@ -1,0 +1,159 @@
+<?php
+
+namespace App\Http\Controllers\Projects;
+
+use App\Http\Controllers\Controller;
+use App\Http\Requests\Projects\StoreProjectRequest;
+use App\Http\Requests\Projects\UpdateProjectRequest;
+use App\Models\Component;
+use App\Models\Project;
+use App\Services\Billing\EntitlementService;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
+use Inertia\Inertia;
+use Inertia\Response;
+
+/**
+ * Project CRUD (SPEC §6.1, §15.4): the dashboard project list and detail
+ * pages (CSR) plus create / rename / delete. Per-plan project limits come
+ * from platform settings via the entitlement (§7.1, §8.7), so admins retune
+ * them without a deploy.
+ */
+class ProjectController extends Controller
+{
+    public function index(Request $request): Response
+    {
+        $entitlement = app(EntitlementService::class)->for($request->user());
+
+        $projects = $request->user()->projects()
+            ->withCount('components')
+            ->latest()
+            ->get()
+            ->map(fn (Project $project): array => [
+                'id' => $project->id,
+                'name' => $project->name,
+                'components_count' => $project->components_count,
+                'created_at' => $project->created_at->toIso8601String(),
+                'url' => route('dashboard.projects.show', $project),
+            ]);
+
+        return Inertia::render('dashboard/projects/index', [
+            'projects' => $projects,
+            'limits' => [
+                'plan' => $entitlement->plan()->value,
+                'limit' => $entitlement->projectLimit(),
+                'used' => $projects->count(),
+            ],
+        ]);
+    }
+
+    /**
+     * @throws ValidationException
+     */
+    public function store(StoreProjectRequest $request): RedirectResponse|JsonResponse
+    {
+        // Resolved per request (not constructor-injected): routes memoize
+        // controller instances, and limits must track settings changes.
+        $entitlement = app(EntitlementService::class)->for($request->user());
+        $limit = $entitlement->projectLimit();
+
+        if ($limit !== null && $request->user()->projects()->count() >= $limit) {
+            $plan = Str::headline($entitlement->plan()->value);
+            $message = "Your {$plan} plan includes {$limit} ".Str::plural('project', $limit).'. Upgrade to create more projects.';
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'error' => 'project_limit_reached',
+                    'message' => $message,
+                    'upgrade' => [
+                        'cta' => 'Upgrade to create more projects',
+                        'pricing_url' => '/pricing',
+                    ],
+                ], 422);
+            }
+
+            throw ValidationException::withMessages(['name' => $message]);
+        }
+
+        $project = $request->user()->projects()->create($request->validated());
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'project' => [
+                    'id' => $project->id,
+                    'name' => $project->name,
+                    'url' => route('dashboard.projects.show', $project),
+                ],
+            ], 201);
+        }
+
+        return to_route('dashboard.projects.show', $project);
+    }
+
+    public function show(Request $request, Project $project): Response
+    {
+        abort_unless($project->user_id === $request->user()->id, 403);
+
+        $components = $project->components()
+            ->with('usageCategory')
+            ->orderBy('project_components.is_dependency')
+            ->orderBy('components.name')
+            ->get()
+            ->map(fn (Component $component): array => [
+                'id' => $component->id,
+                'slug' => $component->slug,
+                'basename' => $component->basename,
+                'name' => $component->name,
+                'level' => $component->level->value,
+                'access_level' => $component->access_level->value,
+                'is_dependency' => (bool) $component->pivot->is_dependency,
+                'url' => $component->publicUrl(),
+            ]);
+
+        return Inertia::render('dashboard/projects/show', [
+            'project' => [
+                'id' => $project->id,
+                'name' => $project->name,
+                'created_at' => $project->created_at->toIso8601String(),
+            ],
+            'components' => $components,
+            // Pack zip export arrives with sub-phase 2.5 (SPEC §6.2); the
+            // endpoint is a 501 stub until then.
+            'export' => [
+                'url' => route('dashboard.projects.export', $project),
+                'available' => false,
+            ],
+        ]);
+    }
+
+    public function update(UpdateProjectRequest $request, Project $project): RedirectResponse|JsonResponse
+    {
+        abort_unless($project->user_id === $request->user()->id, 403);
+
+        $project->update($request->validated());
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'project' => ['id' => $project->id, 'name' => $project->name],
+            ]);
+        }
+
+        return back();
+    }
+
+    public function destroy(Request $request, Project $project): RedirectResponse|JsonResponse
+    {
+        abort_unless($project->user_id === $request->user()->id, 403);
+
+        $project->delete();
+
+        if ($request->expectsJson()) {
+            return response()->json(['deleted' => true]);
+        }
+
+        return to_route('dashboard.projects.index');
+    }
+}
