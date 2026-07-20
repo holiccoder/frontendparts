@@ -39,6 +39,8 @@ class Component extends Model
         'source_hash',
         'preview_paths',
         'preview_built_at',
+        'qa_checklist',
+        'review_note',
     ];
 
     /**
@@ -53,6 +55,7 @@ class Component extends Model
             'deps' => 'array',
             'preview_paths' => 'array',
             'preview_built_at' => 'datetime',
+            'qa_checklist' => 'array',
         ];
     }
 

@@ -2,6 +2,10 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Widgets\CatalogStatsWidget;
+use App\Filament\Widgets\CoverageMatrixWidget;
+use App\Filament\Widgets\DraftsReviewWidget;
+use App\Filament\Widgets\SystemHealthWidget;
 use App\Models\Admin;
 use DutchCodingCompany\FilamentDeveloperLogins\FilamentDeveloperLoginsPlugin;
 use Filament\Http\Middleware\Authenticate;
@@ -13,7 +17,6 @@ use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
 use Filament\Widgets\AccountWidget;
-use Filament\Widgets\FilamentInfoWidget;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
@@ -42,7 +45,15 @@ class AdminPanelProvider extends PanelProvider
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
             ->widgets([
                 AccountWidget::class,
-                FilamentInfoWidget::class,
+                CatalogStatsWidget::class,
+                DraftsReviewWidget::class,
+                CoverageMatrixWidget::class,
+                SystemHealthWidget::class,
+            ])
+            ->navigationGroups([
+                'Library',
+                'Manage',
+                'System',
             ])
             ->plugins([
                 FilamentDeveloperLoginsPlugin::make()
