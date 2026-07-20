@@ -169,22 +169,22 @@
 
 ## 2.1 Plans & pricing engine
 
-- [ ] **2.1.1 Entitlement service** — resolve a user's effective plan from `orders` (active / cancelled-valid-until-`ends_at` / expired; lifetime `ends_at = null`); entitlement checks: library access %, project limit (from settings), scaffolding flag (SPEC §7.1, §7.3).
+- [x] **2.1.1 Entitlement service** — resolve a user's effective plan from `orders` (active / cancelled-valid-until-`ends_at` / expired; lifetime `ends_at = null`); entitlement checks: library access %, project limit (from settings), scaffolding flag (SPEC §7.1, §7.3).
   - Acceptance: `Billing/EntitlementTest::test_free_user_entitlements`, `test_starter_full_library_no_scaffolding`, `test_pro_full_library_with_scaffolding`, `test_cancelled_but_not_ended_keeps_access`, `test_expired_loses_paid_access`, `test_lifetime_never_expires`, `test_project_limits_read_from_settings`.
-- [ ] **2.1.2 Gating enforcement** — copy/download/project-add endpoints enforce access: free users limited to free subset (20–30% via `components.access_level`); 403 + upgrade payload on violation (FR-7.6, SPEC §5.4 blur-gate).
+- [x] **2.1.2 Gating enforcement** — copy/download/project-add endpoints enforce access: free users limited to free subset (20–30% via `components.access_level`); 403 + upgrade payload on violation (FR-7.6, SPEC §5.4 blur-gate).
   - Acceptance: `Billing/GatingTest::test_free_user_paid_download_403`, `test_starter_downloads_any_component`, `test_free_user_adds_only_free_components_to_project`, `test_403_payload_contains_plan_comparison_cta`, `test_pro_blur_gate_event_recorded_for_b2_trigger`.
 
 ## 2.2 Paddle integration
 
-- [ ] **2.2.1 Cashier Paddle setup** — install `laravel/cashier-paddle`, config, customer creation/sync on checkout (SPEC §7.3).
+- [x] **2.2.1 Cashier Paddle setup** — install `laravel/cashier-paddle`, config, customer creation/sync on checkout (SPEC §7.3).
   - Acceptance: `Billing/PaddleCheckoutTest::test_checkout_session_created_for_plan_and_period` (Paddle sandbox/fake), `test_customer_record_linked_to_user`, `test_price_ids_come_from_plan_prices_table`.
-- [ ] **2.2.2 Checkout pages (CSR, noindex)** — `/checkout/{plan}` Paddle overlay host with period selector; `/checkout/success` confirmation + next steps (SPEC §15.3).
+- [x] **2.2.2 Checkout pages (CSR, noindex)** — `/checkout/{plan}` Paddle overlay host with period selector; `/checkout/success` confirmation + next steps (SPEC §15.3).
   - Acceptance: `Billing/CheckoutPageTest::test_checkout_page_csr_with_noindex`, `test_period_selector_passes_correct_price`, `test_success_page_shows_license_summary`, `test_auth_required`.
-- [ ] **2.2.3 Webhook processing** — signature-verified endpoint; `transaction.completed` → order `active`; subscription cancelled → `cancelled` valid-until-`ends_at`; payment failed → `past_due`; refunds → refunded state (SPEC §7.3).
+- [x] **2.2.3 Webhook processing** — signature-verified endpoint; `transaction.completed` → order `active`; subscription cancelled → `cancelled` valid-until-`ends_at`; payment failed → `past_due`; refunds → refunded state (SPEC §7.3).
   - Acceptance: `Billing/PaddleWebhookTest::test_invalid_signature_403`, `test_transaction_completed_activates_order`, `test_cancellation_sets_ends_at_and_keeps_access`, `test_payment_failed_marks_past_due`, `test_webhook_idempotent_on_replay`.
-- [ ] **2.2.4 Refunds** — admin refund action via Paddle API honoring the settings-driven 14-day window; refund email (SPEC §7.3, §16.1).
+- [x] **2.2.4 Refunds** — admin refund action via Paddle API honoring the settings-driven 14-day window; refund email (SPEC §7.3, §16.1).
   - Acceptance: `Billing/RefundTest::test_refund_within_window_succeeds`, `test_refund_after_window_blocked`, `test_refund_processed_notification_queued`.
-- [ ] **2.2.5 Order-paid welcome email** — on activation: license summary + first steps; never duplicates Paddle MoR receipts (SPEC §16.1).
+- [x] **2.2.5 Order-paid welcome email** — on activation: license summary + first steps; never duplicates Paddle MoR receipts (SPEC §16.1).
   - Acceptance: `Notifications/OrderPaidTest::test_welcome_to_pro_queued_on_activation`, `test_email_contains_license_summary_not_invoice`.
 
 ## 2.3 Pricing page
