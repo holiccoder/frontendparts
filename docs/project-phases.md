@@ -210,9 +210,9 @@
 
 ## 2.6 User dashboard (CSR)
 
-- [ ] **2.6.1 Dashboard overview rebuild** — `/dashboard`: plan status, projects, recent downloads, new drops (SPEC §15.4).
+- [x] **2.6.1 Dashboard overview rebuild** — `/dashboard`: plan status, projects, recent downloads, new drops (SPEC §15.4).
   - Acceptance: `Dashboard/DashboardTest::test_overview_props_per_plan_state`, `test_new_drops_section`.
-- [ ] **2.6.2 Orders page** — `/dashboard/orders`: orders, Paddle receipt/invoice URLs, license state, renewal dates (SPEC §15.4).
+- [x] **2.6.2 Orders page** — `/dashboard/orders`: orders, Paddle receipt/invoice URLs, license state, renewal dates (SPEC §15.4).
   - Acceptance: `Dashboard/OrdersPageTest::test_orders_listed_with_receipt_urls`, `test_license_state_and_renewal_dates`, `test_only_own_orders`.
 
 ## 2.7 Blog (public + admin extension)
