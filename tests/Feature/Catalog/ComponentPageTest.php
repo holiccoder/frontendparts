@@ -6,6 +6,7 @@ use App\Enums\ComponentEventType;
 use App\Models\Category;
 use App\Models\Component;
 use App\Models\User;
+use App\Support\Settings;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -198,6 +199,98 @@ class ComponentPageTest extends TestCase
             'type' => ComponentEventType::View->value,
             'user_id' => $user->id,
         ]);
+    }
+
+    public function test_dark_toggle_included_only_when_feature_flag_on()
+    {
+        $usage = Category::factory()->usage()->create(['slug' => 'hero']);
+
+        Component::factory()->published()->create([
+            'slug' => 'elements/flag-01',
+            'usage_category_id' => $usage->id,
+        ]);
+
+        $settings = app(Settings::class);
+
+        $settings->set('features.preview_dark_toggle', true);
+
+        $this->get('/components/hero/flag-01')
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('component.features.dark_toggle', true)
+            );
+
+        $settings->set('features.preview_dark_toggle', false);
+
+        $this->get('/components/hero/flag-01')
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('component.features.dark_toggle', false)
+            );
+    }
+
+    public function test_tree_interactions_flag_present()
+    {
+        $usage = Category::factory()->usage()->create(['slug' => 'hero']);
+
+        Component::factory()->published()->create([
+            'slug' => 'elements/tree-flag-01',
+            'usage_category_id' => $usage->id,
+        ]);
+
+        $settings = app(Settings::class);
+
+        $settings->set('features.tree_interactions', true);
+
+        $this->get('/components/hero/tree-flag-01')
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('component.features.tree_interactions', true)
+            );
+
+        $settings->set('features.tree_interactions', false);
+
+        $this->get('/components/hero/tree-flag-01')
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('component.features.tree_interactions', false)
+            );
+    }
+
+    public function test_entitled_placeholder_guest_locked_authed_passes()
+    {
+        $usage = Category::factory()->usage()->create(['slug' => 'hero']);
+
+        Component::factory()->published()->paid()->create([
+            'slug' => 'elements/paid-01',
+            'usage_category_id' => $usage->id,
+        ]);
+
+        Component::factory()->published()->free()->create([
+            'slug' => 'elements/free-01',
+            'usage_category_id' => $usage->id,
+        ]);
+
+        // Phase 2 placeholder: guests are locked out of paid components…
+        $this->get('/components/hero/paid-01')
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('component.access', 'paid')
+                ->where('component.entitled', false)
+            );
+
+        // …but any authenticated user passes until real gating exists, and
+        // free components are always entitled.
+        $user = User::factory()->create();
+
+        $this->actingAs($user)->get('/components/hero/paid-01')
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('component.entitled', true)
+            );
+
+        $this->get('/components/hero/free-01')
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('component.entitled', true)
+            );
     }
 
     /**

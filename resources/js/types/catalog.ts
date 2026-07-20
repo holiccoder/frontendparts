@@ -51,6 +51,8 @@ export interface ComponentFile {
 
 export interface TreeNode {
     slug: string;
+    basename: string;
+    usage: string;
     name: string;
     level: ComponentLevel;
     instances: number;
@@ -74,6 +76,11 @@ export interface ComponentDetailData {
     industries: CategoryRef[];
     tags: CategoryRef[];
     access: AccessLevel;
+    entitled: boolean;
+    features: {
+        dark_toggle: boolean;
+        tree_interactions: boolean;
+    };
     citation: {
         source_name: string | null;
         source_url: string | null;

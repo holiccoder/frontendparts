@@ -1,12 +1,28 @@
 import { AccessBadge, LevelBadge } from '@/components/catalog/badges';
+import { usePreviewModal } from '@/components/preview-modal';
 import { PlaceholderPattern } from '@/components/ui/placeholder-pattern';
 import type { ComponentCardData } from '@/types/catalog';
 import { Link } from '@inertiajs/react';
+import type { MouseEvent } from 'react';
 
 export function ComponentCard({ component }: { component: ComponentCardData }) {
+    const previewModal = usePreviewModal();
+
+    // Plain left-click opens the preview overlay without navigation;
+    // modified clicks (ctrl/middle/new tab) keep the native link behavior.
+    const handleClick = (event: MouseEvent<HTMLAnchorElement>) => {
+        if (!previewModal || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) {
+            return;
+        }
+
+        event.preventDefault();
+        previewModal.openPreview(component.url);
+    };
+
     return (
         <Link
             href={component.url}
+            onClick={handleClick}
             className="group flex flex-col overflow-hidden rounded-xl border border-neutral-200 bg-white transition hover:border-neutral-300 hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)]"
         >
             <div className="relative aspect-[16/10] overflow-hidden border-b border-neutral-100 bg-neutral-50">

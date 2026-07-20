@@ -2,9 +2,11 @@
 
 namespace App\Http\Resources;
 
+use App\Enums\AccessLevel;
 use App\Models\Component;
 use App\Services\Catalog\ComponentContent;
 use App\Services\Catalog\CompositionTree;
+use App\Support\Settings;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -64,6 +66,15 @@ class ComponentDetailResource extends JsonResource
                 ->values()
                 ->all(),
             'access' => $this->access_level->value,
+            // Phase 2 placeholder (SPEC §5.4 blur-gate): no plan system exists
+            // yet, so every authenticated user is treated as entitled; guests
+            // are locked out of paid components' Code/Data tabs until the
+            // entitlement service (2.1.1) replaces this check.
+            'entitled' => $this->access_level === AccessLevel::Free || $request->user() !== null,
+            'features' => [
+                'dark_toggle' => (bool) app(Settings::class)->get('features.preview_dark_toggle'),
+                'tree_interactions' => (bool) app(Settings::class)->get('features.tree_interactions'),
+            ],
             'citation' => [
                 'source_name' => $this->source_name,
                 'source_url' => $this->source_url,

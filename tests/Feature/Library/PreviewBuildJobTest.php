@@ -73,4 +73,20 @@ class PreviewBuildJobTest extends TestCase
         $this->assertSame('elements/section-title-01/1.0.0/react.html', $fresh->previewPath('react'));
         $this->assertSame('elements/section-title-01/1.0.0/vue.html', $fresh->previewPath('vue'));
     }
+
+    public function test_preview_html_contains_postmessage_runtime()
+    {
+        $disk = Storage::disk('previews');
+
+        foreach (['react', 'vue'] as $framework) {
+            $html = (string) $disk->get($this->component->fresh()->previewPath($framework));
+
+            // SPEC §5.3 protocol: highlight/clear/theme in, ready/height out.
+            $this->assertStringContainsString('fp:highlight', $html, "{$framework}: runtime marker missing");
+            $this->assertStringContainsString("data.type === 'highlight'", $html, "{$framework}: highlight handler missing");
+            $this->assertStringContainsString("classList.toggle('dark'", $html, "{$framework}: theme handler missing");
+            $this->assertStringContainsString("post({ type: 'ready' })", $html, "{$framework}: ready message missing");
+            $this->assertStringContainsString('ResizeObserver', $html, "{$framework}: height reporter missing");
+        }
+    }
 }

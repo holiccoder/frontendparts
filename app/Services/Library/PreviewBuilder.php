@@ -163,6 +163,7 @@ class PreviewBuilder
         // Keep the inline script from breaking out of its own tag.
         $script = str_replace('</script', '<\\/script', implode("\n", $js));
         $style = implode("\n", $css);
+        $runtime = $this->runtimeScript();
 
         $title = e("{$component->name} · {$framework} · FrontendParts");
 
@@ -179,12 +180,127 @@ class PreviewBuilder
         </head>
         <body>
         <div id="root"></div>
+        <script>
+        {$runtime}
+        </script>
         <script type="module">
         {$script}
         </script>
         </body>
         </html>
         HTML;
+    }
+
+    /**
+     * Tiny dependency-free postMessage runtime (SPEC §5.3), identical for
+     * react and vue builds:
+     *
+     *  - parent → iframe: fp:highlight `{type:'highlight', slug, instance:n|null}`
+     *    soft-outlines every `[data-fp-c="<slug>"]` element (instance null) or
+     *    strong-outlines the nth match (`data-fp-i`) and scrolls it into view;
+     *    fp:clear `{type:'clear'}` removes all outlines; fp:theme
+     *    `{type:'theme', mode:'dark'|'light'}` toggles `dark` on <html>.
+     *  - iframe → parent: fp:ready `{type:'ready'}` on load, fp:height
+     *    `{type:'height', px}` on load and on ResizeObserver size changes.
+     *
+     * Written without `$` or template literals so it can be inlined from a
+     * PHP heredoc without escaping surprises.
+     */
+    private function runtimeScript(): string
+    {
+        return <<<'JS'
+        /* FrontendParts preview runtime (SPEC §5.3): fp:highlight fp:clear fp:theme in, fp:ready fp:height out. */
+        (function () {
+            'use strict';
+
+            var ACCENT = '#6366f1';
+            var touched = [];
+
+            function restoreAll() {
+                touched.forEach(function (entry) {
+                    entry.el.style.outline = entry.outline;
+                    entry.el.style.outlineOffset = entry.outlineOffset;
+                    entry.el.style.boxShadow = entry.boxShadow;
+                    entry.el.style.background = entry.background;
+                });
+                touched = [];
+            }
+
+            function paint(el, strong) {
+                touched.push({
+                    el: el,
+                    outline: el.style.outline,
+                    outlineOffset: el.style.outlineOffset,
+                    boxShadow: el.style.boxShadow,
+                    background: el.style.background
+                });
+                el.style.outline = '2px ' + (strong ? 'solid ' : 'dashed ') + ACCENT;
+                el.style.outlineOffset = '2px';
+                if (strong) {
+                    el.style.boxShadow = '0 0 0 4px rgba(99, 102, 241, 0.25)';
+                } else {
+                    el.style.background = 'rgba(99, 102, 241, 0.06)';
+                }
+            }
+
+            function highlight(slug, instance) {
+                restoreAll();
+
+                if (typeof slug !== 'string' || slug === '') {
+                    return;
+                }
+
+                var matches = document.querySelectorAll('[data-fp-c="' + slug + '"]');
+
+                if (instance === null || instance === undefined) {
+                    matches.forEach(function (el) { paint(el, false); });
+                    return;
+                }
+
+                matches.forEach(function (el) {
+                    if (el.getAttribute('data-fp-i') === String(instance)) {
+                        paint(el, true);
+                        el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+                    }
+                });
+            }
+
+            window.addEventListener('message', function (event) {
+                var data = event.data;
+
+                if (!data || typeof data !== 'object') {
+                    return;
+                }
+
+                if (data.type === 'highlight') {
+                    highlight(data.slug, data.instance);
+                } else if (data.type === 'clear') {
+                    restoreAll();
+                } else if (data.type === 'theme') {
+                    document.documentElement.classList.toggle('dark', data.mode === 'dark');
+                }
+            });
+
+            function post(message) {
+                if (window.parent && window.parent !== window) {
+                    window.parent.postMessage(message, '*');
+                }
+            }
+
+            function reportHeight() {
+                post({ type: 'height', px: Math.ceil(document.documentElement.scrollHeight) });
+            }
+
+            window.addEventListener('load', function () {
+                post({ type: 'ready' });
+                reportHeight();
+            });
+
+            if ('ResizeObserver' in window) {
+                new ResizeObserver(reportHeight).observe(document.documentElement);
+            }
+        })();
+        JS;
     }
 
     private function entrySource(string $slug, string $framework): string

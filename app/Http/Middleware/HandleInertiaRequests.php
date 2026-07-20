@@ -44,6 +44,9 @@ class HandleInertiaRequests extends Middleware
             'quote' => ['message' => trim($message), 'author' => trim($author)],
             'auth' => [
                 'user' => $request->user(),
+                // Preview-modal pane layout (SPEC §5.4); guests keep theirs
+                // in localStorage instead.
+                'preview_layout' => $request->user()?->preview_layout,
             ],
             // Shared explicitly so the SSR bundle (no @routes script) can
             // build Ziggy's route() helper from page props.

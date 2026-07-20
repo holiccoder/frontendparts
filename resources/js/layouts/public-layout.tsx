@@ -1,3 +1,4 @@
+import { PreviewModalProvider } from '@/components/preview-modal';
 import { type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 import type { PropsWithChildren } from 'react';
@@ -93,7 +94,9 @@ export default function PublicLayout({ children }: PropsWithChildren) {
                 </div>
             </header>
 
-            <main className="flex-1">{children}</main>
+            <main className="flex-1">
+                <PreviewModalProvider>{children}</PreviewModalProvider>
+            </main>
 
             <footer className="border-t border-neutral-200 bg-neutral-50">
                 <div className="mx-auto w-full max-w-7xl px-4 py-14 sm:px-6 lg:px-8">

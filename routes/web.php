@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\CatalogController;
+use App\Http\Controllers\ComponentApiController;
 use App\Http\Controllers\ComponentController;
 use App\Http\Controllers\ComponentPreviewController;
 use App\Http\Controllers\HomeController;
@@ -54,6 +55,22 @@ Route::get('/previews/{component}/{version}/{framework}.html', [ComponentPreview
     ->where('component', '[a-z0-9\-/]+')
     ->where('framework', 'react|vue')
     ->name('previews.show');
+
+/*
+|--------------------------------------------------------------------------
+| JSON payload for the preview-modal overlay (SPEC §5.4)
+|--------------------------------------------------------------------------
+|
+| Lives on the stateful web stack so an authenticated reader keeps their
+| session (the resource's `entitled` placeholder reads the auth user).
+|
+*/
+
+Route::get('/api/components/{usage}/{slug}', [ComponentApiController::class, 'show'])
+    ->where('usage', '[a-z0-9\-]+')
+    ->where('slug', '[a-z0-9\-]+')
+    ->middleware('throttle:60,1')
+    ->name('api.components.show');
 
 /*
 |--------------------------------------------------------------------------
