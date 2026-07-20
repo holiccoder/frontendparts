@@ -194,11 +194,11 @@
 
 ## 2.4 Projects
 
-- [ ] **2.4.1 Project CRUD + limits** — `projects` + `project_components`; create/rename/delete; per-plan limits (Free 1 / Starter 3 / Pro unlimited, settings-driven) (SPEC §6.1).
+- [x] **2.4.1 Project CRUD + limits** — `projects` + `project_components`; create/rename/delete; per-plan limits (Free 1 / Starter 3 / Pro unlimited, settings-driven) (SPEC §6.1).
   - Acceptance: `Projects/ProjectCrudTest::test_create_rename_delete`, `test_owner_only_access`, `test_free_user_blocked_at_second_project`, `test_starter_blocked_at_fourth`, `test_pro_unlimited`, `test_limits_change_via_settings_without_deploy`.
-- [ ] **2.4.2 Auto-add closure + removal cascade** — adding a composite inserts full descendant closure (`is_dependency = true`, deduplicated); removing a direct component prunes orphaned dependencies with user notice; shared children kept (SPEC §6.1).
+- [x] **2.4.2 Auto-add closure + removal cascade** — adding a composite inserts full descendant closure (`is_dependency = true`, deduplicated); removing a direct component prunes orphaned dependencies with user notice; shared children kept (SPEC §6.1).
   - Acceptance: `Projects/ProjectClosureTest::test_adding_composite_adds_full_descendant_closure`, `test_shared_children_deduplicated`, `test_removal_prunes_orphaned_dependencies`, `test_dependencies_used_elsewhere_are_kept`, `test_prune_notice_returned_in_response`.
-- [ ] **2.4.3 Dashboard project pages (CSR)** — `/dashboard/projects` list + `/dashboard/projects/{id}` component set with dependency view + export actions (SPEC §15.4).
+- [x] **2.4.3 Dashboard project pages (CSR)** — `/dashboard/projects` list + `/dashboard/projects/{id}` component set with dependency view + export actions (SPEC §15.4).
   - Acceptance: `Projects/ProjectPagesTest::test_list_and_detail_render_with_props`, `test_detail_marks_dependencies`, `test_other_users_project_403`.
 
 ## 2.5 Pack zip export
