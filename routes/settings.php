@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Settings\NotificationPreferenceController;
 use App\Http\Controllers\Settings\PasswordController;
 use App\Http\Controllers\Settings\PreviewLayoutController;
 use App\Http\Controllers\Settings\ProfileController;
@@ -19,6 +20,9 @@ Route::middleware('auth')->group(function () {
     Route::get('settings/appearance', function () {
         return Inertia::render('settings/appearance');
     })->name('appearance');
+
+    Route::get('settings/notifications', [NotificationPreferenceController::class, 'edit'])->name('notifications.edit');
+    Route::patch('settings/notifications', [NotificationPreferenceController::class, 'update'])->name('notifications.update');
 
     Route::patch('settings/preview-layout', [PreviewLayoutController::class, 'update'])
         ->middleware('verified')

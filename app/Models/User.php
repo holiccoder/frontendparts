@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\Notifications\NotificationPreferences;
 use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -47,6 +48,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'preview_layout' => 'array',
+            'notification_preferences' => 'array',
         ];
     }
 
@@ -68,5 +70,25 @@ class User extends Authenticatable implements MustVerifyEmail
     public function tickets(): HasMany
     {
         return $this->hasMany(SupportTicket::class);
+    }
+
+    public function componentEvents(): HasMany
+    {
+        return $this->hasMany(ComponentEvent::class);
+    }
+
+    public function sequenceSends(): HasMany
+    {
+        return $this->hasMany(SequenceSend::class);
+    }
+
+    /**
+     * Whether any marketing category (digest / blog / product updates) is
+     * still enabled — convenience delegate; the preference rules themselves
+     * live only in NotificationPreferences (SPEC §16.3).
+     */
+    public function wantsMarketing(): bool
+    {
+        return app(NotificationPreferences::class)->wantsMarketing($this);
     }
 }

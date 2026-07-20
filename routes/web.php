@@ -23,6 +23,7 @@ use App\Http\Controllers\Projects\ProjectExportController;
 use App\Http\Controllers\Projects\ProjectExportDownloadController;
 use App\Http\Controllers\RobotsController;
 use App\Http\Controllers\SitemapController;
+use App\Http\Controllers\UnsubscribeController;
 use Illuminate\Support\Facades\Route;
 use Laravel\Paddle\Http\Middleware\VerifyWebhookSignature;
 
@@ -71,6 +72,21 @@ Route::get('/docs/{section}/{page}', [DocsController::class, 'show'])
     ->name('docs.show');
 
 Route::get('/pricing', PricingController::class)->name('pricing');
+
+/*
+|--------------------------------------------------------------------------
+| One-click unsubscribe (SPEC §16.3)
+|--------------------------------------------------------------------------
+|
+| Carried by every marketing email. Signature-authenticated instead of
+| session-authenticated so it works logged-out; performs the unsubscribe
+| in a single GET and confirms. Not indexed.
+|
+*/
+
+Route::get('/unsubscribe/{user}', UnsubscribeController::class)
+    ->middleware(['signed', 'noindex'])
+    ->name('unsubscribe');
 
 /*
 |--------------------------------------------------------------------------
