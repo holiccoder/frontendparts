@@ -279,7 +279,7 @@
 
 ## 3.2 Live edit mode — Vue
 
-- [ ] **3.2.1 `@vue/repl` runtime** — same surface for Vue (SPEC §5.6).
+- [x] **3.2.1 `@vue/repl` runtime** — same surface for Vue (SPEC §5.6).
   - Acceptance: `Library/LiveEditTest::test_vue_edit_payload_uses_repl_structure`. Client compile/render *QA-gate*.
 
 ## 3.3 Live edit — instrumentation & forks
