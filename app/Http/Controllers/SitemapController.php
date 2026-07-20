@@ -23,6 +23,7 @@ class SitemapController extends Controller
             ['loc' => url('/'), 'lastmod' => null],
             ['loc' => route('components.index'), 'lastmod' => null],
             ['loc' => route('industries.index'), 'lastmod' => null],
+            ['loc' => route('pricing'), 'lastmod' => null],
         ];
 
         foreach ($this->docs->allPages() as $docsPage) {

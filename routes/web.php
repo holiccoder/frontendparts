@@ -3,6 +3,7 @@
 use App\Http\Controllers\Billing\CheckoutController;
 use App\Http\Controllers\Billing\CheckoutSuccessController;
 use App\Http\Controllers\Billing\PaddleWebhookController;
+use App\Http\Controllers\Billing\PricingController;
 use App\Http\Controllers\CatalogController;
 use App\Http\Controllers\ComponentApiController;
 use App\Http\Controllers\ComponentController;
@@ -61,6 +62,8 @@ Route::get('/docs/{section}/{page}', [DocsController::class, 'show'])
     ->where('section', '[a-z0-9\-]+')
     ->where('page', '[a-z0-9\-]+')
     ->name('docs.show');
+
+Route::get('/pricing', PricingController::class)->name('pricing');
 
 /*
 |--------------------------------------------------------------------------

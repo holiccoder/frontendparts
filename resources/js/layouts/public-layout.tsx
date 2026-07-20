@@ -6,7 +6,7 @@ import type { PropsWithChildren } from 'react';
 const NAV_LINKS = [
     { label: 'Components', href: '/components' },
     { label: 'Industries', href: '/industries' },
-    { label: 'Pricing', href: '#' },
+    { label: 'Pricing', href: '/pricing' },
     { label: 'Docs', href: '/docs' },
     { label: 'Blog', href: '#' },
 ];
@@ -24,7 +24,7 @@ const FOOTER_COLUMNS = [
         links: [
             { label: 'Documentation', href: '/docs' },
             { label: 'Blog', href: '#' },
-            { label: 'Pricing', href: '#' },
+            { label: 'Pricing', href: '/pricing' },
         ],
     },
     {
