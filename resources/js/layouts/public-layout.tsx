@@ -7,7 +7,7 @@ const NAV_LINKS = [
     { label: 'Components', href: '/components' },
     { label: 'Industries', href: '/industries' },
     { label: 'Pricing', href: '#' },
-    { label: 'Docs', href: '#' },
+    { label: 'Docs', href: '/docs' },
     { label: 'Blog', href: '#' },
 ];
 
@@ -22,7 +22,7 @@ const FOOTER_COLUMNS = [
     {
         title: 'Resources',
         links: [
-            { label: 'Documentation', href: '#' },
+            { label: 'Documentation', href: '/docs' },
             { label: 'Blog', href: '#' },
             { label: 'Pricing', href: '#' },
         ],

@@ -96,39 +96,39 @@
 
 ## 1.6 Public catalog (SSR)
 
-- [ ] **1.6.1 Rendering-zone middleware** — Inertia SSR enabled globally; middleware disables SSR gateway per-request for dashboard/checkout groups; auth + checkout routes carry `noindex` (SPEC §10.1).
+- [x] **1.6.1 Rendering-zone middleware** — Inertia SSR enabled globally; middleware disables SSR gateway per-request for dashboard/checkout groups; auth + checkout routes carry `noindex` (SPEC §10.1).
   - Acceptance: `SsrZoneTest::test_public_page_uses_ssr`, `test_dashboard_and_checkout_skip_ssr`, `test_auth_and_checkout_responses_carry_noindex`.
-- [ ] **1.6.2 Home page `/`** — hero, featured components, industries grid, how-it-works, pricing teaser, latest drops, blog teaser (SPEC §15.1).
+- [x] **1.6.2 Home page `/`** — hero, featured components, industries grid, how-it-works, pricing teaser, latest drops, blog teaser (SPEC §15.1).
   - Acceptance: `Catalog/HomeTest::test_home_renders_ssr_200`, `test_props_contain_featured_components_and_industries`, `test_industries_below_3_components_excluded`.
-- [ ] **1.6.3 Catalog index `/components` + filters + search box** — grid + filters (industry multi, usage, level, framework, access) + free-text search (DB-driven) (FR-1).
+- [x] **1.6.3 Catalog index `/components` + filters + search box** — grid + filters (industry multi, usage, level, framework, access) + free-text search (DB-driven) (FR-1).
   - Acceptance: `Catalog/CatalogTest::test_index_lists_published_only`, `test_filter_by_industry_multi`, `test_filter_by_usage_level_access`, `test_search_matches_name_and_tags`, `test_empty_category_hidden`.
-- [ ] **1.6.4 Taxonomy landing pages** — `/components/{usage}`, `/industries`, `/industries/{industry}` curated collections + copy (SPEC §15.1).
+- [x] **1.6.4 Taxonomy landing pages** — `/components/{usage}`, `/industries`, `/industries/{industry}` curated collections + copy (SPEC §15.1).
   - Acceptance: `Catalog/TaxonomyPageTest::test_usage_page_200_for_seeded_slug`, `test_industry_index_and_detail_200`, `test_unknown_slug_404`, `test_curated_props_present`.
-- [ ] **1.6.5 Component detail `/components/{usage}/{slug}`** — full modal payload (files, data, docs, tree), citation display, related components, per-component meta + OG (auto screenshot) + structured data (FR-1.6, SPEC §10.2).
+- [x] **1.6.5 Component detail `/components/{usage}/{slug}`** — full modal payload (files, data, docs, tree), citation display, related components, per-component meta + OG (auto screenshot) + structured data (FR-1.6, SPEC §10.2).
   - Acceptance: `Catalog/ComponentPageTest::test_200_with_full_modal_payload`, `test_citation_prop_present`, `test_canonical_and_og_point_to_screenshot`, `test_draft_404`, `test_related_components_same_usage`.
-- [ ] **1.6.6 SEO mechanics** — `sitemap.xml` (components + taxonomy + docs), `robots.txt` (disallow dashboard/checkout), unique titles/meta per page (SPEC §10.2).
+- [x] **1.6.6 SEO mechanics** — `sitemap.xml` (components + taxonomy + docs), `robots.txt` (disallow dashboard/checkout), unique titles/meta per page (SPEC §10.2).
   - Acceptance: `Catalog/SeoTest::test_sitemap_contains_component_and_taxonomy_urls`, `test_robots_disallows_private_zones`, `test_titles_unique_per_component_page`.
-- [ ] **1.6.7 Branded 404** — links back to catalog (SPEC §15.1).
+- [x] **1.6.7 Branded 404** — links back to catalog (SPEC §15.1).
   - Acceptance: `Catalog/NotFoundTest::test_404_renders_branded_page_with_catalog_link`.
 
 ## 1.7 Preview modal + structure tree
 
-- [ ] **1.7.1 Modal shell + toolbar + tabs** — header (name, level badge, usage+industry tags, citation, access badge, actions), toolbar (viewport presets 375/768/1280/full + readout + drag-resize; React|Vue toggle; dark/light flag; structure toggle), tabs Preview|Code|Data|Docs (SPEC §5.4, FR-2). Client interactions *QA-gate*.
+- [x] **1.7.1 Modal shell + toolbar + tabs** — header (name, level badge, usage+industry tags, citation, access badge, actions), toolbar (viewport presets 375/768/1280/full + readout + drag-resize; React|Vue toggle; dark/light flag; structure toggle), tabs Preview|Code|Data|Docs (SPEC §5.4, FR-2). Client interactions *QA-gate*.
   - Acceptance: `Catalog/ComponentPageTest::test_modal_payload_contains_header_fields_and_badges`, `test_payload_contains_both_framework_file_sets`, `test_dark_toggle_included_only_when_feature_flag_on`.
-- [ ] **1.7.2 Iframe sandbox + postMessage protocol** — `<iframe sandbox="allow-scripts">`, viewport width on iframe, protocol messages (highlight/clear/theme in; ready/height out) (SPEC §5.3). Client interactions *QA-gate*.
+- [x] **1.7.2 Iframe sandbox + postMessage protocol** — `<iframe sandbox="allow-scripts">`, viewport width on iframe, protocol messages (highlight/clear/theme in; ready/height out) (SPEC §5.3). Client interactions *QA-gate*.
   - Acceptance: covered by 1.5.2 + 1.5.4; protocol conformance noted in docs (no server test surface).
-- [ ] **1.7.3 Structure tree payload** — tree JSON from composition graph: foldable nodes, level badges, type grouping with instance chips (`Card ×3 → #1 #2 #3`), default-expanded depth, one-way highlight, child navigation links, primitive empty state (SPEC §5.5, FR-3). Client interactions *QA-gate*.
+- [x] **1.7.3 Structure tree payload** — tree JSON from composition graph: foldable nodes, level badges, type grouping with instance chips (`Card ×3 → #1 #2 #3`), default-expanded depth, one-way highlight, child navigation links, primitive empty state (SPEC §5.5, FR-3). Client interactions *QA-gate*.
   - Acceptance: `Catalog/StructureTreeTest::test_tree_matches_composition_graph`, `test_instance_chips_count_and_ids`, `test_primitive_component_returns_empty_tree`, `test_tree_depth_never_exceeds_10`.
-- [ ] **1.7.4 Code / Data / Docs tab payloads** — per-file sources, pretty `data.json`, auto-generated props table from `params.json`, resolved dep list + zero-dep badge, version/changelog (FR-2.5–2.7, SPEC §3.5).
+- [x] **1.7.4 Code / Data / Docs tab payloads** — per-file sources, pretty `data.json`, auto-generated props table from `params.json`, resolved dep list + zero-dep badge, version/changelog (FR-2.5–2.7, SPEC §3.5).
   - Acceptance: `Catalog/ComponentTabsTest::test_code_tab_lists_one_file_per_component_in_closure`, `test_data_tab_returns_sample_json`, `test_docs_tab_props_table_matches_params_schema`, `test_zero_dep_badge_when_deps_empty`, `test_deps_resolved_via_registry`.
-- [ ] **1.7.5 Editable layout persistence** — stage/content panes swappable + split sizing; persisted to `localStorage` (guest) and account profile (auth) via PATCH endpoint (FR-2.8).
+- [x] **1.7.5 Editable layout persistence** — stage/content panes swappable + split sizing; persisted to `localStorage` (guest) and account profile (auth) via PATCH endpoint (FR-2.8).
   - Acceptance: `Settings/PreviewLayoutTest::test_authenticated_user_saves_layout_preference`, `test_validation_rejects_invalid_layout_payload`.
 
 ## 1.8 Free copy / download + events
 
-- [ ] **1.8.1 Copy + single-component download** — accountless for free components; zip = component files by level + `data/` + clean (stripped) sources (SPEC §2.4, §6.1).
+- [x] **1.8.1 Copy + single-component download** — accountless for free components; zip = component files by level + `data/` + clean (stripped) sources (SPEC §2.4, §6.1).
   - Acceptance: `Catalog/DownloadTest::test_guest_can_download_free_component_zip`, `test_zip_structure_levels_plus_data_folder`, `test_zip_sources_have_no_instrumentation`, `test_paid_component_guest_gets_403_with_upgrade_payload`.
-- [ ] **1.8.2 Event tracking** — record `view` (component page), `copy`, `download` into `component_events`; rate-limited (SPEC §8.6).
+- [x] **1.8.2 Event tracking** — record `view` (component page), `copy`, `download` into `component_events`; rate-limited (SPEC §8.6).
   - Acceptance: `Catalog/ComponentEventTest::test_view_copy_download_events_recorded`, `test_events_linked_to_user_when_authenticated`, `test_download_endpoint_rate_limited`.
 
 ## 1.9 Documentation site (basic, P0)
@@ -371,12 +371,12 @@
 
 | Phase | Tasks | Done | Not started |
 |---|---|---|---|
-| Phase 1 — Foundation (P0) | 45 | 20 | 25 |
+| Phase 1 — Foundation (P0) | 45 | 34 | 11 |
 | Phase 2 — Monetization (P1) | 30 | 0 | 30 |
 | Phase 3 — Power features (P2) | 13 | 0 | 13 |
 | Phase 4 — Launch readiness | 9 | 2 | 7 |
 | Phase 5 — Growth (P3) | 7 | 0 | 7 |
-| **Total** | **104** | **22** | **82** |
+| **Total** | **104** | **36** | **68** |
 
 *(Task count = numbered leaf tasks. Update this table as tasks complete.)*
 

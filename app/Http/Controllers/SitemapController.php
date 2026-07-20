@@ -5,15 +5,18 @@ namespace App\Http\Controllers;
 use App\Enums\CategoryType;
 use App\Models\Category;
 use App\Models\Component;
+use App\Services\Docs\DocsRepository;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Response;
 
 /**
  * `/sitemap.xml` (SPEC §10.2, §15.6): static pages plus DB-driven
- * taxonomy and published component URLs.
+ * taxonomy and published component URLs, and every configured docs page.
  */
 class SitemapController extends Controller
 {
+    public function __construct(private readonly DocsRepository $docs) {}
+
     public function __invoke(): Response
     {
         $urls = [
@@ -21,6 +24,10 @@ class SitemapController extends Controller
             ['loc' => route('components.index'), 'lastmod' => null],
             ['loc' => route('industries.index'), 'lastmod' => null],
         ];
+
+        foreach ($this->docs->allPages() as $docsPage) {
+            $urls[] = ['loc' => route('docs.show', $docsPage), 'lastmod' => null];
+        }
 
         $usages = Category::query()
             ->where('type', CategoryType::Usage)

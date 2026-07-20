@@ -6,6 +6,7 @@ use App\Http\Controllers\ComponentController;
 use App\Http\Controllers\ComponentCopyController;
 use App\Http\Controllers\ComponentDownloadController;
 use App\Http\Controllers\ComponentPreviewController;
+use App\Http\Controllers\DocsController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\IndustryController;
 use App\Http\Controllers\RobotsController;
@@ -49,6 +50,13 @@ Route::get('/industries', [IndustryController::class, 'index'])->name('industrie
 Route::get('/industries/{industry}', [IndustryController::class, 'show'])
     ->where('industry', '[a-z0-9\-]+')
     ->name('industries.show');
+
+Route::get('/docs', [DocsController::class, 'index'])->name('docs.index');
+
+Route::get('/docs/{section}/{page}', [DocsController::class, 'show'])
+    ->where('section', '[a-z0-9\-]+')
+    ->where('page', '[a-z0-9\-]+')
+    ->name('docs.show');
 
 /*
 |--------------------------------------------------------------------------
