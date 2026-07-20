@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Services\Docs\DocsRepository;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\URL;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -43,6 +44,29 @@ class DocsController extends Controller
                     : "FrontendParts documentation — {$doc['title']}.",
                 'canonical' => route('docs.show', ['section' => $section, 'page' => $page]),
                 'og_image' => URL::to('/brand/logo.png'),
+            ],
+        ]);
+    }
+
+    /**
+     * Docs search (SPEC §13.2 — basic at launch): SSR results page fed by
+     * the repository's title/body matcher; the sidebar search box submits
+     * here as a plain GET so results are deep-linkable.
+     */
+    public function search(Request $request): Response
+    {
+        $query = trim((string) $request->query('q', ''));
+
+        return Inertia::render('docs/search', [
+            'query' => $query,
+            'results' => $this->docs->search($query),
+            'nav' => $this->docs->navTree(),
+            'meta' => [
+                'title' => ($query === '' ? 'Search the docs' : "Docs search: {$query}").' · FrontendParts Docs',
+                'description' => 'Search the FrontendParts documentation — install guides, params & data, exports, license and troubleshooting.',
+                'canonical' => route('docs.search'),
+                'og_image' => URL::to('/brand/logo.png'),
+                'robots' => 'noindex',
             ],
         ]);
     }

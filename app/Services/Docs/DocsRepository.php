@@ -167,6 +167,79 @@ class DocsRepository
     }
 
     /**
+     * Basic full-text search over every configured page (SPEC §13.2 — basic
+     * at launch, Meilisearch at P3). Case-insensitive matching on the page
+     * title and the markdown body with syntax stripped: a page matches when
+     * the whole phrase or every term appears in either. Results are ranked
+     * title matches before body matches, in nav order within a bucket, each
+     * carrying a snippet around the first body hit.
+     *
+     * @return list<array{section: string, page: string, title: string, url: string, snippet: string}>
+     */
+    public function search(string $query): array
+    {
+        $query = trim((string) preg_replace('/\s+/', ' ', $query));
+
+        if ($query === '') {
+            return [];
+        }
+
+        $phrase = mb_strtolower($query);
+        $terms = array_values(array_filter(explode(' ', $phrase)));
+
+        $matches = fn (string $haystack): array => [
+            'phrase' => str_contains($haystack, $phrase),
+            'terms' => $terms !== [] && count(array_filter($terms, fn (string $term): bool => str_contains($haystack, $term))) === count($terms),
+        ];
+
+        $ranked = [];
+
+        foreach ($this->flatten() as $order => $entry) {
+            $path = $this->path($entry['section'], $entry['page']);
+
+            if ($path === null) {
+                continue;
+            }
+
+            [$frontMatter, $body] = $this->extractFrontMatter((string) file_get_contents($path));
+
+            $title = $frontMatter['title'] ?? $this->firstHeading($body) ?? $entry['title'];
+            $text = $this->stripMarkdown($body);
+
+            $inTitle = $matches(mb_strtolower($title));
+            $inBody = $matches(mb_strtolower($text));
+
+            $rank = match (true) {
+                $inTitle['phrase'] => 0,
+                $inTitle['terms'] => 1,
+                $inBody['phrase'] => 2,
+                $inBody['terms'] => 3,
+                default => null,
+            };
+
+            if ($rank === null) {
+                continue;
+            }
+
+            $ranked[] = [
+                'rank' => $rank,
+                'order' => $order,
+                'result' => [
+                    'section' => $entry['section'],
+                    'page' => $entry['page'],
+                    'title' => $title,
+                    'url' => $entry['url'],
+                    'snippet' => $this->snippet($text, $phrase, $terms),
+                ],
+            ];
+        }
+
+        usort($ranked, fn (array $a, array $b): int => [$a['rank'], $a['order']] <=> [$b['rank'], $b['order']]);
+
+        return array_values(array_map(fn (array $hit): array => $hit['result'], $ranked));
+    }
+
+    /**
      * Nav config as `section => ['title' => …, 'pages' => [page => title]]`.
      *
      * @return array<string, array{title: string, pages: array<string, string>}>
@@ -233,6 +306,55 @@ class DocsRepository
     private function isKebabCase(string $key): bool
     {
         return preg_match('/\A[a-z0-9]+(?:-[a-z0-9]+)*\z/', $key) === 1;
+    }
+
+    /**
+     * Reduce markdown to searchable plain text: fence markers, emphasis,
+     * heading/list/table punctuation and HTML go away; link/image syntax
+     * keeps its label; code contents stay searchable.
+     */
+    private function stripMarkdown(string $markdown): string
+    {
+        $text = (string) preg_replace('/^\s*(```|~~~).*$/m', ' ', $markdown);
+        $text = (string) preg_replace('/!\[([^\]]*)\]\([^)]*\)/', '$1', $text);
+        $text = (string) preg_replace('/\[([^\]]*)\]\([^)]*\)/', '$1', $text);
+        $text = (string) preg_replace('/^\s*(?:[-*+]|\d+[.)])\s+/m', ' ', $text);
+        $text = strip_tags($text);
+        $text = str_replace(['`', '*', '_', '~', '#', '>', '|', ':'], ' ', $text);
+
+        return trim((string) preg_replace('/\s+/', ' ', $text));
+    }
+
+    /**
+     * A short excerpt around the first body hit (the phrase when present,
+     * otherwise the first term), or the opening of the page for title-only
+     * matches. Ellipses mark truncation on either side.
+     *
+     * @param  list<string>  $terms
+     */
+    private function snippet(string $text, string $phrase, array $terms, int $length = 160): string
+    {
+        $lower = mb_strtolower($text);
+        $position = mb_strpos($lower, $phrase);
+
+        if ($position === false) {
+            foreach ($terms as $term) {
+                $position = mb_strpos($lower, $term);
+
+                if ($position !== false) {
+                    break;
+                }
+            }
+        }
+
+        if ($position === false) {
+            return mb_strimwidth($text, 0, $length, '…');
+        }
+
+        $start = max(0, $position - 60);
+        $excerpt = mb_substr($text, $start, $length + ($position - $start));
+
+        return ($start > 0 ? '…' : '').$excerpt.(mb_strlen($text) > $start + mb_strlen($excerpt) ? '…' : '');
     }
 
     /**

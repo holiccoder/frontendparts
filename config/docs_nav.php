@@ -28,6 +28,8 @@ return [
         'pages' => [
             'react' => 'React',
             'vue' => 'Vue',
+            'next' => 'Next.js',
+            'nuxt' => 'Nuxt',
         ],
     ],
 
@@ -36,6 +38,27 @@ return [
         'pages' => [
             'params-and-data' => 'Params & data',
             'customizing' => 'Customizing',
+        ],
+    ],
+
+    'exports' => [
+        'title' => 'Exports',
+        'pages' => [
+            'scaffolding-and-github' => 'Scaffolding & GitHub Export',
+        ],
+    ],
+
+    'license' => [
+        'title' => 'License',
+        'pages' => [
+            'faq' => 'License FAQ',
+        ],
+    ],
+
+    'troubleshooting' => [
+        'title' => 'Troubleshooting',
+        'pages' => [
+            'index' => 'Troubleshooting',
         ],
     ],
 

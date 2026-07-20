@@ -58,6 +58,27 @@ Then swap the accent classes in the component files — a project-wide find-and-
 
 Keep the numeric shade (`600` → `600`) and hover states keep working unchanged.
 
+### Token quick reference
+
+Everything a component references is a stock Tailwind 4 token, so a full retheme is one `@theme` block away:
+
+| Role in components | Utilities used | Token family to override |
+|---|---|---|
+| Headings | `text-neutral-900` | `--color-neutral-900` |
+| Body copy | `text-neutral-600` | `--color-neutral-600` |
+| Muted labels | `text-neutral-400` / `text-neutral-500` | `--color-neutral-400`, `--color-neutral-500` |
+| Hairlines, card borders | `border-neutral-200` | `--color-neutral-200` |
+| Accent (eyebrows, links, primary buttons) | `text-indigo-600`, `bg-indigo-600`, `hover:bg-indigo-700` | your brand scale, e.g. `--color-brand-*` |
+| Surfaces | `bg-white`, `bg-neutral-50` | `--color-neutral-50` or a surface token |
+
+Override the neutral tokens themselves to shift the whole grayscale warm or cool; define a new accent family (as above) to change the brand color without touching neutrals. Type and spacing come from Tailwind's default scale — override `--font-sans` to re-font every copied component at once:
+
+```css
+@theme {
+    --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+}
+```
+
 ## Dark mode
 
 Components ship light-first. Where a dark treatment exists it uses Tailwind's `dark:` variant, which in Tailwind 4 you control with the custom variant in your CSS:

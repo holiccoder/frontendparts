@@ -1,3 +1,4 @@
+import DocsSidebar, { type DocsNavSection } from '@/components/docs/docs-sidebar';
 import SeoHead from '@/components/seo-head';
 import PublicLayout from '@/layouts/public-layout';
 import type { PageMeta } from '@/types/catalog';
@@ -8,21 +9,6 @@ interface TocEntry {
     level: number;
     id: string;
     text: string;
-}
-
-interface DocsNavPage {
-    key: string;
-    title: string;
-    url: string;
-    active: boolean;
-}
-
-interface DocsNavSection {
-    key: string;
-    title: string;
-    url: string;
-    active: boolean;
-    pages: DocsNavPage[];
 }
 
 interface DocsLink {
@@ -142,37 +128,7 @@ export default function DocsShow({ doc, nav, pagination, meta }: DocsShowProps) 
             <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
                 <div className="flex gap-10 py-10 lg:py-14">
                     <aside className="hidden w-56 shrink-0 lg:block">
-                        <nav className="sticky top-24 space-y-8" aria-label="Documentation">
-                            {nav.map((section) => (
-                                <div key={section.key}>
-                                    <Link
-                                        href={section.url}
-                                        className={`text-sm font-semibold transition ${
-                                            section.active ? 'text-neutral-900' : 'text-neutral-500 hover:text-neutral-900'
-                                        }`}
-                                    >
-                                        {section.title}
-                                    </Link>
-                                    <ul className="mt-3 space-y-1 border-l border-neutral-200">
-                                        {section.pages.map((page) => (
-                                            <li key={page.key}>
-                                                <Link
-                                                    href={page.url}
-                                                    aria-current={page.active ? 'page' : undefined}
-                                                    className={`-ml-px block border-l-2 py-1 pl-4 text-sm transition ${
-                                                        page.active
-                                                            ? 'border-neutral-900 font-medium text-neutral-900'
-                                                            : 'border-transparent text-neutral-500 hover:border-neutral-300 hover:text-neutral-900'
-                                                    }`}
-                                                >
-                                                    {page.title}
-                                                </Link>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
-                            ))}
-                        </nav>
+                        <DocsSidebar nav={nav} />
                     </aside>
 
                     <div className="min-w-0 flex-1">

@@ -69,6 +69,8 @@ Route::get('/industries/{industry}', [IndustryController::class, 'show'])
 
 Route::get('/docs', [DocsController::class, 'index'])->name('docs.index');
 
+Route::get('/docs/search', [DocsController::class, 'search'])->name('docs.search');
+
 Route::get('/docs/{section}/{page}', [DocsController::class, 'show'])
     ->where('section', '[a-z0-9\-]+')
     ->where('page', '[a-z0-9\-]+')

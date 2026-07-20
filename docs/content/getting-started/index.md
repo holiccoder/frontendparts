@@ -38,5 +38,6 @@ Every component is driven by two files: a `params.json` contract (name, type, de
 ## What to read next
 
 - [Installation & account](/docs/getting-started/installation) — plans, and the browsing/downloading flow in detail
-- [Install for React](/docs/install/react) · [Install for Vue](/docs/install/vue)
+- [Install for React](/docs/install/react) · [Install for Vue](/docs/install/vue) · [Next.js](/docs/install/next) · [Nuxt](/docs/install/nuxt)
 - [Params & data](/docs/using-components/params-and-data) · [Customizing](/docs/using-components/customizing)
+- [Scaffolding & GitHub Export](/docs/exports/scaffolding-and-github) · [License FAQ](/docs/license/faq) · [Troubleshooting](/docs/troubleshooting/index)

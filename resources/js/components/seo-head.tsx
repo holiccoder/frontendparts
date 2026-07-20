@@ -9,6 +9,7 @@ export default function SeoHead({ meta }: { meta: PageMeta }) {
     return (
         <Head title={meta.title}>
             <meta name="description" content={meta.description} />
+            {meta.robots && <meta name="robots" content={meta.robots} />}
             <link rel="canonical" href={meta.canonical} />
             <meta property="og:site_name" content="FrontendParts" />
             <meta property="og:title" content={meta.title} />

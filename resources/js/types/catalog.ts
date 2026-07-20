@@ -112,6 +112,7 @@ export interface PageMeta {
     canonical: string;
     og_image: string;
     og_type?: string;
+    robots?: string;
 }
 
 export interface IndustryTile {
