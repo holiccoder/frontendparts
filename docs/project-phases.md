@@ -274,7 +274,7 @@
 
 ## 3.1 Live edit mode — React
 
-- [ ] **3.1.1 Edit tab runtime** — lazy-loaded esbuild-wasm bundler + `@tailwindcss/browser`; multi-file editing (parent + children); JSON data editor with instant re-render; deps resolved from esm.sh at registry-pinned versions; desktop gate; instant download of edits (SPEC §5.6, §2.5).
+- [x] **3.1.1 Edit tab runtime** — lazy-loaded esbuild-wasm bundler + `@tailwindcss/browser`; multi-file editing (parent + children); JSON data editor with instant re-render; deps resolved from esm.sh at registry-pinned versions; desktop gate; instant download of edits (SPEC §5.6, §2.5).
   - Acceptance: `Library/LiveEditTest::test_edit_tab_payload_only_when_feature_flag_on`, `test_payload_contains_closure_files_and_pinned_dep_versions`, `test_download_edits_returns_sources_without_build`, `test_edit_tab_absent_when_flag_off`. Client compile/render *QA-gate*.
 
 ## 3.2 Live edit mode — Vue
