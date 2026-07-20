@@ -189,7 +189,7 @@
 
 ## 2.3 Pricing page
 
-- [ ] **2.3.1 `/pricing` (SSR)** — plan × period toggle (monthly/quarterly/yearly/lifetime), feature comparison table per SPEC §7.1, FAQ, yearly highlighted "best value", lifetime as permanent offering (SPEC §7.2, §15.1).
+- [x] **2.3.1 `/pricing` (SSR)** — plan × period toggle (monthly/quarterly/yearly/lifetime), feature comparison table per SPEC §7.1, FAQ, yearly highlighted "best value", lifetime as permanent offering (SPEC §7.2, §15.1).
   - Acceptance: `Billing/PricingPageTest::test_pricing_page_ssr_200`, `test_prices_come_from_plan_prices_table`, `test_all_four_periods_present`, `test_comparison_table_matches_feature_matrix`.
 
 ## 2.4 Projects
