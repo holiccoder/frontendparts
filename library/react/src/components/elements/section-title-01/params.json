@@ -1,0 +1,23 @@
+{
+    "eyebrow": {
+        "type": "string",
+        "default": "",
+        "description": "Small label displayed above the heading. Hidden when empty."
+    },
+    "heading": {
+        "type": "string",
+        "default": "Section heading",
+        "description": "Main heading text."
+    },
+    "description": {
+        "type": "text",
+        "default": "",
+        "description": "Supporting paragraph below the heading. Hidden when empty."
+    },
+    "align": {
+        "type": "enum",
+        "options": ["left", "center"],
+        "default": "center",
+        "description": "Horizontal alignment of the whole block."
+    }
+}

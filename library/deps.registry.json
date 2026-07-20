@@ -1,0 +1,6 @@
+{
+    "lucide": {
+        "react": "lucide-react@^1.25.0",
+        "vue": "lucide-vue-next@^1.0.0"
+    }
+}

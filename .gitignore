@@ -18,6 +18,8 @@
 /storage/*.key
 /storage/pail
 /vendor
+/library/*/node_modules
+/library/*/dist
 auth.json
 Homestead.json
 Homestead.yaml
