@@ -284,8 +284,8 @@
 
 ## 3.3 Live edit — instrumentation & forks
 
-- [ ] **3.3.1 Client-side outlines parity** — attribute injection runs client-side so structure-tree outlines keep working in edit mode; documented fallback without outlines (SPEC §5.6). *QA-gate* + payload flag test.
-- [ ] **3.3.2 Save-to-Project forks** — save edited component as customized fork linked to a project; background rebuild produces its prebuilt preview + screenshots; progress UI (SPEC §5.6).
+- [x] **3.3.1 Client-side outlines parity** — attribute injection runs client-side so structure-tree outlines keep working in edit mode; documented fallback without outlines (SPEC §5.6). *QA-gate* + payload flag test.
+- [x] **3.3.2 Save-to-Project forks** — save edited component as customized fork linked to a project; background rebuild produces its prebuilt preview + screenshots; progress UI (SPEC §5.6).
   - Acceptance: `Projects/ComponentForkTest::test_save_creates_fork_linked_to_project`, `test_rebuild_job_queued_with_progress_state`, `test_fork_preview_served_after_rebuild`, `test_original_component_untouched`.
 
 ## 3.4 Next.js scaffolding
