@@ -226,7 +226,7 @@
 
 ## 2.8 Documentation (full)
 
-- [ ] **2.8.1 Remaining sections + basic search** — Install Next/Nuxt · Customizing (Tailwind tokens) · Scaffolding & GitHub Export · License FAQ · Troubleshooting; DB-driven docs search (SPEC §13.2).
+- [x] **2.8.1 Remaining sections + basic search** — Install Next/Nuxt · Customizing (Tailwind tokens) · Scaffolding & GitHub Export · License FAQ · Troubleshooting; DB-driven docs search (SPEC §13.2).
   - Acceptance: `Docs/DocsSearchTest::test_search_returns_matching_pages`, `Docs/DocsContentTest::test_all_sections_return_200`.
 
 ## 2.9 Support ticketing
