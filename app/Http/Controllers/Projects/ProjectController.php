@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Projects\StoreProjectRequest;
 use App\Http\Requests\Projects\UpdateProjectRequest;
 use App\Models\Component;
+use App\Models\ComponentFork;
 use App\Models\Project;
 use App\Services\Billing\EntitlementService;
 use Illuminate\Http\JsonResponse;
@@ -115,6 +116,23 @@ class ProjectController extends Controller
 
         $latestExport = $project->exports()->orderByDesc('created_at')->orderByDesc('id')->first();
 
+        $forks = $project->forks()
+            ->with('component')
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
+            ->get()
+            ->map(fn (ComponentFork $fork): array => [
+                'id' => $fork->id,
+                'name' => $fork->component->name,
+                'slug' => $fork->component->slug,
+                'url' => $fork->component->publicUrl(),
+                'framework' => $fork->framework,
+                'status' => $fork->status->value,
+                'error' => $fork->error,
+                'preview_url' => $fork->previewUrl(),
+                'created_at' => $fork->created_at->toIso8601String(),
+            ]);
+
         return Inertia::render('dashboard/projects/show', [
             'project' => [
                 'id' => $project->id,
@@ -134,6 +152,9 @@ class ProjectController extends Controller
                     'download_url' => $latestExport->downloadUrl(),
                 ],
             ],
+            // Live-edit forks (SPEC §5.6): the page polls this prop while any
+            // fork's preview rebuild is pending/building.
+            'forks' => $forks,
         ]);
     }
 

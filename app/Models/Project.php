@@ -41,6 +41,14 @@ class Project extends Model
         return $this->hasMany(ProjectExport::class);
     }
 
+    /**
+     * Customized component forks saved from live edit (SPEC §5.6).
+     */
+    public function forks(): HasMany
+    {
+        return $this->hasMany(ComponentFork::class);
+    }
+
     public function components(): BelongsToMany
     {
         return $this->belongsToMany(Component::class, 'project_components')

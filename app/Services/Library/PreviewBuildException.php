@@ -16,6 +16,11 @@ class PreviewBuildException extends RuntimeException
         return new self("{$framework}: component source or data.json missing for {$slug}");
     }
 
+    public static function unsafePath(string $framework, string $path): self
+    {
+        return new self("{$framework}: refusing to materialize unsafe file path {$path}");
+    }
+
     public static function buildFailed(string $framework, string $slug, string $output): self
     {
         return new self("{$framework}: vite build failed for {$slug}: {$output}");

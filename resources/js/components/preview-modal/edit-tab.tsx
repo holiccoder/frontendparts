@@ -2,7 +2,9 @@ import { xsrfToken } from '@/lib/xsrf';
 import type { ComponentDetailData, Framework } from '@/types/catalog';
 import { AlertTriangle, Download, Loader2, MonitorSmartphone, RotateCcw } from 'lucide-react';
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
+import { EditOutlinesPane } from './edit-outlines-pane';
 import { formatBuildError, type LiveEditSession } from './live-edit-runtime';
+import { SaveToProject } from './save-to-project';
 import { useIsDesktop } from './use-is-desktop';
 
 /* Live edit — Vue (SPEC §5.6; Phase 3.2): the @vue/repl surface is a lazy
@@ -56,6 +58,9 @@ export default function EditTab({ component, framework, darkMode }: { component:
  * re-render (esbuild-wasm; keystrokes never touch the server) + instant
  * download of the edited sources. Lazy-loaded by the modal via React.lazy
  * on first Edit click; desktop-gated with a "best on desktop" notice below.
+ * Phase 3.3: structure-tree outlines map onto the live render (the runtime
+ * injects data-fp-* attributes client-side), and Save to Project persists
+ * the edits as a project fork with a queued preview rebuild.
  */
 function ReactEditTab({ component, darkMode }: { component: ComponentDetailData; darkMode: boolean }) {
     const payload = component.edit?.react ?? null;
@@ -287,6 +292,19 @@ function ReactEditTab({ component, darkMode }: { component: ComponentDetailData;
                 </div>
 
                 <div className="flex items-center gap-2">
+                    {component.edit?.save && (
+                        <SaveToProject
+                            save={component.edit.save}
+                            buildBody={() =>
+                                dataError !== null
+                                    ? null
+                                    : {
+                                          framework: 'react',
+                                          files: [...files, { path: `${payload.entry}/data.json`, code: dataText }],
+                                      }
+                            }
+                        />
+                    )}
                     <button
                         type="button"
                         onClick={reset}
@@ -328,20 +346,29 @@ function ReactEditTab({ component, darkMode }: { component: ComponentDetailData;
                     className="h-[560px] w-full resize-none overflow-auto rounded-lg border border-neutral-200 bg-neutral-950 p-4 font-mono text-xs leading-5 text-neutral-100 outline-none focus:border-neutral-400"
                 />
 
-                <div className="relative rounded-xl border border-neutral-200 bg-neutral-100 p-4">
-                    <iframe
-                        ref={iframeRef}
-                        title={`${component.name} live edit preview`}
-                        sandbox="allow-scripts"
-                        className="block w-full rounded-lg border border-neutral-200 bg-white"
-                        style={{ height: previewHeight !== null ? `${previewHeight}px` : '480px' }}
+                <div className="space-y-4">
+                    <div className="relative rounded-xl border border-neutral-200 bg-neutral-100 p-4">
+                        <iframe
+                            ref={iframeRef}
+                            title={`${component.name} live edit preview`}
+                            sandbox="allow-scripts"
+                            className="block w-full rounded-lg border border-neutral-200 bg-white"
+                            style={{ height: previewHeight !== null ? `${previewHeight}px` : '480px' }}
+                        />
+                        {!sessionReady && sessionFailed === null && (
+                            <div className="absolute inset-4 flex items-center justify-center gap-2 rounded-lg bg-white/90 text-xs font-medium text-neutral-500">
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                                Loading the live edit runtime…
+                            </div>
+                        )}
+                    </div>
+
+                    <EditOutlinesPane
+                        component={component}
+                        outlines={payload.outlines}
+                        sink={sessionReady ? sessionRef.current : null}
+                        className="max-h-72 overflow-y-auto"
                     />
-                    {!sessionReady && sessionFailed === null && (
-                        <div className="absolute inset-4 flex items-center justify-center gap-2 rounded-lg bg-white/90 text-xs font-medium text-neutral-500">
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                            Loading the live edit runtime…
-                        </div>
-                    )}
                 </div>
             </div>
         </div>

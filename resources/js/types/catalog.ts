@@ -52,6 +52,9 @@ export interface ComponentFile {
 /** Live edit (SPEC §5.6): one virtual source file of the edit payload. */
 export type LiveEditFile = ComponentFile;
 
+/** Live edit (SPEC §5.6; Phase 3.3): outlines capability of an edit runtime. */
+export type LiveEditOutlines = 'client-injected' | 'unavailable';
+
 /** Live edit (SPEC §5.6, §2.5): per-framework client-bundler payload. */
 export interface LiveEditFrameworkPayload {
     /** Full slug of the component being edited (e.g. `sections/pricing-01`). */
@@ -62,6 +65,8 @@ export interface LiveEditFrameworkPayload {
     data: Record<string, Record<string, unknown>>;
     /** Logical dep → registry-pinned `package@version` for esm.sh. */
     deps: Record<string, string | null>;
+    /** Structure-tree outlines in edit mode (Phase 3.3). */
+    outlines: LiveEditOutlines;
 }
 
 /** Live edit — Vue (SPEC §5.6; Phase 3.2): payload keyed for @vue/repl. */
@@ -78,11 +83,23 @@ export interface LiveEditVuePayload {
     data: Record<string, Record<string, unknown>>;
     /** Logical dep → registry-pinned `package@version` for the import map. */
     deps: Record<string, string | null>;
+    /** Structure-tree outlines in edit mode (Phase 3.3). */
+    outlines: LiveEditOutlines;
+    /** Component slug → PascalCase repl name (drives the outline compile hook). */
+    names: Record<string, string>;
+}
+
+/** Save to Project (SPEC §5.6; Phase 3.3): fork-save endpoint + the reader's projects. */
+export interface LiveEditSave {
+    url: string;
+    projects: Array<{ id: number; name: string }>;
 }
 
 export interface LiveEditPayload {
     react?: LiveEditFrameworkPayload;
     vue?: LiveEditVuePayload;
+    /** Present only for signed-in (verified) readers — forks are account-bound. */
+    save?: LiveEditSave;
 }
 
 export interface TreeNode {

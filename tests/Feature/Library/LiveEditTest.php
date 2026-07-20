@@ -188,6 +188,46 @@ class LiveEditTest extends TestCase
         $response->assertJsonPath('edit.vue.deps.lucide', 'lucide-vue-next@^1.0.0');
     }
 
+    /**
+     * Outlines capability contract (SPEC §5.6, Phase 3.3): each framework's
+     * edit payload declares how structure-tree outlines behave in edit mode —
+     * 'client-injected' (the runtime injects the data-fp-* attributes in the
+     * browser, mirroring the server-side preview build) or 'unavailable'
+     * (the tab renders the documented no-outlines fallback). The Vue payload
+     * additionally carries the slug → PascalName map the Repl compile hook
+     * tags component usages against.
+     */
+    public function test_payload_declares_client_side_outlines_contract()
+    {
+        app(Settings::class)->set('features.live_edit', true);
+
+        $this->libraryComponent('elements/button-01');
+        $this->libraryComponent(
+            'sections/pricing-01',
+            source: "import Button01 from '../../elements/button-01';\nexport default function Pricing01() { return <Button01 />; }\n",
+        );
+
+        $child = $this->publish('elements/button-01');
+        $parent = $this->publish('sections/pricing-01');
+
+        DB::table('component_children')->insert([
+            'parent_id' => $parent->id,
+            'child_id' => $child->id,
+            'slot' => 'default',
+            'sort_order' => 0,
+        ]);
+
+        $response = $this->getJson('/api/components/pricing/pricing-01')->assertOk();
+
+        $response->assertJsonPath('edit.react.outlines', 'client-injected');
+        $response->assertJsonPath('edit.vue.outlines', 'client-injected');
+
+        // The Vue compile hook tags `<PascalName>` template usages with the
+        // matching slug's data-fp-* attributes — the map covers the closure.
+        $response->assertJsonPath('edit.vue.names.elements/button-01', 'Button01');
+        $response->assertJsonPath('edit.vue.names.sections/pricing-01', 'Pricing01');
+    }
+
     public function test_vue_edit_payload_absent_when_flag_off()
     {
         $this->libraryComponent('elements/demo-01');

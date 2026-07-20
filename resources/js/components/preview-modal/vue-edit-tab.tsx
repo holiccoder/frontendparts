@@ -2,7 +2,9 @@ import { xsrfToken } from '@/lib/xsrf';
 import type { ComponentDetailData } from '@/types/catalog';
 import { AlertTriangle, Download, Loader2, MonitorSmartphone, RotateCcw } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import { EditOutlinesPane } from './edit-outlines-pane';
 import type { VueLiveEditSession } from './live-edit-runtime-vue';
+import { SaveToProject } from './save-to-project';
 import { useIsDesktop } from './use-is-desktop';
 
 /**
@@ -14,7 +16,9 @@ import { useIsDesktop } from './use-is-desktop';
  * React-side chrome identical to the React edit tab: desktop gate, Reset +
  * Download edits actions, and the error banner. Download posts the Repl's
  * current sources to the shared edit-download endpoint (framework=vue) —
- * instant, no server build.
+ * instant, no server build. Phase 3.3: the structure tree outlines into the
+ * Repl's preview iframe (client-side data-fp-* injection via the SFC
+ * compile hook), and Save to Project persists the edits as a project fork.
  */
 export default function VueEditTab({ component, darkMode }: { component: ComponentDetailData; darkMode: boolean }) {
     const payload = component.edit?.vue ?? null;
@@ -163,6 +167,22 @@ export default function VueEditTab({ component, darkMode }: { component: Compone
                 </p>
 
                 <div className="flex items-center gap-2">
+                    {component.edit?.save && (
+                        <SaveToProject
+                            save={component.edit.save}
+                            buildBody={() => {
+                                const files = sessionRef.current?.files() ?? [];
+
+                                return files.length === 0
+                                    ? null
+                                    : {
+                                          framework: 'vue',
+                                          entry_file: payload.entryFile,
+                                          files,
+                                      };
+                            }}
+                        />
+                    )}
                     <button
                         type="button"
                         onClick={reset}
@@ -204,6 +224,13 @@ export default function VueEditTab({ component, darkMode }: { component: Compone
                     </div>
                 )}
             </div>
+
+            <EditOutlinesPane
+                component={component}
+                outlines={payload.outlines}
+                sink={sessionReady ? sessionRef.current : null}
+                className="max-h-72 overflow-y-auto"
+            />
         </div>
     );
 }

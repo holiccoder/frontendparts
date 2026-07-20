@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use App\Enums\AccessLevel;
 use App\Models\Component;
+use App\Models\Project;
 use App\Services\Billing\EntitlementService;
 use App\Services\Catalog\ComponentContent;
 use App\Services\Catalog\CompositionTree;
@@ -114,6 +115,21 @@ class ComponentDetailResource extends JsonResource
                 'react' => app(LiveEditPayload::class)->react($this->resource),
                 'vue' => app(LiveEditPayload::class)->vue($this->resource),
             ];
+
+            // Save to Project (Phase 3.3): forks are account-bound, so the
+            // save contract rides only for signed-in verified readers.
+            $user = $request->user();
+
+            if ($user !== null && $user->hasVerifiedEmail()) {
+                $payload['edit']['save'] = [
+                    'url' => route('components.forks.store', [$this->usageCategory->slug, $this->basename]),
+                    'projects' => $user->projects()
+                        ->orderBy('name')
+                        ->get(['projects.id', 'projects.name'])
+                        ->map(fn (Project $project): array => ['id' => $project->id, 'name' => $project->name])
+                        ->all(),
+                ];
+            }
         }
 
         return $payload;

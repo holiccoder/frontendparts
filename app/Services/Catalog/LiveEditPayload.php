@@ -20,13 +20,23 @@ class LiveEditPayload
     /** Repl store main file: the generated wrapper mounting the entry SFC. */
     public const VUE_MAIN_FILE = 'src/App.vue';
 
+    /**
+     * Structure-tree outlines contract (SPEC §5.6, Phase 3.3): the edit
+     * runtimes inject the same data-fp-* attributes client-side that the
+     * preview build injects server-side, so outlines keep working in edit
+     * mode. 'unavailable' renders the documented no-outlines fallback.
+     */
+    public const OUTLINES_CLIENT_INJECTED = 'client-injected';
+
+    public const OUTLINES_UNAVAILABLE = 'unavailable';
+
     public function __construct(
         private readonly ComponentContent $content = new ComponentContent,
         private readonly ClosureZip $closureZip = new ClosureZip,
     ) {}
 
     /**
-     * @return array{entry: string, files: list<array{path: string, code: string}>, data: array<string, array<string, mixed>>, deps: array<string, string|null>}
+     * @return array{entry: string, files: list<array{path: string, code: string}>, data: array<string, array<string, mixed>>, deps: array<string, string|null>, outlines: string}
      */
     public function react(Component $component): array
     {
@@ -53,6 +63,7 @@ class LiveEditPayload
             'files' => $files,
             'data' => $data,
             'deps' => $this->closureZip->resolveDeps($members, 'react'),
+            'outlines' => self::OUTLINES_CLIENT_INJECTED,
         ];
     }
 
@@ -65,8 +76,11 @@ class LiveEditPayload
      * component's SFC, per-slug data modules (the client materializes the
      * entry's data as an editable `src/data.ts`), and the closure's deps
      * pinned from the registry's VUE column for the preview import map.
+     * `names` (slug → PascalName) feeds the client-side outline injection
+     * (Phase 3.3): the Repl SFC compile hook tags `<PascalName>` usages
+     * with the matching slug's data-fp-* attributes.
      *
-     * @return array{entry: string, entryFile: string|null, mainFile: string, files: array<string, string>, data: array<string, array<string, mixed>>, deps: array<string, string|null>}
+     * @return array{entry: string, entryFile: string|null, mainFile: string, files: array<string, string>, data: array<string, array<string, mixed>>, deps: array<string, string|null>, outlines: string, names: array<string, string>}
      */
     public function vue(Component $component): array
     {
@@ -92,6 +106,8 @@ class LiveEditPayload
             'files' => $repl['files'],
             'data' => $data,
             'deps' => $this->closureZip->resolveDeps($members, 'vue'),
+            'outlines' => self::OUTLINES_CLIENT_INJECTED,
+            'names' => $repl['names'],
         ];
     }
 

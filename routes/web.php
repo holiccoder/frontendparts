@@ -13,6 +13,7 @@ use App\Http\Controllers\ComponentController;
 use App\Http\Controllers\ComponentCopyController;
 use App\Http\Controllers\ComponentDownloadController;
 use App\Http\Controllers\ComponentEditDownloadController;
+use App\Http\Controllers\ComponentForkController;
 use App\Http\Controllers\ComponentPreviewController;
 use App\Http\Controllers\Dashboard\DashboardController;
 use App\Http\Controllers\Dashboard\OrdersController;
@@ -22,6 +23,7 @@ use App\Http\Controllers\DocsController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\IndustryController;
 use App\Http\Controllers\LegalController;
+use App\Http\Controllers\Projects\ComponentForkPreviewController;
 use App\Http\Controllers\Projects\ProjectComponentController;
 use App\Http\Controllers\Projects\ProjectController;
 use App\Http\Controllers\Projects\ProjectExportController;
@@ -74,6 +76,18 @@ Route::post('/components/{usage}/{slug}/edit-download', ComponentEditDownloadCon
     ->where('slug', '[a-z0-9\-]+')
     ->middleware('throttle:10,1')
     ->name('components.edit-download');
+
+/*
+| Save to Project (SPEC §5.6): persist the edit tab's edited sources as a
+| customized fork linked to one of the reader's projects; the preview
+| rebuild is queued and the project page tracks it. Account-bound (auth +
+| verified), feature-flagged inside the controller.
+*/
+Route::post('/components/{usage}/{slug}/forks', ComponentForkController::class)
+    ->where('usage', '[a-z0-9\-]+')
+    ->where('slug', '[a-z0-9\-]+')
+    ->middleware(['auth', 'verified', 'throttle:10,1'])
+    ->name('components.forks.store');
 
 Route::get('/industries', [IndustryController::class, 'index'])->name('industries.index');
 
@@ -228,6 +242,13 @@ Route::middleware(['auth', 'verified', 'ssr.skip', 'noindex'])->group(function (
         Route::get('/{project}/export/{export}/download', ProjectExportDownloadController::class)
             ->scopeBindings()
             ->name('export.download');
+        Route::get('/{project}/forks/{fork}/preview', [ComponentForkPreviewController::class, 'show'])
+            ->scopeBindings()
+            ->name('forks.preview');
+        Route::get('/{project}/forks/{fork}/shots/{file}', [ComponentForkPreviewController::class, 'shot'])
+            ->scopeBindings()
+            ->where('file', '(react|vue)-\d+\.png')
+            ->name('forks.shots');
     });
 
     /*

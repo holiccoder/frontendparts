@@ -1,5 +1,5 @@
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
-import { Download, Loader2, Trash2, X } from 'lucide-react';
+import { Download, ExternalLink, Loader2, Trash2, X } from 'lucide-react';
 import { FormEventHandler, useEffect, useState } from 'react';
 
 import HeadingSmall from '@/components/heading-small';
@@ -29,6 +29,18 @@ interface ProjectExport {
     download_url: string | null;
 }
 
+interface ComponentFork {
+    id: number;
+    name: string;
+    slug: string;
+    url: string;
+    framework: string;
+    status: 'pending' | 'building' | 'ready' | 'failed';
+    error: string | null;
+    preview_url: string | null;
+    created_at: string;
+}
+
 interface ProjectShowProps {
     project: {
         id: number;
@@ -41,6 +53,7 @@ interface ProjectShowProps {
         available: boolean;
         latest: ProjectExport | null;
     };
+    forks: ComponentFork[];
 }
 
 /**
@@ -48,9 +61,12 @@ interface ProjectShowProps {
  * view — direct picks are removable, auto-added closure members are marked
  * and follow the removal cascade (SPEC §6.1) — plus the pack-zip export
  * (SPEC §6.2): pick a framework, POST queues the build, and this page polls
- * the `export` prop until the zip is ready to download.
+ * the `export` prop until the zip is ready to download. Live-edit forks
+ * (SPEC §5.6) list below with their rebuild progress — the page polls the
+ * `forks` prop while any fork is pending/building, then links the rebuilt
+ * preview.
  */
-export default function ProjectShow({ project, components, export: exportAction }: ProjectShowProps) {
+export default function ProjectShow({ project, components, export: exportAction, forks }: ProjectShowProps) {
     const { flash, errors: pageErrors } = usePage<SharedData & { flash?: { notice?: string | null } }>().props;
 
     const breadcrumbs: BreadcrumbItem[] = [
@@ -73,6 +89,7 @@ export default function ProjectShow({ project, components, export: exportAction 
     const [framework, setFramework] = useState<'react' | 'vue'>('react');
 
     const building = exportAction.latest?.status === 'pending';
+    const forksBuilding = forks.some((fork) => fork.status === 'pending' || fork.status === 'building');
 
     useEffect(() => {
         if (!building) {
@@ -83,6 +100,16 @@ export default function ProjectShow({ project, components, export: exportAction 
 
         return () => clearInterval(timer);
     }, [building]);
+
+    useEffect(() => {
+        if (!forksBuilding) {
+            return;
+        }
+
+        const timer = setInterval(() => router.reload({ only: ['forks'] }), 2500);
+
+        return () => clearInterval(timer);
+    }, [forksBuilding]);
 
     const submitRename: FormEventHandler = (e) => {
         e.preventDefault();
@@ -217,8 +244,58 @@ export default function ProjectShow({ project, components, export: exportAction 
                         </p>
                     </section>
                 )}
+
+                {forks.length > 0 && (
+                    <section className="grid gap-3">
+                        <h2 className="text-sm font-semibold tracking-wide text-neutral-500 uppercase">Customized forks · {forks.length}</h2>
+                        <ul className="border-sidebar-border/70 dark:border-sidebar-border divide-y divide-neutral-200 rounded-xl border dark:divide-neutral-800">
+                            {forks.map((fork) => (
+                                <ForkRow key={fork.id} fork={fork} />
+                            ))}
+                        </ul>
+                        <p className="text-xs text-neutral-500">
+                            Forks are your live-edit customizations — the original library component is never modified. Each fork's preview rebuilds
+                            in the background when it's saved.
+                        </p>
+                    </section>
+                )}
             </div>
         </AppLayout>
+    );
+}
+
+function ForkRow({ fork }: { fork: ComponentFork }) {
+    return (
+        <li className="flex items-center justify-between gap-4 px-4 py-3">
+            <div className="flex min-w-0 flex-col">
+                <Link href={fork.url} className="truncate font-medium hover:underline">
+                    {fork.name}
+                </Link>
+                <span className="truncate text-xs text-neutral-500">{fork.slug}</span>
+                {fork.status === 'failed' && fork.error && <span className="mt-1 line-clamp-2 text-xs text-red-600">{fork.error}</span>}
+            </div>
+            <div className="flex shrink-0 items-center gap-2">
+                <Badge variant="secondary" className="capitalize">
+                    {fork.framework}
+                </Badge>
+                {fork.status === 'pending' && <Badge variant="outline">Rebuild queued</Badge>}
+                {fork.status === 'building' && (
+                    <Badge variant="outline" className="gap-1">
+                        <Loader2 className="size-3 animate-spin" />
+                        Rebuilding preview…
+                    </Badge>
+                )}
+                {fork.status === 'failed' && <Badge variant="destructive">Rebuild failed</Badge>}
+                {fork.status === 'ready' && fork.preview_url && (
+                    <Button size="sm" variant="outline" asChild>
+                        <a href={fork.preview_url} target="_blank" rel="noopener noreferrer">
+                            <ExternalLink className="size-4" />
+                            View fork preview
+                        </a>
+                    </Button>
+                )}
+            </div>
+        </li>
     );
 }
 

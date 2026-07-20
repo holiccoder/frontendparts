@@ -4,6 +4,9 @@ import wasmUrl from 'esbuild-wasm/esbuild.wasm?url';
 
 import type { LiveEditFrameworkPayload } from '@/types/catalog';
 
+import { instrumentReactSource } from './live-edit-instrument-react';
+import { OUTLINE_RUNTIME_SCRIPT } from './live-edit-outline-runtime';
+
 /**
  * Live edit runtime (SPEC §5.6, §2.5; Phase 3.1) — LAZY-LOADED chunk.
  *
@@ -23,8 +26,10 @@ import type { LiveEditFrameworkPayload } from '@/types/catalog';
  *     (same `@custom-variant dark` as the library app, so the dark toggle
  *     behaves like the prebuilt previews)
  *
- * Structure-tree outlines in edit mode are Phase 3.3 — the iframe protocol
- * here is the minimal theme/height/error subset (SPEC §5.3).
+ * Phase 3.3: the onLoad step runs the SAME data-fp-* attribute injection
+ * the preview build applies server-side (live-edit-instrument-react), and
+ * the frame runtime answers the SPEC §5.3 highlight/clear protocol — so
+ * structure-tree outlines keep working in edit mode.
  */
 
 const ENTRY_POINT = 'fp-entry.tsx';
@@ -51,6 +56,10 @@ export interface LiveEditSession {
     update(input: LiveEditUpdate): Promise<void>;
     /** Push the dark/light theme into the live iframe (SPEC §5.3 theme message). */
     setDark(dark: boolean): void;
+    /** Outline a component's rendered region(s) — structure-tree hover (Phase 3.3). */
+    highlight(slug: string, instance: number | null): void;
+    /** Remove all outlines. */
+    clearHighlight(): void;
     dispose(): void;
 }
 
@@ -188,13 +197,16 @@ function virtualFsPlugin(payload: LiveEditFrameworkPayload, files: Map<string, s
             build.onLoad({ filter: /.*/, namespace: VIRTUAL_NAMESPACE }, (args) => {
                 if (args.path === ENTRY_POINT) {
                     return {
-                        contents: [
-                            `import { createRoot } from 'react-dom/client';`,
-                            `import Component from './${payload.entry}/index';`,
-                            `import data from './${payload.entry}/data.json';`,
-                            ``,
-                            `createRoot(document.getElementById('root')!).render(<Component {...data} />);`,
-                        ].join('\n'),
+                        contents: instrumentReactSource(
+                            [
+                                `import { createRoot } from 'react-dom/client';`,
+                                `import Component from './${payload.entry}/index';`,
+                                `import data from './${payload.entry}/data.json';`,
+                                ``,
+                                `createRoot(document.getElementById('root')!).render(<Component {...data} />);`,
+                            ].join('\n'),
+                            '',
+                        ),
                         loader: 'tsx',
                     };
                 }
@@ -205,7 +217,15 @@ function virtualFsPlugin(payload: LiveEditFrameworkPayload, files: Map<string, s
                     return { errors: [{ text: `Missing file in edit payload: ${args.path}` }] };
                 }
 
-                return { contents: code, loader: args.path.endsWith('.json') ? 'json' : 'tsx' };
+                /* Phase 3.3: every TSX module gets the same data-fp-*
+                 * injection the preview build applies server-side, so the
+                 * structure tree's outlines map onto the live render. The
+                 * module's virtual path doubles as the importer dir for
+                 * relative-import resolution. */
+                return {
+                    contents: args.path.endsWith('.json') ? code : instrumentReactSource(code, dirname(args.path)),
+                    loader: args.path.endsWith('.json') ? 'json' : 'tsx',
+                };
             });
         },
     };
@@ -233,9 +253,11 @@ async function buildBundle(payload: LiveEditFrameworkPayload, files: Map<string,
 /* ------------------------------------------------------------------------ */
 
 /**
- * Minimal iframe protocol (SPEC §5.3 subset for edit mode): theme in;
- * ready, height and runtime-error out. Written without template literals
- * so it inlines safely. Outlines/attribute-injection are Phase 3.3.
+ * Iframe protocol (SPEC §5.3 in edit mode): theme + structure-tree
+ * highlight/clear in; fp-edit-ready, fp-edit-height and fp-edit-error out.
+ * The outline paint/restore logic is the same script the prebuilt previews
+ * inline (live-edit-outline-runtime). Written without template literals so
+ * it inlines safely.
  */
 const FRAME_RUNTIME = [
     '(function () {',
@@ -260,6 +282,7 @@ const FRAME_RUNTIME = [
     "            document.documentElement.classList.toggle('dark', data.mode === 'dark');",
     '        }',
     '    });',
+    OUTLINE_RUNTIME_SCRIPT,
     "    window.addEventListener('load', function () {",
     "        post({ type: 'fp-edit-ready' });",
     '        reportHeight();',
@@ -367,6 +390,14 @@ export async function createLiveEditSession(options: LiveEditSessionOptions): Pr
         setDark(nextDark: boolean): void {
             dark = nextDark;
             iframe.contentWindow?.postMessage({ type: 'theme', mode: dark ? 'dark' : 'light' }, '*');
+        },
+
+        highlight(slug: string, instance: number | null): void {
+            iframe.contentWindow?.postMessage({ type: 'highlight', slug, instance }, '*');
+        },
+
+        clearHighlight(): void {
+            iframe.contentWindow?.postMessage({ type: 'clear' }, '*');
         },
 
         dispose(): void {

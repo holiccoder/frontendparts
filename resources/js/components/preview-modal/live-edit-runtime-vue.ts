@@ -11,9 +11,15 @@ import {
     type Store,
 } from '@vue/repl';
 import CodeMirrorEditor from '@vue/repl/codemirror-editor';
+/* Same package the server-side transform (library/vue/fp-instrument.ts)
+ * uses; enum values are plain numbers, so the Repl's own compiler copy
+ * compares identically. */
+import { ElementTypes, NodeTypes, type AttributeNode, type NodeTransform } from '@vue/compiler-core';
 import { computed, createApp, h, ref, type App as VueApp } from 'vue';
 
 import type { LiveEditFile, LiveEditVuePayload } from '@/types/catalog';
+
+import { OUTLINE_RUNTIME_SCRIPT } from './live-edit-outline-runtime';
 
 /**
  * Live edit runtime — Vue (SPEC §5.6, §2.5; Phase 3.2) — LAZY-LOADED chunk.
@@ -41,10 +47,16 @@ import type { LiveEditFile, LiveEditVuePayload } from '@/types/catalog';
  *     (same `@custom-variant dark` as the library app, so the dark toggle
  *     behaves like the prebuilt previews); self-hosted via Vite `?url`
  *
- * The React wrapper (vue-edit-tab) drives download/reset/theme through the
- * session API; multi-file editing, data editing, compile errors and the
- * preview itself are the Repl's own UI. Structure-tree outlines in edit
- * mode are Phase 3.3.
+ * Phase 3.3: the Repl's SFC compile runs the SAME data-fp-* node transform
+ * the preview build applies server-side (via sfcOptions.template
+ * .compilerOptions.nodeTransforms — the same hook @vitejs/plugin-vue wires
+ * in the library app), and the preview iframe's headHTML carries the
+ * SPEC §5.3 highlight/clear runtime — structure-tree outlines keep working
+ * in edit mode.
+ *
+ * The React wrapper (vue-edit-tab) drives download/reset/theme/outlines
+ * through the session API; multi-file editing, data editing, compile errors
+ * and the preview itself are the Repl's own UI.
  */
 
 /** Editable sample-data module, imported by the generated wrapper. */
@@ -57,6 +69,10 @@ export interface VueLiveEditSession {
     files(): LiveEditFile[];
     /** Push the dark/light theme into the Repl (chrome + preview iframe). */
     setDark(dark: boolean): void;
+    /** Outline a component's rendered region(s) — structure-tree hover (Phase 3.3). */
+    highlight(slug: string, instance: number | null): void;
+    /** Remove all outlines. */
+    clearHighlight(): void;
     dispose(): void;
 }
 
@@ -119,8 +135,70 @@ function depsImportMap(deps: LiveEditVuePayload['deps']): ImportMap {
 }
 
 /**
- * Tailwind v4 in the preview iframe (SPEC §5.6): the official browser
- * compiler with the same class-based dark variant as the library app.
+ * Client-side port of the preview build's template node transform
+ * (library/vue/fp-instrument.ts): injects `data-fp-c="{slug}"` +
+ * `data-fp-i="{n}"` onto `<PascalName/>` component tags in SFC templates;
+ * Vue's native attribute fall-through lands them on the child's root DOM
+ * node. The instance counter is a per-SFC static occurrence counter
+ * (1-based, traversal order) — deterministic across rebuilds, identical to
+ * the server scheme.
+ *
+ * The server scans `src/components` for its name → slug map; the edit
+ * payload ships the closure's equivalent as `names` (slug → PascalName),
+ * inverted here.
+ */
+function createFpInstrumentTransform(names: LiveEditVuePayload['names']): NodeTransform {
+    const nameToSlug = new Map<string, string>();
+
+    for (const [slug, name] of Object.entries(names)) {
+        nameToSlug.set(name, slug);
+    }
+
+    const countersByRoot = new WeakMap<object, Map<string, number>>();
+
+    return (node, context) => {
+        if (node.type !== NodeTypes.ELEMENT || node.tagType !== ElementTypes.COMPONENT) {
+            return;
+        }
+
+        const slug = nameToSlug.get(node.tag);
+
+        if (slug === undefined) {
+            return;
+        }
+
+        let counters = countersByRoot.get(context.root);
+
+        if (!counters) {
+            counters = new Map();
+            countersByRoot.set(context.root, counters);
+        }
+
+        const instance = (counters.get(slug) ?? 0) + 1;
+        counters.set(slug, instance);
+
+        const attribute = (name: string, content: string): AttributeNode => ({
+            type: NodeTypes.ATTRIBUTE,
+            name,
+            nameLoc: node.loc,
+            value: {
+                type: NodeTypes.TEXT,
+                content,
+                loc: node.loc,
+            },
+            loc: node.loc,
+        });
+
+        node.props.push(attribute('data-fp-c', slug), attribute('data-fp-i', String(instance)));
+    };
+}
+
+/**
+ * Preview iframe head (SPEC §5.6): the official Tailwind v4 browser
+ * compiler with the same class-based dark variant as the library app, plus
+ * the SPEC §5.3 outline runtime so structure-tree hover reaches the live
+ * render (Phase 3.3). The Repl regenerates its sandbox srcdoc per compile,
+ * so the outline listener reinstalls on every rebuild.
  */
 function tailwindHead(): string {
     const src = new URL(tailwindUrl, document.baseURI).href;
@@ -132,6 +210,9 @@ function tailwindHead(): string {
         '',
         '@custom-variant dark (&:where(.dark, .dark *));',
         '</style>',
+        '<script>',
+        OUTLINE_RUNTIME_SCRIPT,
+        '</script>',
     ].join('\n');
 }
 
@@ -174,6 +255,16 @@ export async function createVueLiveEditSession(options: VueLiveEditSessionOption
                     newSFC: '<script setup lang="ts">\n</script>\n\n<template>\n    <div />\n</template>\n',
                 }),
                 builtinImportMap,
+                /* Phase 3.3: the Repl spreads this into every SFC template
+                 * compile — the same compilerOptions.nodeTransforms hook the
+                 * library app's @vitejs/plugin-vue build wires server-side. */
+                sfcOptions: ref({
+                    template: {
+                        compilerOptions: {
+                            nodeTransforms: [createFpInstrumentTransform(payload.names)],
+                        },
+                    },
+                }),
             });
 
             return () =>
@@ -209,6 +300,16 @@ export async function createVueLiveEditSession(options: VueLiveEditSessionOption
 
         setDark(nextDark: boolean): void {
             dark.value = nextDark;
+        },
+
+        /* The Repl owns its preview iframe; reach through the container and
+         * use the SPEC §5.3 protocol the headHTML outline runtime answers. */
+        highlight(slug: string, instance: number | null): void {
+            container.querySelector('iframe')?.contentWindow?.postMessage({ type: 'highlight', slug, instance }, '*');
+        },
+
+        clearHighlight(): void {
+            container.querySelector('iframe')?.contentWindow?.postMessage({ type: 'clear' }, '*');
         },
 
         dispose(): void {
