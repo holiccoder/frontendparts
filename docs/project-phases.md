@@ -263,7 +263,7 @@
 
 ## 2.13 Admin — P1 widgets
 
-- [ ] **2.13.1 Revenue & growth widgets** — KPI row (registered users +N/wk, active subscribers, MRR normalized across periods, awaiting review), revenue trend (12m, lifetime spikes separated), plan mix donut, latest orders with Paddle link (SPEC §8.6).
+- [x] **2.13.1 Revenue & growth widgets** — KPI row (registered users +N/wk, active subscribers, MRR normalized across periods, awaiting review), revenue trend (12m, lifetime spikes separated), plan mix donut, latest orders with Paddle link (SPEC §8.6).
   - Acceptance: `Admin/RevenueWidgetTest::test_mrr_normalizes_monthly_quarterly_yearly`, `test_lifetime_excluded_from_mrr_but_in_revenue`, `test_plan_mix_counts_by_plan_and_period`, `test_kpi_week_over_week_deltas`.
 
 ---
