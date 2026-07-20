@@ -1,0 +1,68 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Enums\CategoryType;
+use App\Models\Category;
+use App\Models\Component;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\Response;
+
+/**
+ * `/sitemap.xml` (SPEC §10.2, §15.6): static pages plus DB-driven
+ * taxonomy and published component URLs.
+ */
+class SitemapController extends Controller
+{
+    public function __invoke(): Response
+    {
+        $urls = [
+            ['loc' => url('/'), 'lastmod' => null],
+            ['loc' => route('components.index'), 'lastmod' => null],
+            ['loc' => route('industries.index'), 'lastmod' => null],
+        ];
+
+        $usages = Category::query()
+            ->where('type', CategoryType::Usage)
+            ->whereHas('usageComponents', fn (Builder $query) => $query->published())
+            ->orderBy('sort_order')
+            ->get();
+
+        foreach ($usages as $usage) {
+            $urls[] = [
+                'loc' => route('components.usage', ['usage' => $usage->slug]),
+                'lastmod' => null,
+            ];
+        }
+
+        $industries = Category::query()
+            ->where('type', CategoryType::Industry)
+            ->whereHas('components', fn (Builder $query) => $query->published())
+            ->orderBy('sort_order')
+            ->get();
+
+        foreach ($industries as $industry) {
+            $urls[] = [
+                'loc' => route('industries.show', ['industry' => $industry->slug]),
+                'lastmod' => null,
+            ];
+        }
+
+        $components = Component::query()
+            ->published()
+            ->with('usageCategory')
+            ->orderBy('slug')
+            ->get();
+
+        foreach ($components as $component) {
+            $urls[] = [
+                'loc' => $component->publicUrl(),
+                'lastmod' => $component->updated_at?->toDateString(),
+            ];
+        }
+
+        return response()
+            ->view('sitemap', ['urls' => $urls])
+            ->header('Content-Type', 'application/xml; charset=UTF-8');
+    }
+}

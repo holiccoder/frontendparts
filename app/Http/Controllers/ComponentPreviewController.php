@@ -40,4 +40,35 @@ class ComponentPreviewController extends Controller
             'Content-Security-Policy' => (string) config('library.preview_csp', 'sandbox allow-scripts'),
         ]);
     }
+
+    /**
+     * Serves one viewport screenshot (`{framework}-{width}.png`) from the
+     * same preview disk. Used for catalog thumbnails and OG images; same
+     * published-only + version-match rules as the preview HTML above.
+     */
+    public function shot(string $component, string $version, string $file): Response
+    {
+        $model = Component::query()
+            ->where('slug', $component)
+            ->published()
+            ->first();
+
+        abort_if($model === null, 404);
+
+        $framework = explode('-', $file)[0];
+        $path = $model->previewPath($framework);
+
+        abort_if($path !== "{$model->slug}/{$version}/{$framework}.html", 404);
+
+        $disk = Storage::disk((string) config('library.preview_disk', 'previews'));
+        $shot = dirname($path)."/shots/{$file}";
+
+        abort_if(! $disk->exists($shot), 404);
+
+        return response($disk->get($shot), 200, [
+            'Content-Type' => 'image/png',
+            'Cache-Control' => (string) config('library.preview_cache_control', 'public, max-age=31536000, immutable'),
+            'X-Content-Type-Options' => 'nosniff',
+        ]);
+    }
 }

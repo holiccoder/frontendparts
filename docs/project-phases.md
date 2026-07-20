@@ -63,35 +63,35 @@
 
 ## 1.3 Component library workspace (authoring apps)
 
-- [ ] **1.3.1 `library/react` Vite app** — standalone React 19 + TS + Tailwind 4 app in-repo; folder convention `{level}/{slug}/{index.tsx, params.json, data.json}`; standalone `/preview/{slug}` route mounting the component with `data.json` (SPEC §8.1, §8.4).
+- [x] **1.3.1 `library/react` Vite app** — standalone React 19 + TS + Tailwind 4 app in-repo; folder convention `{level}/{slug}/{index.tsx, params.json, data.json}`; standalone `/preview/{slug}` route mounting the component with `data.json` (SPEC §8.1, §8.4).
   - Acceptance: `Library/LibraryScaffoldTest::test_react_app_structure_and_scripts_exist`, `test_preview_entry_present`.
-- [ ] **1.3.2 `library/vue` Vite app** — same structure for Vue 3 + TS + Tailwind 4; `/preview/{slug}` parity.
+- [x] **1.3.2 `library/vue` Vite app** — same structure for Vue 3 + TS + Tailwind 4; `/preview/{slug}` parity.
   - Acceptance: `Library/LibraryScaffoldTest::test_vue_app_structure_and_scripts_exist`, `test_preview_entry_present`.
-- [ ] **1.3.3 Dependency registry** — `library/deps.registry.json` (logical name → `{react: pkg@version, vue: pkg@version}`); both apps install all approved packages (SPEC §2.5).
+- [x] **1.3.3 Dependency registry** — `library/deps.registry.json` (logical name → `{react: pkg@version, vue: pkg@version}`); both apps install all approved packages (SPEC §2.5).
   - Acceptance: `Library/DepsRegistryTest::test_registry_schema_valid`, `test_every_entry_has_both_ecosystems_with_pinned_versions`, `test_registry_packages_installed_in_both_apps`.
 
 ## 1.4 Authoring pipeline — `library:sync`
 
-- [ ] **1.4.1 Annotation parser** — docblock → structured meta (`@component @name @level @usage @industries @tags @access @source @deps @version`) (SPEC §8.2).
+- [x] **1.4.1 Annotation parser** — docblock → structured meta (`@component @name @level @usage @industries @tags @access @source @deps @version`) (SPEC §8.2).
   - Acceptance: `Library/AnnotationParserTest::test_parses_full_annotation_block`, `test_missing_required_field_fails_with_field_name`, `test_unknown_level_rejected`, `test_deps_names_only_no_versions`.
-- [ ] **1.4.2 Composition graph derivation** — static import parsing → child edges; cycle detection; max depth 10; shared-child dedupe (SPEC §2.2).
+- [x] **1.4.2 Composition graph derivation** — static import parsing → child edges; cycle detection; max depth 10; shared-child dedupe (SPEC §2.2).
   - Acceptance: `Library/CompositionGraphTest::test_imports_register_child_edges`, `test_cycle_a_b_a_fails_with_precise_error`, `test_depth_11_rejected`, `test_shared_child_deduplicated`.
-- [ ] **1.4.3 Sync validations** — twin exists in both frameworks · taxonomy exists · params/data JSON valid per type vocabulary · composite data slices match child schemas · `@deps` ⊆ registry (SPEC §8.3, §3.2–3.3, §2.5).
+- [x] **1.4.3 Sync validations** — twin exists in both frameworks · taxonomy exists · params/data JSON valid per type vocabulary · composite data slices match child schemas · `@deps` ⊆ registry (SPEC §8.3, §3.2–3.3, §2.5).
   - Acceptance: `Library/LibrarySyncValidationTest` (fixture components): `test_missing_vue_twin_fails`, `test_unknown_usage_category_fails`, `test_invalid_params_json_fails`, `test_data_slice_mismatching_child_schema_fails`, `test_off_registry_dep_fails`, `test_valid_component_passes_all_validations`.
-- [ ] **1.4.4 Upsert + selective rebuild scheduling** — sync upserts DB records; queues preview builds only for changed components + their ancestors/descendants (SPEC §8.3, §5.2).
+- [x] **1.4.4 Upsert + selective rebuild scheduling** — sync upserts DB records; queues preview builds only for changed components + their ancestors/descendants (SPEC §8.3, §5.2).
   - Acceptance: `Library/LibrarySyncTest::test_upserts_new_and_updated_components`, `test_rebuild_queued_for_changed_component_and_dependents`, `test_unchanged_component_not_rebuilt`, `test_draft_status_preserved_on_resync`.
-- [ ] **1.4.5 Filament sync trigger + run log** — admin action runs sync; last-run stats (timestamp, scanned, upserted, errors) visible on dashboard (SPEC §8.3, §8.6 row 6).
+- [x] **1.4.5 Filament sync trigger + run log** — admin action runs sync; last-run stats (timestamp, scanned, upserted, errors) visible on dashboard (SPEC §8.3, §8.6 row 6).
   - Acceptance: `Admin/LibrarySyncActionTest::test_admin_can_trigger_sync_from_panel`, `test_sync_run_logged_with_stats`, `test_non_admin_forbidden`.
 
 ## 1.5 Preview build pipeline
 
-- [ ] **1.5.1 Prebuilt HTML artifacts** — queued job: resolve closure → generate entry mounting component with `data.json` → per-framework Vite build → single self-contained HTML at `storage/previews/{component}/{version}/{react|vue}.html` (SPEC §5.2).
+- [x] **1.5.1 Prebuilt HTML artifacts** — queued job: resolve closure → generate entry mounting component with `data.json` → per-framework Vite build → single self-contained HTML at `storage/previews/{component}/{version}/{react|vue}.html` (SPEC §5.2).
   - Acceptance: `Library/PreviewBuildJobTest::test_html_artifact_written_for_both_frameworks`, `test_artifact_is_self_contained_no_external_scripts`, `test_versioned_path_scheme`.
-- [ ] **1.5.2 AST instrumentation** — inject `data-fp-c="{slug}"` + `data-fp-i="{n}"` into preview builds only; authored export source stays clean (SPEC §2.3).
+- [x] **1.5.2 AST instrumentation** — inject `data-fp-c="{slug}"` + `data-fp-i="{n}"` into preview builds only; authored export source stays clean (SPEC §2.3).
   - Acceptance: `Library/InstrumentationTest::test_preview_html_contains_fp_attributes`, `test_authored_source_file_has_no_fp_attributes`, `test_instance_numbers_stable_across_rebuilds`.
-- [ ] **1.5.3 Headless screenshots + QA gate** — screenshots at 375/768/1280 → catalog thumbnails + OG images; publish blocked without a passing 3-viewport render (SPEC §5.2, §8.5).
+- [x] **1.5.3 Headless screenshots + QA gate** — screenshots at 375/768/1280 → catalog thumbnails + OG images; publish blocked without a passing 3-viewport render (SPEC §5.2, §8.5).
   - Acceptance: `Library/ScreenshotJobTest::test_three_viewport_screenshots_generated` (integration-tagged), `test_publish_blocked_when_screenshots_missing`, `test_failed_build_recorded_for_admin_widget`.
-- [ ] **1.5.4 Preview iframe serving route** — `/previews/{component}/{version}/{framework}.html` with cache headers + CSP, no `allow-same-origin` requirement, published-only (SPEC §5.3, §10.3).
+- [x] **1.5.4 Preview iframe serving route** — `/previews/{component}/{version}/{framework}.html` with cache headers + CSP, no `allow-same-origin` requirement, published-only (SPEC §5.3, §10.3).
   - Acceptance: `Catalog/PreviewServingTest::test_serves_200_with_cache_and_csp_headers`, `test_404_for_draft_component`, `test_404_for_missing_version`.
 
 ## 1.6 Public catalog (SSR)
@@ -371,12 +371,12 @@
 
 | Phase | Tasks | Done | Not started |
 |---|---|---|---|
-| Phase 1 — Foundation (P0) | 45 | 8 | 37 |
+| Phase 1 — Foundation (P0) | 45 | 20 | 25 |
 | Phase 2 — Monetization (P1) | 30 | 0 | 30 |
 | Phase 3 — Power features (P2) | 13 | 0 | 13 |
 | Phase 4 — Launch readiness | 9 | 2 | 7 |
 | Phase 5 — Growth (P3) | 7 | 0 | 7 |
-| **Total** | **104** | **10** | **94** |
+| **Total** | **104** | **22** | **82** |
 
 *(Task count = numbered leaf tasks. Update this table as tasks complete.)*
 

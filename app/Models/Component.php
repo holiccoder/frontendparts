@@ -8,6 +8,7 @@ use App\Enums\ComponentLevel;
 use App\Enums\ComponentStatus;
 use Database\Factories\ComponentFactory;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -136,6 +137,69 @@ class Component extends Model
         $path = $this->preview_paths[$framework] ?? null;
 
         return is_string($path) ? $path : null;
+    }
+
+    /**
+     * Public URL segment: URLs use the basename of the stored full slug
+     * (`elements/section-title-01` → `section-title-01`).
+     */
+    protected function basename(): Attribute
+    {
+        return Attribute::get(fn (): string => str($this->slug)->afterLast('/')->toString());
+    }
+
+    /**
+     * Canonical public URL `/components/{usage}/{basename}`.
+     */
+    public function publicUrl(): string
+    {
+        return route('components.show', [
+            'usage' => $this->usageCategory->slug,
+            'slug' => $this->basename,
+        ]);
+    }
+
+    /**
+     * Public iframe URL for one framework's prebuilt preview; null when the
+     * preview was never built (fail-soft — SPEC §5.3, §15.6).
+     */
+    public function previewUrl(string $framework): ?string
+    {
+        if ($this->previewPath($framework) === null) {
+            return null;
+        }
+
+        return route('previews.show', [
+            'component' => $this->slug,
+            'version' => $this->version,
+            'framework' => $framework,
+        ]);
+    }
+
+    /**
+     * Public URL for one viewport screenshot when the shot exists on the
+     * preview disk; null when previews were never built (fail-soft).
+     */
+    public function screenshotUrl(string $framework, int $width): ?string
+    {
+        $path = $this->previewPath($framework);
+
+        if ($path === null) {
+            return null;
+        }
+
+        $file = "{$framework}-{$width}.png";
+        $disk = Storage::disk((string) config('library.preview_disk', 'previews'));
+
+        if (! $disk->exists(dirname($path)."/shots/{$file}")) {
+            return null;
+        }
+
+        return route('previews.shots', [
+            'component' => $this->slug,
+            'version' => $this->version,
+            'file' => $file,
+        ]);
     }
 
     /**
