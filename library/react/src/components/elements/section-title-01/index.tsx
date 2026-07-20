@@ -10,7 +10,9 @@
  * @deps
  * @version    1.0.0
  */
-interface SectionTitle01Props {
+import type { ComponentPropsWithoutRef } from 'react';
+
+interface SectionTitle01Props extends ComponentPropsWithoutRef<'div'> {
     /** Small label displayed above the heading. Hidden when empty. */
     eyebrow?: string;
     /** Main heading text. */
@@ -26,11 +28,13 @@ export default function SectionTitle01({
     heading = 'Section heading',
     description = '',
     align = 'center',
+    className = '',
+    ...rest
 }: SectionTitle01Props) {
     const alignment = align === 'center' ? 'mx-auto text-center items-center' : 'text-left items-start';
 
     return (
-        <div className={`flex max-w-2xl flex-col gap-4 px-6 py-12 ${alignment}`}>
+        <div {...rest} className={`flex max-w-2xl flex-col gap-4 px-6 py-12 ${alignment} ${className}`}>
             {eyebrow !== '' && (
                 <span className="text-sm font-semibold tracking-widest text-indigo-600 uppercase">{eyebrow}</span>
             )}

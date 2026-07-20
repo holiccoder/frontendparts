@@ -91,6 +91,17 @@ Hard rules enforced at sync time:
 - **Shared children are deduplicated** — two parents importing the same slug
   reference one component record.
 
+## Preview instrumentation (`data-fp-*`)
+
+Preview builds (SPEC §5.2) inject `data-fp-c="{child-slug}"` + `data-fp-i="{n}"`
+onto child component instances at build time (SPEC §2.3) so the modal's structure
+tree can outline them. **Authoring convention:** every component forwards unknown
+props/attributes to its root DOM node (React: `{...rest}` spread, shadcn-style;
+Vue: native attribute fall-through), so the injected attributes land on the
+child's root element. Authored sources never contain the attributes — the
+transform only runs for preview builds (`FP_INSTRUMENT=1` via
+`vite.build.config.ts`).
+
 ## Composition data: the `children` slice convention
 
 A composite's `data.json` may carry a reserved `children` key mapping **child slug →

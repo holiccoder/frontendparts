@@ -13,6 +13,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class Component extends Model
 {
@@ -34,6 +36,8 @@ class Component extends Model
         'source_url',
         'deps',
         'source_hash',
+        'preview_paths',
+        'preview_built_at',
     ];
 
     /**
@@ -46,6 +50,8 @@ class Component extends Model
             'access_level' => AccessLevel::class,
             'status' => ComponentStatus::class,
             'deps' => 'array',
+            'preview_paths' => 'array',
+            'preview_built_at' => 'datetime',
         ];
     }
 
@@ -82,12 +88,80 @@ class Component extends Model
         return $this->hasMany(ComponentEvent::class);
     }
 
+    public function previewBuildFailures(): HasMany
+    {
+        return $this->hasMany(PreviewBuildFailure::class);
+    }
+
     public function recordEvent(ComponentEventType $type, ?User $user = null): ComponentEvent
     {
         return $this->events()->create([
             'type' => $type,
             'user_id' => $user?->id,
         ]);
+    }
+
+    /**
+     * Transitive child closure from the component_children graph (SPEC §2.2),
+     * breadth-first, deduplicated. Used by the preview build to verify every
+     * descendant's source still exists in the library apps.
+     *
+     * @return list<int>
+     */
+    public function descendantIds(): array
+    {
+        $ids = [];
+        $frontier = [$this->id];
+
+        while ($frontier !== []) {
+            $children = DB::table('component_children')
+                ->whereIn('parent_id', $frontier)
+                ->pluck('child_id')
+                ->all();
+
+            $children = array_values(array_diff($children, $ids, [$this->id]));
+            $ids = [...$ids, ...$children];
+            $frontier = $children;
+        }
+
+        return $ids;
+    }
+
+    /**
+     * Disk-relative preview artifact path for one framework
+     * (e.g. `elements/section-title-01/1.0.0/react.html`).
+     */
+    public function previewPath(string $framework): ?string
+    {
+        $path = $this->preview_paths[$framework] ?? null;
+
+        return is_string($path) ? $path : null;
+    }
+
+    /**
+     * QA gate (SPEC §5.2, §8.5): publishable only when both-framework
+     * previews exist AND 3-width screenshots exist for both frameworks.
+     */
+    public function canPublish(): bool
+    {
+        $disk = Storage::disk((string) config('library.preview_disk', 'previews'));
+        $widths = (array) config('library.screenshot_widths', [375, 768, 1280]);
+
+        foreach (['react', 'vue'] as $framework) {
+            $path = $this->previewPath($framework);
+
+            if ($path === null || ! $disk->exists($path)) {
+                return false;
+            }
+
+            foreach ($widths as $width) {
+                if (! $disk->exists(dirname($path)."/shots/{$framework}-{$width}.png")) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
     }
 
     public function scopePublished(Builder $query): void

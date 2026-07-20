@@ -25,3 +25,6 @@ Homestead.json
 Homestead.yaml
 npm-debug.log
 yarn-error.log
+/library/*/.build
+/storage/app/previews/*
+!/storage/app/previews/.gitkeep
