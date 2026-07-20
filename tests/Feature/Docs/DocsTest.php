@@ -3,15 +3,20 @@
 namespace Tests\Feature\Docs;
 
 use App\Services\Docs\DocsRepository;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\File;
 use Tests\TestCase;
 
 /**
  * Markdown docs renderer (SPEC §13.2): fixture content + fixture nav config
  * so renderer behavior is tested independently of the launch content batch.
+ * RefreshDatabase because every Inertia render resolves the shared
+ * auth.entitlements prop from the orders/settings tables.
  */
 class DocsTest extends TestCase
 {
+    use RefreshDatabase;
+
     private string $contentPath;
 
     protected function setUp(): void

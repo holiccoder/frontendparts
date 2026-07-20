@@ -3,8 +3,11 @@
 namespace Tests\Feature\Catalog;
 
 use App\Enums\ComponentEventType;
+use App\Enums\OrderPlan;
+use App\Enums\OrderStatus;
 use App\Models\Category;
 use App\Models\Component;
+use App\Models\Order;
 use App\Models\User;
 use App\Support\Settings;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -257,7 +260,7 @@ class ComponentPageTest extends TestCase
             );
     }
 
-    public function test_entitled_placeholder_guest_locked_authed_passes()
+    public function test_entitled_follows_plan_entitlement()
     {
         $usage = Category::factory()->usage()->create(['slug' => 'hero']);
 
@@ -271,22 +274,34 @@ class ComponentPageTest extends TestCase
             'usage_category_id' => $usage->id,
         ]);
 
-        // Phase 2 placeholder: guests are locked out of paid components…
+        // Guests are locked out of paid components…
         $this->get('/components/hero/paid-01')
             ->assertInertia(fn (Assert $page) => $page
                 ->where('component.access', 'paid')
                 ->where('component.entitled', false)
             );
 
-        // …but any authenticated user passes until real gating exists, and
-        // free components are always entitled.
-        $user = User::factory()->create();
+        // …and so are authenticated users without an entitled order (Free).
+        $this->actingAs(User::factory()->create())
+            ->get('/components/hero/paid-01')
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('component.entitled', false)
+            );
 
-        $this->actingAs($user)->get('/components/hero/paid-01')
+        // A full-library plan (Starter/Pro) is entitled…
+        $subscriber = User::factory()->create();
+        Order::factory()->create([
+            'user_id' => $subscriber->id,
+            'plan' => OrderPlan::Starter,
+            'status' => OrderStatus::Active,
+        ]);
+
+        $this->actingAs($subscriber)->get('/components/hero/paid-01')
             ->assertInertia(fn (Assert $page) => $page
                 ->where('component.entitled', true)
             );
 
+        // …and free components are always entitled.
         $this->get('/components/hero/free-01')
             ->assertInertia(fn (Assert $page) => $page
                 ->where('component.entitled', true)

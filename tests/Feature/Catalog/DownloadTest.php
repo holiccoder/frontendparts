@@ -4,8 +4,11 @@ namespace Tests\Feature\Catalog;
 
 use App\Enums\ComponentEventType;
 use App\Enums\ComponentStatus;
+use App\Enums\OrderPlan;
+use App\Enums\OrderStatus;
 use App\Models\Category;
 use App\Models\Component;
+use App\Models\Order;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Testing\TestResponse;
@@ -205,7 +208,7 @@ class DownloadTest extends TestCase
         ]);
     }
 
-    public function test_authenticated_user_passes_paid_gate_until_phase_2()
+    public function test_authenticated_free_user_blocked_from_paid_download()
     {
         $usage = Category::query()->where('slug', 'hero')->firstOrFail();
         Component::factory()->published()->paid()->create([
@@ -213,9 +216,22 @@ class DownloadTest extends TestCase
             'usage_category_id' => $usage->id,
         ]);
 
-        // Phase 2 placeholder: plan entitlements do not exist yet, so any
-        // authenticated user may download paid components.
+        // Phase 2 gating (SPEC §7.1): an authenticated user without an
+        // entitled order is Free and gets the 403 upgrade payload…
         $this->actingAs(User::factory()->create())
+            ->getJson('/components/hero/paid-01/download')
+            ->assertForbidden()
+            ->assertJsonPath('error', 'upgrade_required');
+
+        // …while a full-library plan (Starter/Pro) passes the gate.
+        $subscriber = User::factory()->create();
+        Order::factory()->create([
+            'user_id' => $subscriber->id,
+            'plan' => OrderPlan::Starter,
+            'status' => OrderStatus::Active,
+        ]);
+
+        $this->actingAs($subscriber)
             ->get('/components/hero/paid-01/download')
             ->assertOk()
             ->assertHeader('Content-Type', 'application/zip');

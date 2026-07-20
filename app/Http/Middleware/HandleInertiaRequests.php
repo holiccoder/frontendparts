@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Services\Billing\EntitlementService;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
@@ -47,6 +48,9 @@ class HandleInertiaRequests extends Middleware
                 // Preview-modal pane layout (SPEC §5.4); guests keep theirs
                 // in localStorage instead.
                 'preview_layout' => $request->user()?->preview_layout,
+                // Effective plan entitlements (SPEC §7.1); guests resolve to
+                // a Free entitlement, so this is always populated.
+                'entitlements' => fn (): array => $this->entitlements($request),
             ],
             // Shared explicitly so the SSR bundle (no @routes script) can
             // build Ziggy's route() helper from page props.
@@ -55,5 +59,24 @@ class HandleInertiaRequests extends Middleware
                 'location' => $request->url(),
             ],
         ]);
+    }
+
+    /**
+     * Serializable shape of the user's Entitlement for the frontend
+     * (SPEC §7.1 feature matrix + §8.7 settings-driven project limit).
+     *
+     * @return array{plan: string, is_paid: bool, has_full_library: bool, can_scaffold: bool, project_limit: int|null}
+     */
+    private function entitlements(Request $request): array
+    {
+        $entitlement = app(EntitlementService::class)->for($request->user());
+
+        return [
+            'plan' => $entitlement->plan()->value,
+            'is_paid' => $entitlement->isPaid(),
+            'has_full_library' => $entitlement->hasFullLibrary(),
+            'can_scaffold' => $entitlement->canScaffold(),
+            'project_limit' => $entitlement->projectLimit(),
+        ];
     }
 }

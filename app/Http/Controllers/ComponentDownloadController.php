@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\AccessLevel;
 use App\Enums\ComponentEventType;
+use App\Services\Billing\EntitlementService;
 use App\Services\Catalog\ComponentRouteResolver;
 use App\Services\Catalog\ComponentZipper;
 use Illuminate\Http\JsonResponse;
@@ -14,8 +15,9 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 /**
  * GET /components/{usage}/{slug}/download?framework=react|vue
  * (SPEC §2.4, §6.1, §8.6): streams the closure zip and records a download
- * event. Accountless for free components; guests hitting a paid component
- * get a 403 upgrade payload. Rate-limited 10/minute via the route.
+ * event. Accountless for free components; paid components require a
+ * full-library plan entitlement (SPEC §7.1), otherwise a 403 upgrade
+ * payload. Rate-limited 10/minute via the route.
  */
 class ComponentDownloadController extends Controller
 {
@@ -29,7 +31,11 @@ class ComponentDownloadController extends Controller
 
         $framework = $validated['framework'] ?? 'react';
 
-        if ($component->access_level === AccessLevel::Paid && $request->user() === null) {
+        // Plan gate (SPEC §7.1, FR-7.6): paid components require a
+        // full-library entitlement (Starter/Pro). Guests resolve to a Free
+        // entitlement, so this one check covers them too.
+        if ($component->access_level === AccessLevel::Paid
+            && ! app(EntitlementService::class)->for($request->user())->hasFullLibrary()) {
             return response()->json([
                 'error' => 'upgrade_required',
                 'upgrade' => [
@@ -38,10 +44,6 @@ class ComponentDownloadController extends Controller
                 ],
             ], 403);
         }
-
-        // TODO Phase 2 (plan entitlements): any authenticated user currently
-        // passes the paid gate — enforce plan-based download rights here once
-        // subscriptions exist.
 
         $zipPath = app(ComponentZipper::class)->build($component, $framework);
 
