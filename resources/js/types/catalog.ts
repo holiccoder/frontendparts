@@ -64,8 +64,25 @@ export interface LiveEditFrameworkPayload {
     deps: Record<string, string | null>;
 }
 
+/** Live edit — Vue (SPEC §5.6; Phase 3.2): payload keyed for @vue/repl. */
+export interface LiveEditVuePayload {
+    /** Full slug of the component being edited (e.g. `sections/pricing-01`). */
+    entry: string;
+    /** Repl filename of the entry component's SFC (null when no Vue source). */
+    entryFile: string | null;
+    /** Repl store main file — the generated wrapper mounting the entry SFC. */
+    mainFile: string;
+    /** Repl store file map: flat `src/{PascalName}.vue` filenames → SFC source. */
+    files: Record<string, string>;
+    /** Sample-data modules keyed by component slug. */
+    data: Record<string, Record<string, unknown>>;
+    /** Logical dep → registry-pinned `package@version` for the import map. */
+    deps: Record<string, string | null>;
+}
+
 export interface LiveEditPayload {
     react?: LiveEditFrameworkPayload;
+    vue?: LiveEditVuePayload;
 }
 
 export interface TreeNode {

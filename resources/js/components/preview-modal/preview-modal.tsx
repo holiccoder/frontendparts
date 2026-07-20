@@ -8,9 +8,9 @@ import { StructureTree, type HighlightPin } from './structure-tree';
 import { CodeTab, DataTab, DocsTab, GatedContent } from './tab-panels';
 import { usePreviewLayout } from './use-preview-layout';
 
-/* Live edit (SPEC §5.6): the Edit tab and its esbuild-wasm runtime are
- * lazy-loaded on first Edit click and cached after — they never land in
- * the main bundle. */
+/* Live edit (SPEC §5.6): the Edit tab and its in-browser runtimes
+ * (esbuild-wasm for React, @vue/repl for Vue) are lazy-loaded on first
+ * Edit click and cached after — they never land in the main bundle. */
 const EditTab = lazy(() => import('./edit-tab'));
 
 const BASE_TABS = ['Preview', 'Code', 'Data', 'Docs'] as const;
@@ -404,24 +404,17 @@ export function PreviewModal({ component, initialFramework, variant, onClose, cl
 
                 {tab === 'Edit' && (
                     <GatedContent entitled={component.entitled}>
-                        {component.edit?.react ? (
-                            <>
-                                {framework === 'vue' && (
-                                    <p className="mb-3 rounded-lg border border-neutral-200 bg-neutral-50 px-4 py-2 text-xs text-neutral-500">
-                                        Live edit is React-only for now (Vue arrives with Phase 3.2) — you’re editing the React sources.
-                                    </p>
-                                )}
-                                <Suspense
-                                    fallback={
-                                        <div className="space-y-4" aria-busy="true">
-                                            <div className="h-8 w-2/3 animate-pulse rounded-md bg-neutral-100" />
-                                            <div className="h-[560px] animate-pulse rounded-xl bg-neutral-100" />
-                                        </div>
-                                    }
-                                >
-                                    <EditTab component={component} darkMode={darkMode} />
-                                </Suspense>
-                            </>
+                        {component.edit ? (
+                            <Suspense
+                                fallback={
+                                    <div className="space-y-4" aria-busy="true">
+                                        <div className="h-8 w-2/3 animate-pulse rounded-md bg-neutral-100" />
+                                        <div className="h-[560px] animate-pulse rounded-xl bg-neutral-100" />
+                                    </div>
+                                }
+                            >
+                                <EditTab component={component} framework={framework} darkMode={darkMode} />
+                            </Suspense>
                         ) : (
                             /* Locked (unentitled): decor behind the blur-gate overlay. */
                             <div className="h-[560px] rounded-xl border border-neutral-200 bg-neutral-50" />

@@ -15,12 +15,14 @@ use Tests\TestCase;
 use ZipArchive;
 
 /**
- * Live edit mode — React (SPEC §5.6, §2.5; Phase 3.1): the Edit tab payload
- * rides the preview-modal JSON only while features.live_edit is on AND the
- * reader is entitled to sources; it carries the full composition closure's
- * sources + sample-data modules + registry-pinned dependency versions for
- * the in-browser esbuild-wasm bundler. Download-of-edits zips the user's
- * posted sources back verbatim — no server-side build, ever.
+ * Live edit mode (SPEC §5.6, §2.5): the Edit tab payload rides the
+ * preview-modal JSON only while features.live_edit is on AND the reader is
+ * entitled to sources; it carries the full composition closure's sources +
+ * sample-data modules + registry-pinned dependency versions for the
+ * in-browser compilers — React (Phase 3.1: esbuild-wasm; sources keep
+ * library-relative paths) and Vue (Phase 3.2: @vue/repl; flat `src/` file
+ * map with rewritten imports). Download-of-edits zips the user's posted
+ * sources back verbatim — no server-side build, ever.
  */
 class LiveEditTest extends TestCase
 {
@@ -112,6 +114,133 @@ class LiveEditTest extends TestCase
         // Deps pinned from the registry (SPEC §2.5): the exact package@version
         // the client fetches from esm.sh — never an invented package name.
         $response->assertJsonPath('edit.react.deps.lucide', 'lucide-react@^1.25.0');
+    }
+
+    /**
+     * Vue twin of the react payload (Phase 3.2, SPEC §5.6): keyed for direct
+     *
+     * @vue/repl store consumption — flat `src/{PascalName}.vue` file map
+     * (the Repl resolves `./` imports against its src/ root), generated
+     * wrapper main file, per-slug data, vue-pinned deps.
+     */
+    public function test_vue_edit_payload_uses_repl_structure()
+    {
+        app(Settings::class)->set('features.live_edit', true);
+
+        $this->libraryComponent('elements/button-01', data: ['label' => 'Click me']);
+        $this->libraryComponent(
+            'sections/pricing-01',
+            source: "import Button01 from '../../elements/button-01/index.vue';\n",
+            data: ['heading' => 'Pricing'],
+        );
+
+        $child = $this->publish('elements/button-01');
+        $parent = $this->publish('sections/pricing-01', ['deps' => ['lucide']]);
+
+        DB::table('component_children')->insert([
+            'parent_id' => $parent->id,
+            'child_id' => $child->id,
+            'slot' => 'default',
+            'sort_order' => 0,
+        ]);
+
+        $response = $this->getJson('/api/components/pricing/pricing-01')->assertOk();
+
+        // The Repl store contract: entry slug, the generated wrapper's
+        // main-file name, and the entry SFC's repl filename.
+        $response->assertJsonPath('edit.vue.entry', 'sections/pricing-01');
+        $response->assertJsonPath('edit.vue.mainFile', 'src/App.vue');
+        $response->assertJsonPath('edit.vue.entryFile', 'src/Pricing01.vue');
+
+        // Files keyed in the @vue/repl structure — a flat map, deterministic
+        // elements → sections order (SPEC §2.4).
+        $response->assertJsonStructure([
+            'edit' => [
+                'vue' => [
+                    'entry',
+                    'entryFile',
+                    'mainFile',
+                    'files' => ['src/Button01.vue', 'src/Pricing01.vue'],
+                    'data',
+                    'deps',
+                ],
+            ],
+        ]);
+
+        $files = $response->json('edit.vue.files');
+        $this->assertSame(['src/Button01.vue', 'src/Pricing01.vue'], array_keys($files));
+
+        // Child SFC verbatim from the library tree; the parent's in-closure
+        // import is rewritten to the Repl's src/-rooted sibling form.
+        $this->assertSame(
+            (string) file_get_contents(config('library.vue_path').'/elements/button-01/index.vue'),
+            $files['src/Button01.vue'],
+        );
+        $this->assertStringContainsString("from './Button01.vue'", $files['src/Pricing01.vue']);
+        $this->assertStringNotContainsString('../../elements/button-01', $files['src/Pricing01.vue']);
+
+        // Sample-data modules keyed by component slug (SPEC §2.4).
+        $response->assertJsonPath('edit.vue.data.elements/button-01.label', 'Click me');
+        $response->assertJsonPath('edit.vue.data.sections/pricing-01.heading', 'Pricing');
+
+        // Deps pinned from the registry's VUE column (SPEC §2.5) — never
+        // the react package, never an invented name.
+        $response->assertJsonPath('edit.vue.deps.lucide', 'lucide-vue-next@^1.0.0');
+    }
+
+    public function test_vue_edit_payload_absent_when_flag_off()
+    {
+        $this->libraryComponent('elements/demo-01');
+        $this->publish('elements/demo-01');
+
+        $this->getJson('/api/components/pricing/demo-01')
+            ->assertOk()
+            ->assertJsonPath('features.live_edit', false)
+            ->assertJsonMissingPath('edit.vue');
+    }
+
+    public function test_vue_edit_payload_absent_without_entitlement()
+    {
+        app(Settings::class)->set('features.live_edit', true);
+
+        $this->libraryComponent('sections/pricing-01');
+        $this->publish('sections/pricing-01', ['access_level' => AccessLevel::Paid]);
+
+        $this->getJson('/api/components/pricing/pricing-01')
+            ->assertOk()
+            ->assertJsonPath('features.live_edit', true)
+            ->assertJsonPath('entitled', false)
+            ->assertJsonMissingPath('edit.vue');
+    }
+
+    public function test_download_edits_accepts_vue_framework()
+    {
+        app(Settings::class)->set('features.live_edit', true);
+
+        $this->libraryComponent('sections/pricing-01');
+        $this->publish('sections/pricing-01');
+
+        $files = [
+            ['path' => 'src/Pricing01.vue', 'code' => "<script setup lang=\"ts\">\n</script>\n\n<template><section>EDITED</section></template>\n"],
+            ['path' => 'src/data.ts', 'code' => "export default { heading: 'Edited' } as const;\n"],
+        ];
+
+        $response = $this->postJson('/components/pricing/pricing-01/edit-download', [
+            'framework' => 'vue',
+            'files' => $files,
+        ]);
+
+        $response->assertOk();
+        $response->assertHeader('Content-Type', 'application/zip');
+        $this->assertStringContainsString(
+            'attachment; filename=pricing-01-vue-edited.zip',
+            (string) $response->headers->get('Content-Disposition'),
+        );
+
+        // Posted sources zip back verbatim — no server-side build.
+        $entries = $this->zipEntries($response);
+        $this->assertSame($files[0]['code'], $entries['src/Pricing01.vue']);
+        $this->assertSame($files[1]['code'], $entries['src/data.ts']);
     }
 
     public function test_download_edits_returns_sources_without_build()

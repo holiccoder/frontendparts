@@ -68,6 +68,41 @@ class ClosureZip
     }
 
     /**
+     * Flat @vue/repl file map for live edit (SPEC §5.6): the closure's Vue
+     * SFCs keyed `src/{PascalName}.vue` with in-closure import specifiers
+     * rewritten to `./{PascalName}.vue`. The Repl resolves every `./`
+     * import against its `src/` root — nested `../` traversal is not
+     * supported — so the flat layout is the only structure that compiles
+     * there. Basename collisions across levels get the level directory
+     * prefixed (`SectionsDemo01.vue`), mirroring {@see uniqueDataName()}.
+     *
+     * @param  list<Component>  $members  deduplicated closure, ordered by {@see order()}
+     * @return array{files: array<string, string>, names: array<string, string>}
+     *                                                                           files: repl filename (`src/*.vue`) → SFC source;
+     *                                                                           names: member slug → PascalCase basename (for the entry file)
+     */
+    public function vueReplFiles(array $members): array
+    {
+        $names = $this->vueReplNames($members);
+        $componentsRoot = (string) config('library.vue_path', '');
+
+        $files = [];
+
+        foreach ($members as $member) {
+            $content = $this->content->for($member);
+            $source = $content['files']['vue'][0]['code'] ?? null;
+
+            if ($source === null || $componentsRoot === '') {
+                continue;
+            }
+
+            $files["src/{$names[$member->slug]}.vue"] = $this->rewriteVueReplImports($source, $member, $names, $componentsRoot);
+        }
+
+        return ['files' => $files, 'names' => $names];
+    }
+
+    /**
      * Deterministic closure ordering: elements → blocks → sections → pages,
      * then by slug (SPEC §2.4).
      *
@@ -165,6 +200,65 @@ class ClosureZip
                 $target = $this->zipSourcePath($membersBySlug[$resolved], pathinfo($zipEntry, PATHINFO_EXTENSION));
 
                 return $matches['prefix'].$this->relativeSpecifier($zipEntry, $target).$matches['suffix'];
+            },
+            $source,
+        );
+    }
+
+    /**
+     * Member slug → unique PascalCase basename for the flat @vue/repl
+     * layout. Same-basename components from different levels get the level
+     * directory prefixed (`sections/demo-01` → `SectionsDemo01`).
+     *
+     * @param  list<Component>  $members
+     * @return array<string, string>
+     */
+    private function vueReplNames(array $members): array
+    {
+        $names = [];
+        $used = [];
+
+        foreach ($members as $member) {
+            $name = Str::studly($member->basename);
+
+            if (in_array($name, $used, true)) {
+                $name = Str::studly($member->level->directory().'-'.$member->basename);
+            }
+
+            $used[] = $name;
+            $names[$member->slug] = $name;
+        }
+
+        return $names;
+    }
+
+    /**
+     * Rewrite ES import specifiers that resolve (via the composition
+     * graph's own resolution) to another component IN THE CLOSURE into
+     * the flat repl layout: `./{PascalName}.vue`. npm packages, CSS, self
+     * and non-closure imports stay untouched. Mirrors {@see rewriteImports()}
+     * with the @vue/repl resolution rule — the Repl maps every `./`
+     * specifier onto its `src/` root, so sibling-style specifiers are the
+     * only form that resolves there.
+     *
+     * @param  array<string, string>  $names  member slug → PascalCase basename
+     */
+    private function rewriteVueReplImports(string $source, Component $member, array $names, string $componentsRoot): string
+    {
+        $entryFile = $componentsRoot.'/'.$member->slug.'/index.vue';
+
+        $pattern = '/(?<prefix>import\s+(?:[^\'";]*?\s+from\s+)?[\'"])(?<path>[^\'"]+)(?<suffix>[\'"])/';
+
+        return (string) preg_replace_callback(
+            $pattern,
+            function (array $matches) use ($member, $names, $entryFile, $componentsRoot): string {
+                $resolved = $this->graph->resolveImport($matches['path'], $entryFile, $componentsRoot);
+
+                if ($resolved === null || $resolved === $member->slug || ! isset($names[$resolved])) {
+                    return $matches[0];
+                }
+
+                return $matches['prefix'].'./'.$names[$resolved].'.vue'.$matches['suffix'];
             },
             $source,
         );

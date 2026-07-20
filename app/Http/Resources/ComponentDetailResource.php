@@ -112,6 +112,7 @@ class ComponentDetailResource extends JsonResource
         if ($liveEdit && $entitled) {
             $payload['edit'] = [
                 'react' => app(LiveEditPayload::class)->react($this->resource),
+                'vue' => app(LiveEditPayload::class)->vue($this->resource),
             ];
         }
 

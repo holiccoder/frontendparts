@@ -1,12 +1,14 @@
 import { xsrfToken } from '@/lib/xsrf';
-import type { ComponentDetailData } from '@/types/catalog';
+import type { ComponentDetailData, Framework } from '@/types/catalog';
 import { AlertTriangle, Download, Loader2, MonitorSmartphone, RotateCcw } from 'lucide-react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { formatBuildError, type LiveEditSession } from './live-edit-runtime';
+import { useIsDesktop } from './use-is-desktop';
 
-/** Desktop gate (SPEC §5.6): the runtime renders only at desktop widths —
- * the same `lg` breakpoint the modal uses for its split layout. */
-const DESKTOP_QUERY = '(min-width: 1024px)';
+/* Live edit — Vue (SPEC §5.6; Phase 3.2): the @vue/repl surface is a lazy
+ * chunk of its own (vue + @vue/repl + CodeMirror), loaded only when the
+ * framework toggle is on Vue and the Edit tab opens. */
+const VueEditTab = lazy(() => import('./vue-edit-tab'));
 
 /** Debounce between the last keystroke and an in-browser rebuild. */
 const REBUILD_DEBOUNCE_MS = 350;
@@ -14,31 +16,48 @@ const REBUILD_DEBOUNCE_MS = 350;
 /** Synthetic file-tab id for the JSON sample-data editor. */
 const DATA_TAB = 'data.json';
 
-function useIsDesktop(): boolean {
-    const [isDesktop, setIsDesktop] = useState(false);
+/**
+ * Edit tab dispatcher (SPEC §5.6): renders the live-edit surface for the
+ * modal's current framework. Vue gets the @vue/repl surface (Phase 3.2);
+ * React gets the esbuild-wasm surface (Phase 3.1). A component whose Vue
+ * sources are not shipped falls back to the React twin with a note.
+ */
+export default function EditTab({ component, framework, darkMode }: { component: ComponentDetailData; framework: Framework; darkMode: boolean }) {
+    if (framework === 'vue' && component.edit?.vue?.entryFile) {
+        return (
+            <Suspense
+                fallback={
+                    <div className="space-y-4" aria-busy="true">
+                        <div className="h-8 w-2/3 animate-pulse rounded-md bg-neutral-100" />
+                        <div className="h-[560px] animate-pulse rounded-xl bg-neutral-100" />
+                    </div>
+                }
+            >
+                <VueEditTab component={component} darkMode={darkMode} />
+            </Suspense>
+        );
+    }
 
-    useEffect(() => {
-        const mql = window.matchMedia(DESKTOP_QUERY);
-
-        const onChange = () => setIsDesktop(mql.matches);
-
-        mql.addEventListener('change', onChange);
-        setIsDesktop(mql.matches);
-
-        return () => mql.removeEventListener('change', onChange);
-    }, []);
-
-    return isDesktop;
+    return (
+        <>
+            {framework === 'vue' && (
+                <p className="mb-3 rounded-lg border border-neutral-200 bg-neutral-50 px-4 py-2 text-xs text-neutral-500">
+                    This component ships no Vue sources — you’re editing the React twin.
+                </p>
+            )}
+            <ReactEditTab component={component} darkMode={darkMode} />
+        </>
+    );
 }
 
 /**
- * Edit tab (SPEC §5.6; Phase 3.1 — React): multi-file editor over the full
+ * React edit surface (SPEC §5.6; Phase 3.1): multi-file editor over the full
  * composition closure + JSON sample-data editor with instant in-browser
  * re-render (esbuild-wasm; keystrokes never touch the server) + instant
  * download of the edited sources. Lazy-loaded by the modal via React.lazy
  * on first Edit click; desktop-gated with a "best on desktop" notice below.
  */
-export default function EditTab({ component, darkMode }: { component: ComponentDetailData; darkMode: boolean }) {
+function ReactEditTab({ component, darkMode }: { component: ComponentDetailData; darkMode: boolean }) {
     const payload = component.edit?.react ?? null;
     const isDesktop = useIsDesktop();
 
