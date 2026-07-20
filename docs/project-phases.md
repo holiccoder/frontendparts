@@ -39,26 +39,26 @@
 
 - [x] **1.1.1 Auth flows** — register / login / forgot+reset password / email verification / confirm password / logout (SPEC §15.2).
   - Acceptance (existing, green ✅): `tests/Feature/Auth/{AuthenticationTest, RegistrationTest, EmailVerificationTest, PasswordConfirmationTest, PasswordResetTest}`.
-- [ ] **1.1.2 Enforce email verification** — uncomment `MustVerifyEmail` on `User`; apply `verified` middleware to dashboard + future download/project routes.
+- [x] **1.1.2 Enforce email verification** — uncomment `MustVerifyEmail` on `User`; apply `verified` middleware to dashboard + future download/project routes.
   - Acceptance: `EmailVerificationTest::test_unverified_users_are_redirected_from_dashboard`, `test_verified_users_can_access_dashboard`, `test_verification_notification_queued_on_register`.
 - [x] **1.1.3 User settings pages** — profile / password / appearance / account deletion (SPEC §15.4).
   - Acceptance (existing, green ✅): `tests/Feature/Settings/{ProfileUpdateTest, PasswordUpdateTest}`.
 - [x] **1.1.4 Filament panel foundation** — `/admin` path, `admin` guard, `AdminSeeder`, dev logins (local only), DB notifications + 30s polling.
   - Acceptance (backfill): `Admin/AdminAccessTest::test_guest_redirected_to_admin_login`, `test_admin_can_authenticate_and_view_dashboard`, `test_web_user_cannot_access_admin_panel`.
-- [ ] **1.1.5 Housekeeping** — remove `tests/Pest.php` leftover; remove `tests/Unit/ExampleTest.php`; add `tests/Feature/Admin` + `tests/Feature/Catalog` + `tests/Feature/Library` directories convention.
+- [x] **1.1.5 Housekeeping** — remove `tests/Pest.php` leftover; remove `tests/Unit/ExampleTest.php`; add `tests/Feature/Admin` + `tests/Feature/Catalog` + `tests/Feature/Library` directories convention.
   - Acceptance: full suite green after removal.
 
 ## 1.2 Core data model
 
-- [ ] **1.2.1 Taxonomy tables + seeders** — `categories` (type: `industry|usage`, zone group for usage, name, slug) + `tags`; seed 12 industries + 26 usage patterns + zones (SPEC §4).
-  - Acceptance: `Catalog/CategorySeederTest::test_seeds_exactly_12_industries`, `test_seeds_exactly_26_usage_patterns_with_zones`, `test_slugs_unique_per_type`; `CategoryVisibilityTest::test_category_hidden_below_3_components`, `test_visible_at_3_components`.
-- [ ] **1.2.2 Component tables** — `components` (slug, name, level enum, usage_category_id, access_level enum `free|paid`, version, status enum `draft|in_review|published`, citation fields, deps json) + `component_industry` + `component_tag` pivots + `component_children` (parent_id, child_id, slot, sort_order) (SPEC §2, PRD §7).
+- [x] **1.2.1 Taxonomy tables + seeders** — `categories` (type: `industry|usage`, zone group for usage, name, slug) + `tags`; seed 12 industries + 32 usage patterns + zones (SPEC §4).
+  - Acceptance: `Catalog/CategorySeederTest::test_seeds_exactly_12_industries`, `test_seeds_exactly_32_usage_patterns_with_zones`, `test_slugs_unique_per_type`; `CategoryVisibilityTest::test_category_hidden_below_3_components`, `test_visible_at_3_components`.
+- [x] **1.2.2 Component tables** — `components` (slug, name, level enum, usage_category_id, access_level enum `free|paid`, version, status enum `draft|in_review|published`, citation fields, deps json) + `component_industry` + `component_tag` pivots + `component_children` (parent_id, child_id, slot, sort_order) (SPEC §2, PRD §7).
   - Acceptance: `Catalog/ComponentModelTest::test_level_and_access_and_status_enum_casts`, `test_industries_and_tags_many_to_many`, `test_children_and_parents_relationships`, `test_published_scope`, `test_free_scope`.
-- [ ] **1.2.3 `component_events` analytics table** — id, component_id, user_id nullable, type enum `view|copy|download|scaffold`, created_at (SPEC §8.6).
+- [x] **1.2.3 `component_events` analytics table** — id, component_id, user_id nullable, type enum `view|copy|download|scaffold`, created_at (SPEC §8.6).
   - Acceptance: `Catalog/ComponentEventTest::test_records_event_with_nullable_user`, `test_type_enum_validated`.
-- [ ] **1.2.4 Platform settings store** — cached typed `settings` key-value table + `Settings` service with registered keys/defaults (project limits, refund window, feature flags, goals, FX rate) (SPEC §8.7).
+- [x] **1.2.4 Platform settings store** — cached typed `settings` key-value table + `Settings` service with registered keys/defaults (project limits, refund window, feature flags, goals, FX rate) (SPEC §8.7).
   - Acceptance: `Admin/SettingsTest::test_get_returns_registered_default`, `test_set_persists_and_flushes_cache`, `test_typed_casts_int_bool_array`, `test_unknown_key_rejected`.
-- [ ] **1.2.5 `plan_prices` table + Order enum extension** — `plan_prices` (plan, period, provider, amount, currency, paddle_price_id nullable); `BillingPeriod` += `Quarterly`, `Lifetime`; `OrderPlan` trimmed to `free|starter|pro` (enterprise → Phase 5 team tier); drop hardcoded `monthlyPrice()` in favor of `plan_prices` lookup (SPEC §7.2–7.3, §7.5).
+- [x] **1.2.5 `plan_prices` table + Order enum extension** — `plan_prices` (plan, period, provider, amount, currency, paddle_price_id nullable); `BillingPeriod` += `Quarterly`, `Lifetime`; `OrderPlan` trimmed to `free|starter|pro` (enterprise → Phase 5 team tier); drop hardcoded `monthlyPrice()` in favor of `plan_prices` lookup (SPEC §7.2–7.3, §7.5).
   - Acceptance: `Billing/PlanPriceTest::test_quarterly_and_lifetime_periods_exist`, `test_price_resolved_from_plan_prices_not_enum`, `test_lifetime_order_allows_null_ends_at`, `test_seeded_price_ladder_matches_spec` (8 paid rows + CNY placeholders).
 
 ## 1.3 Component library workspace (authoring apps)
@@ -153,7 +153,7 @@
   - Acceptance: `Admin/TaxonomyResourceTest::test_category_crud`, `test_tag_crud`, `test_source_crud`, `test_navigation_groups_registered`.
 - [ ] **1.11.3 Settings page + plan prices resource** — Filament Settings page (Plans & limits, Feature flags, Goals groups) + PlanPrice resource (SPEC §8.7).
   - Acceptance: `Admin/SettingsPageTest::test_saves_each_group_and_flushes_cache`, `test_feature_flag_off_removes_toggle_from_modal_payload`, `test_plan_price_crud_updates_checkout_amounts_without_deploy`, `test_goal_targets_saved`.
-- [ ] **1.11.4 P0 dashboard widgets** — catalog stats, drafts awaiting review queue, coverage matrix heatmap (12×26, <3 cells flagged), system health (failed builds, last sync, failed jobs) (SPEC §8.6).
+- [ ] **1.11.4 P0 dashboard widgets** — catalog stats, drafts awaiting review queue, coverage matrix heatmap (12×32, <3 cells flagged), system health (failed builds, last sync, failed jobs) (SPEC §8.6).
   - Acceptance: `Admin/DashboardWidgetTest::test_catalog_stats_counts`, `test_drafts_queue_lists_in_review`, `test_coverage_matrix_flags_cells_below_3`, `test_system_health_shows_failed_builds_and_last_sync`.
 
 ## 1.12 Seed content (authoring)
@@ -371,12 +371,12 @@
 
 | Phase | Tasks | Done | Not started |
 |---|---|---|---|
-| Phase 1 — Foundation (P0) | 45 | 3 | 42 |
+| Phase 1 — Foundation (P0) | 45 | 8 | 37 |
 | Phase 2 — Monetization (P1) | 30 | 0 | 30 |
 | Phase 3 — Power features (P2) | 13 | 0 | 13 |
 | Phase 4 — Launch readiness | 9 | 2 | 7 |
 | Phase 5 — Growth (P3) | 7 | 0 | 7 |
-| **Total** | **104** | **5** | **99** |
+| **Total** | **104** | **10** | **94** |
 
 *(Task count = numbered leaf tasks. Update this table as tasks complete.)*
 

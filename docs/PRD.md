@@ -22,7 +22,7 @@ FrontendParts is a curated component library where every component is **recreate
 ### 1.3 Differentiators
 
 1. Dual-framework: every component in React + Vue with visual parity
-2. Industry-based curation cited from real live sites (12 industries × 26 usage patterns)
+2. Industry-based curation cited from real live sites (12 industries × 32 usage patterns)
 3. Composition-first: sections assembled from independently usable child components
 4. Pack download + full project scaffolding (zip or GitHub repo)
 
@@ -332,7 +332,7 @@ All previously open questions were ruled by the owner on 2026-07-19 — **all pr
 
 ## 14. Appendix
 
-- **A. Taxonomy lists** — SPEC §4 (12 industries, 26 usage patterns, governance)
+- **A. Taxonomy lists** — SPEC §4 (12 industries, 32 usage patterns, governance)
 - **B. Modal + tree UX reference** — SPEC §5.4–5.5
 - **C. Authoring annotation format** — SPEC §8.2
 - **D. License summary** — SPEC §7.4

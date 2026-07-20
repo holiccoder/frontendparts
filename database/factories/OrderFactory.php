@@ -19,22 +19,23 @@ class OrderFactory extends Factory
      */
     public function definition(): array
     {
-        $plan = fake()->randomElement(OrderPlan::cases());
         $period = fake()->randomElement(BillingPeriod::cases());
-        $monthly = $plan->monthlyPrice();
-        $amount = $period === BillingPeriod::Yearly ? $monthly * 12 * 0.8 : $monthly;
         $startsAt = fake()->dateTimeBetween('-1 year', 'now');
-        $endsAt = (clone $startsAt)->modify($period === BillingPeriod::Yearly ? '+1 year' : '+1 month');
 
         return [
             'user_id' => User::factory(),
-            'plan' => $plan,
+            'plan' => fake()->randomElement(OrderPlan::cases()),
             'status' => fake()->randomElement(OrderStatus::cases()),
             'billing_period' => $period,
-            'amount' => $amount,
+            'amount' => fake()->randomFloat(2, 0, 300),
             'currency' => 'USD',
             'starts_at' => $startsAt,
-            'ends_at' => $endsAt,
+            'ends_at' => match ($period) {
+                BillingPeriod::Monthly => (clone $startsAt)->modify('+1 month'),
+                BillingPeriod::Quarterly => (clone $startsAt)->modify('+3 months'),
+                BillingPeriod::Yearly => (clone $startsAt)->modify('+1 year'),
+                BillingPeriod::Lifetime => null,
+            },
             'cancelled_at' => null,
         ];
     }

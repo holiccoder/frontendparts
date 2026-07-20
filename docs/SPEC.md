@@ -135,7 +135,7 @@ Every sync runs a **standalone render smoke test** (defaults only → must rende
 
 SaaS & Software · Ecommerce & Retail · Fintech & Finance · Healthcare & Medical · Education · Real Estate · Food & Restaurant · Travel & Hospitality · Agency & Portfolio · Crypto & Web3 · Fitness & Wellness · Events & Entertainment
 
-### 4.2 Usage patterns (26), grouped by zone
+### 4.2 Usage patterns (32), grouped by zone
 
 | Zone | Patterns |
 |---|---|
@@ -640,3 +640,4 @@ Paddle (MoR) sends its own receipts/invoices — we never duplicate them.
 - **2026-07-19** — Sitemap locked (§15): complete page inventory across 6 zones (public SSR, auth, checkout, dashboard, admin, infrastructure) with phasing
 - **2026-07-19** — Legal pages expanded (§15.7): 7 must-have pages incl. Cookie Policy, Copyright & Takedown Policy (§9-critical), Legal Notice/Imprint; Privacy must cover GDPR + CCPA + PIPL
 - **2026-07-19** — Email & notifications locked (§16): transactional + 8 lifecycle sequences (onboarding drips, upgrade trigger, new-drops digest, renewal reminders, dunning, cancel/win-back, re-engagement), preference center at `/settings/notifications`, provider TBD (Resend/Postmark 🟡); phasing P0–P3
+- **2026-07-20** — Correction: §4.2's table enumerates **32** usage patterns (heading previously said 26); count fixed across SPEC/PRD/phases. Seeded taxonomy uses the verbatim 32-pattern table.
