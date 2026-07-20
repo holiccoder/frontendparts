@@ -3,6 +3,8 @@
 use App\Http\Controllers\CatalogController;
 use App\Http\Controllers\ComponentApiController;
 use App\Http\Controllers\ComponentController;
+use App\Http\Controllers\ComponentCopyController;
+use App\Http\Controllers\ComponentDownloadController;
 use App\Http\Controllers\ComponentPreviewController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\IndustryController;
@@ -29,6 +31,18 @@ Route::get('/components/{usage}/{slug}', [ComponentController::class, 'show'])
     ->where('usage', '[a-z0-9\-]+')
     ->where('slug', '[a-z0-9\-]+')
     ->name('components.show');
+
+Route::get('/components/{usage}/{slug}/download', ComponentDownloadController::class)
+    ->where('usage', '[a-z0-9\-]+')
+    ->where('slug', '[a-z0-9\-]+')
+    ->middleware('throttle:10,1')
+    ->name('components.download');
+
+Route::post('/components/{usage}/{slug}/copy', ComponentCopyController::class)
+    ->where('usage', '[a-z0-9\-]+')
+    ->where('slug', '[a-z0-9\-]+')
+    ->middleware('throttle:30,1')
+    ->name('components.copy');
 
 Route::get('/industries', [IndustryController::class, 'index'])->name('industries.index');
 

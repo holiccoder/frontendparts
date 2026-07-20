@@ -2,11 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\CategoryType;
 use App\Http\Resources\ComponentDetailResource;
-use App\Models\Category;
-use App\Models\Component;
-use Illuminate\Database\Eloquent\Builder;
+use App\Services\Catalog\ComponentRouteResolver;
 
 /**
  * JSON payload endpoint for the preview-modal overlay (SPEC §5.4): the same
@@ -19,25 +16,8 @@ class ComponentApiController extends Controller
 {
     public function show(string $usage, string $slug): ComponentDetailResource
     {
-        $category = Category::query()
-            ->where('type', CategoryType::Usage)
-            ->where('slug', $usage)
-            ->firstOrFail();
-
-        $matches = Component::query()
-            ->published()
-            ->where('usage_category_id', $category->id)
-            ->where(function (Builder $query) use ($slug): void {
-                $query->where('slug', $slug)
-                    ->orWhere('slug', 'like', '%/'.$slug);
-            })
-            ->limit(2)
-            ->get();
-
-        abort_unless($matches->count() === 1, 404);
-
-        /** @var Component $component */
-        $component = $matches->first()->load(['usageCategory', 'industries', 'tags']);
+        $component = app(ComponentRouteResolver::class)->resolve($usage, $slug);
+        $component->load(['usageCategory', 'industries', 'tags']);
 
         return new ComponentDetailResource($component);
     }

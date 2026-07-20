@@ -1,8 +1,9 @@
+import { trackCopyEvent } from '@/lib/track-copy';
 import type { ComponentDetailData, ComponentFile, Framework } from '@/types/catalog';
 import { Check, Copy, Lock } from 'lucide-react';
 import { useState, type PropsWithChildren } from 'react';
 
-function CopyButton({ text, label }: { text: string; label: string }) {
+function CopyButton({ text, label, trackUrl }: { text: string; label: string; trackUrl?: string }) {
     const [copied, setCopied] = useState(false);
 
     const copy = async () => {
@@ -10,6 +11,10 @@ function CopyButton({ text, label }: { text: string; label: string }) {
             await navigator.clipboard.writeText(text);
             setCopied(true);
             setTimeout(() => setCopied(false), 2000);
+
+            if (trackUrl) {
+                trackCopyEvent(trackUrl);
+            }
         } catch {
             // Clipboard unavailable — nothing sensible to fall back to here.
         }
@@ -60,18 +65,23 @@ export function GatedContent({ entitled, children }: PropsWithChildren<{ entitle
     );
 }
 
-function FilePanel({ file }: { file: ComponentFile }) {
+function FilePanel({ file, trackUrl }: { file: ComponentFile; trackUrl?: string }) {
     return (
         <div>
             <div className="flex items-center justify-between gap-3 rounded-t-lg border border-b-0 border-neutral-200 bg-neutral-100 px-4 py-2">
                 <span className="truncate font-mono text-xs text-neutral-600">{file.path}</span>
-                <CopyButton text={file.code} label={`Copy ${file.path}`} />
+                <CopyButton text={file.code} label={`Copy ${file.path}`} trackUrl={trackUrl} />
             </div>
             <pre className="max-h-[560px] overflow-auto rounded-b-lg border border-neutral-200 bg-neutral-950 p-4 text-xs leading-5 text-neutral-100">
                 <code>{file.code}</code>
             </pre>
         </div>
     );
+}
+
+/** Copy-event endpoint shared by every copy affordance of the component. */
+function copyUrl(component: ComponentDetailData): string {
+    return `/components/${component.usage.slug}/${component.basename}/copy`;
 }
 
 /** Code tab: one file panel per closure file of the selected framework. */
@@ -87,7 +97,7 @@ export function CodeTab({ component, framework }: { component: ComponentDetailDa
     return (
         <div className="space-y-6">
             {shown.map((file) => (
-                <FilePanel key={file.path} file={file} />
+                <FilePanel key={file.path} file={file} trackUrl={copyUrl(component)} />
             ))}
         </div>
     );
@@ -105,7 +115,7 @@ export function DataTab({ component }: { component: ComponentDetailData }) {
         <div>
             <div className="flex items-center justify-between gap-3 rounded-t-lg border border-b-0 border-neutral-200 bg-neutral-100 px-4 py-2">
                 <span className="font-mono text-xs text-neutral-600">data.json</span>
-                <CopyButton text={pretty} label="Copy sample data" />
+                <CopyButton text={pretty} label="Copy sample data" trackUrl={copyUrl(component)} />
             </div>
             <pre className="max-h-[560px] overflow-auto rounded-b-lg border border-neutral-200 bg-neutral-950 p-4 text-xs leading-5 text-neutral-100">
                 <code>{pretty}</code>

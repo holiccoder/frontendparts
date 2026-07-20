@@ -307,7 +307,7 @@ export function PreviewModal({ component, initialFramework, variant, onClose, cl
 
     return (
         <section aria-label={`${component.name} preview`} className={cn('flex flex-col', variant === 'overlay' && 'h-full min-h-0', className)}>
-            <ModalHeader component={component} variant={variant} onClose={onClose} />
+            <ModalHeader component={component} framework={framework} variant={variant} onClose={onClose} />
 
             <ModalToolbar
                 width={width}

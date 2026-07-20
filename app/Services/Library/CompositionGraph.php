@@ -98,8 +98,10 @@ class CompositionGraph
     /**
      * Resolve an import path to a component full slug, or null when the
      * import is not a library component (npm package, css, missing file).
+     * Public so the export zipper (Catalog\ComponentZipper) reuses the exact
+     * same resolution when rewriting specifiers into the zip layout.
      */
-    private function resolveImport(string $importPath, string $filePath, string $componentsRoot): ?string
+    public function resolveImport(string $importPath, string $filePath, string $componentsRoot): ?string
     {
         $base = match (true) {
             str_starts_with($importPath, '@/') => dirname($componentsRoot).'/'.substr($importPath, 2),
@@ -120,9 +122,14 @@ class CompositionGraph
         return $this->componentSlugForFile($resolvedFile, $componentsRoot);
     }
 
+    /**
+     * The literal path is tried first: imports may name a component's entry
+     * file explicitly (`../../elements/button-01/index.vue`) instead of the
+     * extensionless directory form.
+     */
     private function resolveFile(string $base): ?string
     {
-        foreach ([$base.'.tsx', $base.'.ts', $base.'.vue', $base.'/index.tsx', $base.'/index.vue'] as $candidate) {
+        foreach ([$base, $base.'.tsx', $base.'.ts', $base.'.vue', $base.'/index.tsx', $base.'/index.vue'] as $candidate) {
             if (is_file($candidate)) {
                 return $candidate;
             }

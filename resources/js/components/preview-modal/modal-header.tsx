@@ -1,22 +1,25 @@
 import { AccessBadge, LevelBadge } from '@/components/catalog/badges';
-import type { ComponentDetailData } from '@/types/catalog';
+import type { ComponentDetailData, Framework } from '@/types/catalog';
 import { Link } from '@inertiajs/react';
 import { Check, Download, ExternalLink, Plus, Share2, X } from 'lucide-react';
 import { useState } from 'react';
 
 interface ModalHeaderProps {
     component: ComponentDetailData;
+    framework: Framework;
     variant: 'inline' | 'overlay';
     onClose?: () => void;
 }
 
 /**
  * Fixed modal header (SPEC §5.4): name, level + access badges, usage and
- * industry tags, citation, and the action row. Add to Project / Download are
- * Phase 2 surfaces and render disabled with tooltips; Share copies the
+ * industry tags, citation, and the action row. Download streams the closure
+ * zip for the selected framework (free for everyone; the entitled placeholder
+ * covers paid until Phase 2 billing); paid + guest stays disabled with an
+ * upgrade tooltip. Add to Project is a Phase 2 surface; Share copies the
  * canonical URL.
  */
-export function ModalHeader({ component, variant, onClose }: ModalHeaderProps) {
+export function ModalHeader({ component, framework, variant, onClose }: ModalHeaderProps) {
     const [copied, setCopied] = useState(false);
 
     const share = async () => {
@@ -94,15 +97,26 @@ export function ModalHeader({ component, variant, onClose }: ModalHeaderProps) {
                     <Plus className="h-4 w-4" />
                     Add to Project
                 </button>
-                <button
-                    type="button"
-                    disabled
-                    title="Coming in Phase 2"
-                    className="inline-flex cursor-not-allowed items-center gap-1.5 rounded-md border border-neutral-300 bg-white px-3.5 py-2 text-sm font-medium text-neutral-700 opacity-50"
-                >
-                    <Download className="h-4 w-4" />
-                    Download
-                </button>
+                {component.entitled ? (
+                    <a
+                        href={`/components/${component.usage.slug}/${component.basename}/download?framework=${framework}`}
+                        title={`Download the ${framework} sources as a zip`}
+                        className="inline-flex items-center gap-1.5 rounded-md border border-neutral-300 bg-white px-3.5 py-2 text-sm font-medium text-neutral-700 transition hover:border-neutral-400"
+                    >
+                        <Download className="h-4 w-4" />
+                        Download
+                    </a>
+                ) : (
+                    <button
+                        type="button"
+                        disabled
+                        title="Upgrade to download"
+                        className="inline-flex cursor-not-allowed items-center gap-1.5 rounded-md border border-neutral-300 bg-white px-3.5 py-2 text-sm font-medium text-neutral-700 opacity-50"
+                    >
+                        <Download className="h-4 w-4" />
+                        Download
+                    </button>
+                )}
                 <button
                     type="button"
                     onClick={share}
