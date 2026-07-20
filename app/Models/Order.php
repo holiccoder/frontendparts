@@ -31,6 +31,9 @@ class Order extends Model
         'starts_at',
         'ends_at',
         'cancelled_at',
+        'paddle_customer_id',
+        'paddle_transaction_id',
+        'paddle_subscription_id',
     ];
 
     /**

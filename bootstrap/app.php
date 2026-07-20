@@ -27,6 +27,12 @@ return Application::configure(basePath: dirname(__DIR__))
             'noindex' => NoIndex::class,
             'ssr.skip' => SkipInertiaSsr::class,
         ]);
+
+        // Paddle webhooks are server-to-server POSTs authenticated by the
+        // Paddle-Signature HMAC header, not by a session CSRF token.
+        $middleware->validateCsrfTokens(except: [
+            'paddle/webhook',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         // Branded 404 (SPEC §15.1): web requests get the SSR Inertia error

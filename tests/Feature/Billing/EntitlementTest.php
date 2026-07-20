@@ -147,6 +147,24 @@ class EntitlementTest extends TestCase
         $this->assertSame(OrderPlan::Free, $service->for($pending)->plan());
     }
 
+    public function test_refunded_loses_paid_access()
+    {
+        $user = User::factory()->create();
+
+        Order::factory()->create([
+            'user_id' => $user->id,
+            'plan' => OrderPlan::Pro,
+            'status' => OrderStatus::Refunded,
+        ]);
+
+        $entitlement = app(EntitlementService::class)->for($user);
+
+        $this->assertSame(OrderPlan::Free, $entitlement->plan());
+        $this->assertFalse($entitlement->isPaid());
+        $this->assertFalse($entitlement->hasFullLibrary());
+        $this->assertFalse($entitlement->canScaffold());
+    }
+
     public function test_lifetime_never_expires()
     {
         $user = User::factory()->create();

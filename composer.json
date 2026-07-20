@@ -12,6 +12,7 @@
         "inertiajs/inertia-laravel": "^2.0",
         "laravel/ai": "^0.8.1",
         "laravel/boost": "^2.4",
+        "laravel/cashier-paddle": "^2.8",
         "laravel/framework": "^13.0",
         "laravel/mcp": "^0.8.1",
         "laravel/tinker": "^3.0",

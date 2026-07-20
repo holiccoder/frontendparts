@@ -16,7 +16,8 @@ use App\Support\Settings;
  * - The latest order wins. It entitles when it is Active (lifetime orders
  *   have ends_at = null and never expire while Active), PastDue (grace
  *   during dunning), or Cancelled with ends_at still in the future.
- * - Everything else (Pending unpaid, Expired, Cancelled past ends_at) → Free.
+ * - Everything else (Pending unpaid, Expired, Refunded, Cancelled past
+ *   ends_at) → Free.
  */
 class EntitlementService
 {
@@ -43,7 +44,7 @@ class EntitlementService
         $entitled = match ($order->status) {
             OrderStatus::Active, OrderStatus::PastDue => true,
             OrderStatus::Cancelled => $order->ends_at !== null && $order->ends_at->isFuture(),
-            OrderStatus::Pending, OrderStatus::Expired => false,
+            OrderStatus::Pending, OrderStatus::Expired, OrderStatus::Refunded => false,
         };
 
         return $entitled ? $order->plan : OrderPlan::Free;

@@ -1,5 +1,8 @@
 <?php
 
+use App\Http\Controllers\Billing\CheckoutController;
+use App\Http\Controllers\Billing\CheckoutSuccessController;
+use App\Http\Controllers\Billing\PaddleWebhookController;
 use App\Http\Controllers\CatalogController;
 use App\Http\Controllers\ComponentApiController;
 use App\Http\Controllers\ComponentController;
@@ -13,6 +16,7 @@ use App\Http\Controllers\RobotsController;
 use App\Http\Controllers\SitemapController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use Laravel\Paddle\Http\Middleware\VerifyWebhookSignature;
 
 /*
 |--------------------------------------------------------------------------
@@ -104,7 +108,33 @@ Route::middleware(['auth', 'verified', 'ssr.skip', 'noindex'])->group(function (
     Route::get('dashboard', function () {
         return Inertia::render('dashboard');
     })->name('dashboard');
+
+    /*
+    |----------------------------------------------------------------------
+    | Checkout zone (CSR, noindex — SPEC §15.3)
+    |----------------------------------------------------------------------
+    */
+    Route::get('checkout/success', CheckoutSuccessController::class)->name('checkout.success');
+
+    Route::get('checkout/{plan}', CheckoutController::class)
+        ->where('plan', 'starter|pro')
+        ->name('checkout.show');
 });
+
+/*
+|--------------------------------------------------------------------------
+| Paddle webhooks (SPEC §7.3)
+|--------------------------------------------------------------------------
+|
+| Signature-verified by Cashier's middleware (HMAC-SHA256 over `ts:body`
+| with the webhook secret) and CSRF-exempt (bootstrap/app.php); idempotent
+| on replayed event ids.
+|
+*/
+
+Route::post('paddle/webhook', PaddleWebhookController::class)
+    ->middleware(VerifyWebhookSignature::class)
+    ->name('paddle.webhook');
 
 Route::middleware(['ssr.skip', 'noindex'])->group(function () {
     require __DIR__.'/settings.php';

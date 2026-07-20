@@ -9,4 +9,5 @@ enum OrderStatus: string
     case PastDue = 'past_due';
     case Cancelled = 'cancelled';
     case Expired = 'expired';
+    case Refunded = 'refunded';
 }
