@@ -10,6 +10,8 @@ use App\Http\Controllers\ComponentController;
 use App\Http\Controllers\ComponentCopyController;
 use App\Http\Controllers\ComponentDownloadController;
 use App\Http\Controllers\ComponentPreviewController;
+use App\Http\Controllers\Dashboard\DashboardController;
+use App\Http\Controllers\Dashboard\OrdersController;
 use App\Http\Controllers\DocsController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\IndustryController;
@@ -20,7 +22,6 @@ use App\Http\Controllers\Projects\ProjectExportDownloadController;
 use App\Http\Controllers\RobotsController;
 use App\Http\Controllers\SitemapController;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 use Laravel\Paddle\Http\Middleware\VerifyWebhookSignature;
 
 /*
@@ -112,9 +113,15 @@ Route::get('/api/components/{usage}/{slug}', [ComponentApiController::class, 'sh
 */
 
 Route::middleware(['auth', 'verified', 'ssr.skip', 'noindex'])->group(function () {
-    Route::get('dashboard', function () {
-        return Inertia::render('dashboard');
-    })->name('dashboard');
+    Route::get('dashboard', DashboardController::class)->name('dashboard');
+
+    /*
+    |----------------------------------------------------------------------
+    | Orders (SPEC §7.3, §15.4): order history with Paddle receipt/invoice
+    | URLs, license state and renewal dates.
+    |----------------------------------------------------------------------
+    */
+    Route::get('dashboard/orders', OrdersController::class)->name('dashboard.orders.index');
 
     /*
     |----------------------------------------------------------------------
