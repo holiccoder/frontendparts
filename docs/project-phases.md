@@ -307,13 +307,13 @@
 
 ## 3.7 Domestic payments (Alipay / WeChat Pay, CNY)
 
-- [ ] **3.7.1 Provider setup + price table** — install `yansongda/pay`; Alipay + WeChat config; `plan_prices` CNY rows with `provider` column; region/currency routing at checkout (geo-detect + manual switch) (SPEC §7.5).
+- [x] **3.7.1 Provider setup + price table** — install `yansongda/pay`; Alipay + WeChat config; `plan_prices` CNY rows with `provider` column; region/currency routing at checkout (geo-detect + manual switch) (SPEC §7.5).
   - Acceptance: `Billing/DomesticCheckoutTest::test_cn_region_gets_cny_qr_checkout`, `test_international_gets_paddle`, `test_manual_currency_switch`, `test_cny_prices_from_plan_prices`.
-- [ ] **3.7.2 QR payment page + notify normalization** — `/pay/domestic/{order}` QR scan (desktop) / app wake-up (mobile) + result polling; Alipay/WeChat notify endpoints signature-verified and normalized into the shared `orders` state machine (SPEC §7.5, §15.3).
+- [x] **3.7.2 QR payment page + notify normalization** — `/pay/domestic/{order}` QR scan (desktop) / app wake-up (mobile) + result polling; Alipay/WeChat notify endpoints signature-verified and normalized into the shared `orders` state machine (SPEC §7.5, §15.3).
   - Acceptance: `Billing/DomesticNotifyTest::test_alipay_signed_notify_activates_order`, `test_wechat_signed_notify_activates_order`, `test_invalid_signature_rejected`, `test_polling_endpoint_returns_order_state`, `test_notify_idempotent_on_replay`.
-- [ ] **3.7.3 Domestic renewal reminders (B5) + zh templates** — one-time payment per period (no auto-deduct); reminders T-7/T-3/T-1/expired+1/+7; zh email templates; domestic payment-confirmed + access-unlocked email (SPEC §7.5, §16.1–16.2).
+- [x] **3.7.3 Domestic renewal reminders (B5) + zh templates** — one-time payment per period (no auto-deduct); reminders T-7/T-3/T-1/expired+1/+7; zh email templates; domestic payment-confirmed + access-unlocked email (SPEC §7.5, §16.1–16.2).
   - Acceptance: `Notifications/RenewalReminderTest::test_reminder_schedule_matrix`, `test_no_reminders_for_lifetime_orders`, `test_zh_templates_render`, `test_payment_confirmed_email_queued`.
-- [ ] **3.7.4 Domestic refunds + FX reporting** — refunds via provider APIs within window; CNY revenue normalized into dashboard MRR at admin-configurable FX rate (SPEC §7.5).
+- [x] **3.7.4 Domestic refunds + FX reporting** — refunds via provider APIs within window; CNY revenue normalized into dashboard MRR at admin-configurable FX rate (SPEC §7.5).
   - Acceptance: `Billing/DomesticRefundTest::test_refund_within_window_succeeds`; `Admin/RevenueWidgetTest::test_cny_revenue_normalized_at_configured_fx_rate`.
 
 ## 3.8 Admin — P2 widgets
