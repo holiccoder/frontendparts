@@ -9,6 +9,7 @@ use App\Enums\ComponentStatus;
 use Database\Factories\ComponentFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -16,11 +17,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Laravel\Scout\Searchable;
 
 class Component extends Model
 {
     /** @use HasFactory<ComponentFactory> */
-    use HasFactory;
+    use HasFactory, Searchable;
 
     /**
      * @var list<string>
@@ -239,5 +241,46 @@ class Component extends Model
     public function scopeFree(Builder $query): void
     {
         $query->where('access_level', AccessLevel::Free);
+    }
+
+    /**
+     * The searchable payload (SPEC §15.1, FR-1.3): name + slug plus the
+     * flattened relation names the launch LIKE search matched — tags, usage
+     * category and industry categories. Relation names ride along so the
+     * same document serves Meilisearch in production.
+     *
+     * @return array<string, mixed>
+     */
+    public function toSearchableArray(): array
+    {
+        return [
+            'name' => $this->name,
+            'slug' => $this->slug,
+            'tags' => $this->tags->pluck('name')->all(),
+            'usage_category' => $this->usageCategory?->name,
+            'industries' => $this->industries->pluck('name')->all(),
+        ];
+    }
+
+    /**
+     * Only published components are searchable (mirrors scopePublished):
+     * drafts and in-review components never enter the Meilisearch index,
+     * and the collection engine filters them out at query time.
+     */
+    public function shouldBeSearchable(): bool
+    {
+        return $this->status === ComponentStatus::Published;
+    }
+
+    /**
+     * Eager-load the relations the searchable payload reads, so collection
+     * filtering and Meilisearch imports don't N+1.
+     *
+     * @param  EloquentCollection<int, static>  $models
+     * @return EloquentCollection<int, static>
+     */
+    public function makeSearchableUsing(EloquentCollection $models): EloquentCollection
+    {
+        return $models->load(['tags', 'usageCategory', 'industries']);
     }
 }

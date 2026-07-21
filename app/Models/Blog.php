@@ -9,11 +9,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Laravel\Scout\Searchable;
 
 class Blog extends Model
 {
     /** @use HasFactory<BlogFactory> */
-    use HasFactory;
+    use HasFactory, Searchable;
 
     /**
      * Words-per-minute used for the reading-time estimate (SPEC §13.1).
@@ -108,5 +109,32 @@ class Blog extends Model
         $query->where('status', 'published')
             ->whereNotNull('published_at')
             ->where('published_at', '<=', now());
+    }
+
+    /**
+     * The searchable payload (SPEC §15.1, FR-1.3): the same fields the
+     * launch LIKE search matched — title, excerpt and body.
+     *
+     * @return array<string, string|null>
+     */
+    public function toSearchableArray(): array
+    {
+        return [
+            'title' => $this->title,
+            'excerpt' => $this->excerpt,
+            'body' => $this->body,
+        ];
+    }
+
+    /**
+     * Only live posts are searchable (mirrors scopePublished): drafts,
+     * archived and scheduled posts never enter the Meilisearch index, and
+     * the collection engine filters them out at query time.
+     */
+    public function shouldBeSearchable(): bool
+    {
+        return $this->status === 'published'
+            && $this->published_at !== null
+            && $this->published_at->lessThanOrEqualTo(now());
     }
 }

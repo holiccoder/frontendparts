@@ -128,6 +128,16 @@ class LibrarySyncTest extends TestCase
             ->assertExitCode(0);
     }
 
+    public function test_command_resyncs_search_index_after_upserts()
+    {
+        $this->seedTaxonomy();
+        $this->libraryComponent('sections/pricing-section-01');
+
+        $this->artisan('library:sync')
+            ->expectsOutputToContain('Search index re-synced for the component catalog.')
+            ->assertExitCode(0);
+    }
+
     public function test_command_exits_nonzero_when_component_has_errors()
     {
         $this->libraryComponent('sections/pricing-section-01', frameworks: ['react']);
