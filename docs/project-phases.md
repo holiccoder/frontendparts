@@ -318,7 +318,7 @@
 
 ## 3.8 Admin — P2 widgets
 
-- [ ] **3.8.1 Downloads & popularity widgets** — downloads 30d (components + zips + scaffolds), top components (views + downloads), projects tracking (SPEC §8.6).
+- [x] **3.8.1 Downloads & popularity widgets** — downloads 30d (components + zips + scaffolds), top components (views + downloads), projects tracking (SPEC §8.6).
   - Acceptance: `Admin/PopularityWidgetTest::test_top_components_from_component_events`, `test_downloads_30d_aggregation`.
 
 ## 3.9 Affiliate program (SPEC §17)
