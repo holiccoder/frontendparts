@@ -300,9 +300,9 @@
 
 ## 3.6 GitHub export
 
-- [ ] **3.6.1 GitHub OAuth connection** — Socialite GitHub, scope `repo`; token stored encrypted; `/settings/connections` connect/disconnect; GitHub-connected security email (SPEC §6.4, §16.1).
+- [x] **3.6.1 GitHub OAuth connection** — Socialite GitHub, scope `repo`; token stored encrypted; `/settings/connections` connect/disconnect; GitHub-connected security email (SPEC §6.4, §16.1).
   - Acceptance: `Integrations/GithubConnectionTest::test_oauth_callback_stores_encrypted_token`, `test_token_not_readable_as_plaintext_in_db`, `test_disconnect_clears_token`, `test_connected_notification_queued`.
-- [ ] **3.6.2 Repo export** — pick project → name repo (public/private) → create repo → commit all files in a single commit via Git Trees API → return repo URL (SPEC §6.4).
+- [x] **3.6.2 Repo export** — pick project → name repo (public/private) → create repo → commit all files in a single commit via Git Trees API → return repo URL (SPEC §6.4).
   - Acceptance: `Integrations/GithubExportTest::test_repo_created_and_tree_committed` (HTTP fake), `test_single_commit_contains_all_scaffold_files`, `test_returns_repo_url`, `test_pro_gated`, `test_api_failure_surfaces_error`.
 
 ## 3.7 Domestic payments (Alipay / WeChat Pay, CNY)
