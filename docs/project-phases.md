@@ -295,7 +295,7 @@
 
 ## 3.5 Nuxt scaffolding
 
-- [ ] **3.5.1 Nuxt starter assembly** — TS-only, Nuxt 4 + Vue 3 + Tailwind 4; same rules as 3.4.1 (SPEC §6.3).
+- [x] **3.5.1 Nuxt starter assembly** — TS-only, Nuxt 4 + Vue 3 + Tailwind 4; same rules as 3.4.1 (SPEC §6.3).
   - Acceptance: `Scaffold/NuxtScaffoldTest` — same method matrix as 3.4.1.
 
 ## 3.6 GitHub export
