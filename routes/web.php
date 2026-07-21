@@ -23,6 +23,7 @@ use App\Http\Controllers\ComponentPreviewController;
 use App\Http\Controllers\Dashboard\AffiliateController;
 use App\Http\Controllers\Dashboard\AffiliateJoinController;
 use App\Http\Controllers\Dashboard\AffiliatePayoutMethodController;
+use App\Http\Controllers\Dashboard\ComponentSubmissionController;
 use App\Http\Controllers\Dashboard\DashboardController;
 use App\Http\Controllers\Dashboard\OrdersController;
 use App\Http\Controllers\Dashboard\TeamController;
@@ -333,6 +334,22 @@ Route::middleware(['auth', 'verified', 'ssr.skip', 'noindex'])->group(function (
             ->scopeBindings()
             ->where('file', '(react|vue)-\d+\.png')
             ->name('forks.shots');
+    });
+
+    /*
+    |----------------------------------------------------------------------
+    | Community submissions (task 5.3): users submit components for
+    | inclusion; admins review in Filament and approval lands the code in
+    | the library tree. Users only ever see their own submissions (owner
+    | scoping in the controller). Creation rate-limited per NFR-10.
+    |----------------------------------------------------------------------
+    */
+    Route::prefix('dashboard/submissions')->name('dashboard.submissions.')->group(function () {
+        Route::get('/', [ComponentSubmissionController::class, 'index'])->name('index');
+        Route::get('/new', [ComponentSubmissionController::class, 'create'])->name('create');
+        Route::post('/', [ComponentSubmissionController::class, 'store'])
+            ->middleware('throttle:5,1')
+            ->name('store');
     });
 
     /*

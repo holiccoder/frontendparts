@@ -93,6 +93,14 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(SupportTicket::class);
     }
 
+    /**
+     * Community components the user submitted for inclusion (task 5.3).
+     */
+    public function componentSubmissions(): HasMany
+    {
+        return $this->hasMany(ComponentSubmission::class);
+    }
+
     public function componentEvents(): HasMany
     {
         return $this->hasMany(ComponentEvent::class);
