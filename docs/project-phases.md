@@ -290,7 +290,7 @@
 
 ## 3.4 Next.js scaffolding
 
-- [ ] **3.4.1 Next.js starter assembly** — App Router, TS-only, Next 15 + React 19 + Tailwind 4: `components/`, `app/`, `public/`, `data/`, `package.json` (merged deps), `tsconfig`, configs, `.gitignore`; page-level components → routes; loose sections → index page in selection order; sample images stay remote URLs; queued server-side assembly → zip (SPEC §6.3, FR-5).
+- [x] **3.4.1 Next.js starter assembly** — App Router, TS-only, Next 15 + React 19 + Tailwind 4: `components/`, `app/`, `public/`, `data/`, `package.json` (merged deps), `tsconfig`, configs, `.gitignore`; page-level components → routes; loose sections → index page in selection order; sample images stay remote URLs; queued server-side assembly → zip (SPEC §6.3, FR-5).
   - Acceptance: `Scaffold/NextScaffoldTest::test_zip_contains_full_starter_structure`, `test_page_components_become_routes`, `test_loose_sections_assembled_into_index_in_order`, `test_remote_image_urls_preserved`, `test_merged_package_json`, `test_pro_only_gate_403_for_starter`, `test_scaffold_event_recorded`.
 
 ## 3.5 Nuxt scaffolding
