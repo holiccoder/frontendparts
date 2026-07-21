@@ -43,6 +43,7 @@ interface CheckoutProps {
         environment: 'sandbox' | 'production';
     };
     successUrl: string;
+    currencySwitchUrl: string;
 }
 
 const PERIOD_LABELS: Record<string, string> = {
@@ -57,7 +58,7 @@ const PERIOD_LABELS: Record<string, string> = {
  * carry the checkout session for the selected plan × period; switching the
  * period re-requests the page with a new `?period=` query.
  */
-export default function Checkout({ plan, selectedPeriod, periods, checkout, paddle, successUrl }: CheckoutProps) {
+export default function Checkout({ plan, selectedPeriod, periods, checkout, paddle, successUrl, currencySwitchUrl }: CheckoutProps) {
     const [paddleReady, setPaddleReady] = useState(false);
 
     useEffect(() => {
@@ -141,6 +142,18 @@ export default function Checkout({ plan, selectedPeriod, periods, checkout, padd
 
                 <p className="text-center text-xs text-neutral-500">
                     Payments are processed by Paddle, our merchant of record. 14-day refund window.
+                </p>
+
+                {/* Manual currency switch (SPEC §7.5): CNY routes to the domestic QR checkout. */}
+                <p className="text-center text-xs text-neutral-500">
+                    在中国大陆？{' '}
+                    <button
+                        type="button"
+                        className="underline underline-offset-2 transition hover:text-neutral-700 dark:hover:text-neutral-300"
+                        onClick={() => router.post(currencySwitchUrl, { currency: 'CNY' })}
+                    >
+                        使用人民币支付（支付宝 / 微信支付）
+                    </button>
                 </p>
             </div>
         </AuthLayout>

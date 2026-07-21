@@ -3,9 +3,11 @@
 namespace App\Models;
 
 use App\Enums\BillingPeriod;
+use App\Enums\DomesticChannel;
 use App\Enums\LicenseState;
 use App\Enums\OrderPlan;
 use App\Enums\OrderStatus;
+use App\Enums\PlanProvider;
 use App\Observers\OrderObserver;
 use Database\Factories\OrderFactory;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
@@ -37,6 +39,10 @@ class Order extends Model
         'paddle_customer_id',
         'paddle_transaction_id',
         'paddle_subscription_id',
+        'provider',
+        'domestic_channel',
+        'out_trade_no',
+        'domestic_transaction_id',
     ];
 
     /**
@@ -48,6 +54,8 @@ class Order extends Model
             'plan' => OrderPlan::class,
             'status' => OrderStatus::class,
             'billing_period' => BillingPeriod::class,
+            'provider' => PlanProvider::class,
+            'domestic_channel' => DomesticChannel::class,
             'amount' => 'decimal:2',
             'starts_at' => 'datetime',
             'ends_at' => 'datetime',
@@ -59,6 +67,17 @@ class Order extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Domestic (Alipay / WeChat Pay, CNY) order vs the default Paddle one
+     * (SPEC §7.5). The renewal-reminder and refund phases branch on this:
+     * domestic subscriptions are one-time payments per period with reminder
+     * emails before ends_at instead of auto-renewal.
+     */
+    public function isDomestic(): bool
+    {
+        return $this->provider === PlanProvider::Domestic;
     }
 
     /**

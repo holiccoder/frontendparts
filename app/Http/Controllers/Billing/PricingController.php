@@ -4,36 +4,48 @@ namespace App\Http\Controllers\Billing;
 
 use App\Enums\BillingPeriod;
 use App\Enums\OrderPlan;
+use App\Enums\PlanProvider;
 use App\Http\Controllers\Controller;
 use App\Models\PlanPrice;
+use App\Services\Billing\RegionDetector;
 use App\Support\Settings;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\URL;
 use Inertia\Inertia;
 use Inertia\Response;
 
 /**
  * `/pricing` (SSR, SEO-indexed — SPEC §7.2, §15.1): plan × period toggle
- * fed straight from `plan_prices` (Paddle/USD rows only — domestic CNY
- * pricing ships with Phase 3, SPEC §7.5), the feature comparison from the
- * SPEC §7.1 matrix, and a billing FAQ. Yearly is pushed as the best value;
+ * fed straight from `plan_prices`, the feature comparison from the SPEC
+ * §7.1 matrix, and a billing FAQ. Yearly is pushed as the best value;
  * lifetime is a permanent offering, not a promo. A plan × period combo
  * without a price row is rendered as unavailable, never crashing the page.
+ *
+ * Currency follows RegionDetector (SPEC §7.5): USD buyers see the Paddle
+ * rows, CNY buyers the domestic rows, and the page surfaces the manual
+ * currency switch. Both providers' rows come from `plan_prices` — never
+ * hardcoded.
  */
 class PricingController extends Controller
 {
     public function __construct(private readonly Settings $settings) {}
 
-    public function __invoke(): Response
+    public function __invoke(Request $request, RegionDetector $region): Response
     {
+        $currency = $region->preferredCurrency($request);
+        $provider = $currency === RegionDetector::CNY ? PlanProvider::Domestic : PlanProvider::Paddle;
+
         return Inertia::render('pricing', [
             'periods' => array_map(
                 fn (BillingPeriod $period): string => $period->value,
                 BillingPeriod::cases(),
             ),
             'plans' => [
-                'starter' => $this->plan(OrderPlan::Starter, 'The full library for one developer.'),
-                'pro' => $this->plan(OrderPlan::Pro, 'Library plus project scaffolding and exports.'),
+                'starter' => $this->plan(OrderPlan::Starter, 'The full library for one developer.', $provider),
+                'pro' => $this->plan(OrderPlan::Pro, 'Library plus project scaffolding and exports.', $provider),
             ],
+            'currency' => $currency,
+            'currencySwitchUrl' => route('billing.currency.switch'),
             'comparison' => $this->comparison(),
             'faq' => $this->faq(),
             'meta' => [
@@ -53,19 +65,19 @@ class PricingController extends Controller
      *
      * @return array{name: string, tagline: string, checkout_url: string, prices: array<string, array{amount: string|null, currency: string, per_month: string|null}>}
      */
-    private function plan(OrderPlan $plan, string $tagline): array
+    private function plan(OrderPlan $plan, string $tagline, PlanProvider $provider = PlanProvider::Paddle): array
     {
         return [
             'name' => ucfirst($plan->value),
             'tagline' => $tagline,
             'checkout_url' => route('checkout.show', ['plan' => $plan->value]),
             'prices' => collect(BillingPeriod::cases())
-                ->mapWithKeys(function (BillingPeriod $period) use ($plan): array {
-                    $price = $plan->price($period);
+                ->mapWithKeys(function (BillingPeriod $period) use ($plan, $provider): array {
+                    $price = $plan->price($period, $provider);
 
                     return [$period->value => [
                         'amount' => $price?->amount,
-                        'currency' => $price?->currency ?? 'USD',
+                        'currency' => $price?->currency ?? ($provider === PlanProvider::Domestic ? 'CNY' : 'USD'),
                         'per_month' => $this->perMonth($price, $period),
                     ]];
                 })

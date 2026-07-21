@@ -1,7 +1,7 @@
 import SeoHead from '@/components/seo-head';
 import PublicLayout from '@/layouts/public-layout';
 import type { PageMeta } from '@/types/catalog';
-import { Link } from '@inertiajs/react';
+import { Link, router } from '@inertiajs/react';
 import { Check, Minus } from 'lucide-react';
 import { useState } from 'react';
 
@@ -40,6 +40,8 @@ interface PricingProps {
         starter: PaidPlan;
         pro: PaidPlan;
     };
+    currency: string;
+    currencySwitchUrl: string;
     comparison: ComparisonRow[];
     faq: FaqItem[];
     meta: PageMeta;
@@ -143,10 +145,18 @@ function PaidPlanCard({ plan, period }: { plan: PaidPlan; period: Period }) {
  * `/pricing` (SSR — SPEC §7.2, §15.1): plan × period toggle with prices
  * from `plan_prices` via Inertia props, the SPEC §7.1 feature comparison
  * and a billing FAQ. Yearly is highlighted as the best value; lifetime is
- * presented as a permanent offering. The toggle is client-side only.
+ * presented as a permanent offering. The period toggle is client-side only;
+ * the currency switch (SPEC §7.5) posts the choice to the server, which
+ * persists it in the session and re-prices the page.
  */
-export default function Pricing({ periods, plans, comparison, faq, meta }: PricingProps) {
+export default function Pricing({ periods, plans, currency, currencySwitchUrl, comparison, faq, meta }: PricingProps) {
     const [period, setPeriod] = useState<Period>('yearly');
+
+    const switchCurrency = (option: string) => {
+        if (option !== currency) {
+            router.post(currencySwitchUrl, { currency: option }, { preserveScroll: true });
+        }
+    };
 
     return (
         <PublicLayout>
@@ -196,6 +206,30 @@ export default function Pricing({ periods, plans, comparison, faq, meta }: Prici
                             ))}
                         </div>
                     </div>
+
+                    {/* Currency switch (SPEC §7.5): USD/Paddle vs CNY/支付宝·微信支付. */}
+                    <div className="mt-4 flex justify-center">
+                        <div
+                            className="inline-flex items-center gap-1 rounded-full border border-neutral-200 bg-white p-1"
+                            role="tablist"
+                            aria-label="Currency"
+                        >
+                            {['USD', 'CNY'].map((option) => (
+                                <button
+                                    key={option}
+                                    type="button"
+                                    role="tab"
+                                    aria-selected={option === currency}
+                                    onClick={() => switchCurrency(option)}
+                                    className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+                                        option === currency ? 'bg-neutral-900 text-white' : 'text-neutral-500 hover:text-neutral-900'
+                                    }`}
+                                >
+                                    {option === 'USD' ? '$ USD' : '¥ CNY'}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
                 </div>
             </section>
 
@@ -224,7 +258,9 @@ export default function Pricing({ periods, plans, comparison, faq, meta }: Prici
                 <p className="mt-8 text-center text-xs leading-5 text-neutral-400">
                     {period === 'lifetime'
                         ? 'Lifetime is a permanent offering — pay once and keep access to the full library and every future drop, forever.'
-                        : 'Prices in USD · Secure payments by Paddle, our merchant of record · Cancel anytime, keep access until the period ends.'}
+                        : currency === 'CNY'
+                          ? 'Prices in CNY · 支持支付宝、微信支付 · 每个周期一次性付款，到期前邮件提醒续费。'
+                          : 'Prices in USD · Secure payments by Paddle, our merchant of record · Cancel anytime, keep access until the period ends.'}
                 </p>
             </section>
 

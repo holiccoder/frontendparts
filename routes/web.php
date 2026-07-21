@@ -2,6 +2,10 @@
 
 use App\Http\Controllers\Billing\CheckoutController;
 use App\Http\Controllers\Billing\CheckoutSuccessController;
+use App\Http\Controllers\Billing\CurrencySwitchController;
+use App\Http\Controllers\Billing\DomesticNotifyController;
+use App\Http\Controllers\Billing\DomesticPaymentController;
+use App\Http\Controllers\Billing\DomesticPaymentStatusController;
 use App\Http\Controllers\Billing\PaddleWebhookController;
 use App\Http\Controllers\Billing\PricingController;
 use App\Http\Controllers\Billing\ReactivateOrderController;
@@ -284,7 +288,35 @@ Route::middleware(['auth', 'verified', 'ssr.skip', 'noindex'])->group(function (
     Route::get('checkout/{plan}', CheckoutController::class)
         ->where('plan', 'starter|pro')
         ->name('checkout.show');
+
+    /*
+    |----------------------------------------------------------------------
+    | Domestic QR payment (CSR, noindex — SPEC §7.5, §15.3): QR scan on
+    | desktop / app wake-up on mobile, plus the result-polling endpoint the
+    | page calls until the order flips Active.
+    |----------------------------------------------------------------------
+    */
+    Route::get('pay/domestic/{order}', DomesticPaymentController::class)
+        ->name('pay.domestic');
+
+    Route::get('pay/domestic/{order}/status', DomesticPaymentStatusController::class)
+        ->middleware('throttle:30,1')
+        ->name('pay.domestic.status');
 });
+
+/*
+|--------------------------------------------------------------------------
+| Manual currency switch (SPEC §7.5)
+|--------------------------------------------------------------------------
+|
+| Persists the buyer's USD/CNY choice in the session (guests included) and
+| redirects back; RegionDetector prefers it over the geo-detect heuristic.
+|
+*/
+
+Route::post('billing/currency', CurrencySwitchController::class)
+    ->middleware('throttle:10,1')
+    ->name('billing.currency.switch');
 
 /*
 |--------------------------------------------------------------------------
@@ -300,6 +332,21 @@ Route::middleware(['auth', 'verified', 'ssr.skip', 'noindex'])->group(function (
 Route::post('paddle/webhook', PaddleWebhookController::class)
     ->middleware(VerifyWebhookSignature::class)
     ->name('paddle.webhook');
+
+/*
+|--------------------------------------------------------------------------
+| Domestic payment notifies (SPEC §7.5)
+|--------------------------------------------------------------------------
+|
+| Server-to-server POSTs from Alipay / WeChat Pay, signature-verified at the
+| DomesticGateway seam and CSRF-exempt (bootstrap/app.php); idempotent on
+| replayed notification ids via domestic_events.
+|
+*/
+
+Route::post('pay/domestic/{channel}/notify', DomesticNotifyController::class)
+    ->where('channel', 'alipay|wechat')
+    ->name('pay.domestic.notify');
 
 Route::middleware(['ssr.skip', 'noindex'])->group(function () {
     require __DIR__.'/settings.php';

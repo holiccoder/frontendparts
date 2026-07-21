@@ -28,10 +28,13 @@ return Application::configure(basePath: dirname(__DIR__))
             'ssr.skip' => SkipInertiaSsr::class,
         ]);
 
-        // Paddle webhooks are server-to-server POSTs authenticated by the
-        // Paddle-Signature HMAC header, not by a session CSRF token.
+        // Paddle webhooks and domestic (Alipay / WeChat) notifies are
+        // server-to-server POSTs authenticated by the provider's signature
+        // (Paddle-Signature HMAC / RSA2 / WeChat v3), not a session CSRF token.
         $middleware->validateCsrfTokens(except: [
             'paddle/webhook',
+            'pay/domestic/alipay/notify',
+            'pay/domestic/wechat/notify',
         ]);
 
         // Live-edit downloads (SPEC §5.6) zip the user's edited sources

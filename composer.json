@@ -18,7 +18,8 @@
         "laravel/socialite": "^5.28",
         "laravel/tinker": "^3.0",
         "spatie/browsershot": "^5.4",
-        "tightenco/ziggy": "^2.4"
+        "tightenco/ziggy": "^2.4",
+        "yansongda/pay": "^3.7"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
