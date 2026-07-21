@@ -7,9 +7,11 @@ use App\Filament\Widgets\CoverageMatrixWidget;
 use App\Filament\Widgets\DraftsReviewWidget;
 use App\Filament\Widgets\LatestOrdersWidget;
 use App\Filament\Widgets\PlanMixChartWidget;
+use App\Filament\Widgets\PopularityStatsWidget;
 use App\Filament\Widgets\RevenueStatsWidget;
 use App\Filament\Widgets\RevenueTrendChartWidget;
 use App\Filament\Widgets\SystemHealthWidget;
+use App\Filament\Widgets\TopComponentsWidget;
 use App\Models\Admin;
 use DutchCodingCompany\FilamentDeveloperLogins\FilamentDeveloperLoginsPlugin;
 use Filament\Http\Middleware\Authenticate;
@@ -57,6 +59,8 @@ class AdminPanelProvider extends PanelProvider
                 RevenueTrendChartWidget::class,
                 PlanMixChartWidget::class,
                 LatestOrdersWidget::class,
+                PopularityStatsWidget::class,
+                TopComponentsWidget::class,
             ])
             ->navigationGroups([
                 'Library',
