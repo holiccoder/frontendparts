@@ -378,7 +378,7 @@
 
 - [x] **5.1 Meilisearch** — Laravel Scout driver swap for catalog + docs search (FR-1.3, SPEC §13.2).
 - [x] **5.2 Team tier** — organization seats; `OrderPlan` re-gains a team value; per-seat pricing (SPEC §7.1, §7.4).
-- [ ] **5.3 Community submissions** — external component submission + review pipeline into `library/` (PRD §4.2).
+- [x] **5.3 Community submissions** — external component submission + review pipeline into `library/` (PRD §4.2).
 - [ ] **5.4 AI features** — `laravel/ai` groundwork already installed (agent conversations tables); candidates: AI-assisted component variants, natural-language catalog search.
 - [x] **5.5 Collections pages** — `/collections/{slug}` curated bundles ("restaurant landing kit") (SPEC §15.1 🟡).
 - [x] **5.6 Behavioral email personalization** — B2-style triggers beyond blur-gate (SPEC §16.4).
