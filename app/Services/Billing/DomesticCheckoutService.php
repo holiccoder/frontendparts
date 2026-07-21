@@ -21,11 +21,14 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 class DomesticCheckoutService
 {
     /**
-     * The Pending domestic order backing this checkout attempt.
+     * The Pending domestic order backing this checkout attempt. The referral
+     * code (when the buyer carries an affiliate cookie) is stamped onto the
+     * order — the domestic order meta of SPEC §17.1 step 4 — so the paid
+     * notify attributes the order even after the cookie is gone.
      *
      * @throws NotFoundHttpException When the plan has no domestic CNY price for the period.
      */
-    public function checkout(User $user, OrderPlan $plan, BillingPeriod $period): Order
+    public function checkout(User $user, OrderPlan $plan, BillingPeriod $period, ?string $referralCode = null): Order
     {
         $price = $plan->price($period, PlanProvider::Domestic);
 
@@ -33,16 +36,17 @@ class DomesticCheckoutService
             throw new NotFoundHttpException("No domestic price configured for {$plan->value} ({$period->value}).");
         }
 
-        return $this->pendingOrder($user, $plan, $period, $price);
+        return $this->pendingOrder($user, $plan, $period, $price, $referralCode);
     }
 
     /**
      * Reuse the user's latest unpaid Pending domestic order for this
      * plan/period (re-priced from the current plan_prices row) or create a
      * fresh one — mirrors PaddleCheckoutService so repeated checkouts never
-     * pile up duplicates.
+     * pile up duplicates. A fresh referral code re-stamps the order
+     * (last-click); a codeless checkout keeps the code it already carries.
      */
-    private function pendingOrder(User $user, OrderPlan $plan, BillingPeriod $period, PlanPrice $price): Order
+    private function pendingOrder(User $user, OrderPlan $plan, BillingPeriod $period, PlanPrice $price, ?string $referralCode = null): Order
     {
         $order = $user->orders()
             ->where('plan', $plan)
@@ -60,6 +64,7 @@ class DomesticCheckoutService
                 'amount' => $price->amount,
                 'currency' => $price->currency,
                 'provider' => PlanProvider::Domestic,
+                'referral_code' => $referralCode,
             ]);
         }
 
@@ -67,6 +72,10 @@ class DomesticCheckoutService
             'amount' => $price->amount,
             'currency' => $price->currency,
         ]);
+
+        if ($referralCode !== null) {
+            $order->referral_code = $referralCode;
+        }
 
         if ($order->isDirty()) {
             $order->save();

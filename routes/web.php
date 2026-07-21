@@ -34,6 +34,7 @@ use App\Http\Controllers\Projects\ProjectExportController;
 use App\Http\Controllers\Projects\ProjectExportDownloadController;
 use App\Http\Controllers\Projects\ProjectGithubExportController;
 use App\Http\Controllers\Projects\ProjectScaffoldController;
+use App\Http\Controllers\ReferralController;
 use App\Http\Controllers\RobotsController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SitemapController;
@@ -111,6 +112,16 @@ Route::get('/docs/{section}/{page}', [DocsController::class, 'show'])
     ->name('docs.show');
 
 Route::get('/pricing', PricingController::class)->name('pricing');
+
+/*
+| Affiliate referral links (SPEC §17.1): `/r/{code}` records the click,
+| stamps the 30-day first-party attribution cookie and 301-redirects to
+| pricing; unknown or suspended codes silently redirect without recording.
+| Rate-limited per IP (fraud control, §17.2).
+*/
+Route::get('/r/{code}', ReferralController::class)
+    ->middleware('throttle:30,1')
+    ->name('affiliate.referral');
 
 Route::get('/search', SearchController::class)->name('search');
 

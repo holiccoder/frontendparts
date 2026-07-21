@@ -12,3 +12,7 @@ Artisan::command('inspire', function () {
 // calendar days, so the command must run once a day; every send is
 // idempotent, making a re-run within the same day harmless.
 Schedule::command('mail:run-sequences')->daily();
+
+// Affiliate commission release (SPEC §17.1 step 5): pending commissions
+// become payable once the refund window + holding period have elapsed.
+Schedule::command('affiliates:mark-payable')->daily();

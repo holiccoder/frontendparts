@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 #[ObservedBy(OrderObserver::class)]
 class Order extends Model
@@ -43,6 +44,7 @@ class Order extends Model
         'domestic_channel',
         'out_trade_no',
         'domestic_transaction_id',
+        'referral_code',
     ];
 
     /**
@@ -67,6 +69,15 @@ class Order extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * The affiliate commission earned on this order, when the purchase was
+     * referred (SPEC §17) — at most one per order.
+     */
+    public function commission(): HasOne
+    {
+        return $this->hasOne(AffiliateCommission::class);
     }
 
     /**

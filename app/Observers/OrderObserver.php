@@ -8,10 +8,15 @@ use App\Models\Order;
 use App\Notifications\DomesticPaymentConfirmedNotification;
 use App\Notifications\OrderStatusChanged;
 use App\Notifications\WelcomeToProNotification;
+use App\Services\Affiliates\CommissionService;
 use Illuminate\Support\Facades\Notification;
 
 class OrderObserver
 {
+    public function __construct(
+        private readonly CommissionService $commissions = new CommissionService,
+    ) {}
+
     /**
      * Stamp the dunning anchor (SPEC §16.2 B6) whenever an order enters
      * PastDue, from any writer (Paddle webhook, admin edit). A later
@@ -55,5 +60,17 @@ class OrderObserver
         }
 
         Notification::send(Admin::all(), new OrderStatusChanged($order, $previousValue));
+
+        // Affiliate commission engine (SPEC §17.2): a paid order earns a
+        // pending commission when attributed; a refund voids it before
+        // payout. Same single seam as the order-paid mail, so webhook,
+        // notify and admin transitions all land here exactly once.
+        if ($order->status === OrderStatus::Active) {
+            $this->commissions->attributePaidOrder($order);
+        }
+
+        if ($order->status === OrderStatus::Refunded) {
+            $this->commissions->voidForOrder($order, 'refunded');
+        }
     }
 }

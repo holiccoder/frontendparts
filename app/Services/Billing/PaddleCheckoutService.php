@@ -28,9 +28,14 @@ class PaddleCheckoutService
      * The billable user's Paddle customer is created/synced on first use by
      * Cashier's `checkout()` builder (`createAsCustomer`).
      *
+     * The referral code (when the buyer carries an affiliate cookie, SPEC
+     * §17.1 step 4) is stamped onto the local order AND mirrored into the
+     * session's custom data, so the `transaction.completed` webhook can
+     * attribute the order even after the cookie is gone.
+     *
      * @throws NotFoundHttpException When the plan has no Paddle price for the period.
      */
-    public function checkout(User $user, OrderPlan $plan, BillingPeriod $period): Checkout
+    public function checkout(User $user, OrderPlan $plan, BillingPeriod $period, ?string $referralCode = null): Checkout
     {
         $price = $plan->price($period);
 
@@ -38,10 +43,13 @@ class PaddleCheckoutService
             throw new NotFoundHttpException("No Paddle price configured for {$plan->value} ({$period->value}).");
         }
 
-        $order = $this->pendingOrder($user, $plan, $period, $price);
+        $order = $this->pendingOrder($user, $plan, $period, $price, $referralCode);
 
         $checkout = $user->checkout($price->paddle_price_id)
-            ->customData(['order_id' => (string) $order->id])
+            ->customData(array_filter([
+                'order_id' => (string) $order->id,
+                'affiliate_code' => $order->referral_code,
+            ]))
             ->returnTo(route('checkout.success'));
 
         $order->paddle_customer_id = $checkout->getCustomer()?->paddle_id;
@@ -55,9 +63,11 @@ class PaddleCheckoutService
 
     /**
      * Reuse the user's latest Pending order for this plan/period (re-priced
-     * from the current plan_prices row) or create a fresh one.
+     * from the current plan_prices row) or create a fresh one. A fresh
+     * referral code re-stamps the order (last-click); a codeless checkout
+     * keeps whatever code the order already carries.
      */
-    private function pendingOrder(User $user, OrderPlan $plan, BillingPeriod $period, PlanPrice $price): Order
+    private function pendingOrder(User $user, OrderPlan $plan, BillingPeriod $period, PlanPrice $price, ?string $referralCode = null): Order
     {
         $order = $user->orders()
             ->where('plan', $plan)
@@ -73,6 +83,7 @@ class PaddleCheckoutService
                 'billing_period' => $period,
                 'amount' => $price->amount,
                 'currency' => $price->currency,
+                'referral_code' => $referralCode,
             ]);
         }
 
@@ -80,6 +91,10 @@ class PaddleCheckoutService
             'amount' => $price->amount,
             'currency' => $price->currency,
         ]);
+
+        if ($referralCode !== null) {
+            $order->referral_code = $referralCode;
+        }
 
         if ($order->isDirty()) {
             $order->save();

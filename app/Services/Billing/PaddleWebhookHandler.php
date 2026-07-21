@@ -60,6 +60,10 @@ class PaddleWebhookHandler
             'paddle_customer_id' => $data['customer_id'] ?? $order->paddle_customer_id,
             'paddle_transaction_id' => $data['id'] ?? $order->paddle_transaction_id,
             'paddle_subscription_id' => $data['subscription_id'] ?? $order->paddle_subscription_id,
+            // Affiliate attribution backfill (SPEC §17.1 step 4): the code
+            // mirrored into the checkout session's custom data re-stamps an
+            // order that lost it — attribution survives cookie loss.
+            'referral_code' => $order->referral_code ?? $this->referralCodeFromCustomData($data),
         ])->save();
     }
 
@@ -124,6 +128,19 @@ class PaddleWebhookHandler
         $orderId = $data['custom_data']['order_id'] ?? null;
 
         return $orderId !== null ? Order::query()->find($orderId) : null;
+    }
+
+    /**
+     * The affiliate code mirrored into the checkout session's custom data
+     * (SPEC §17.1 step 4), when present.
+     *
+     * @param  array<string, mixed>  $data
+     */
+    private function referralCodeFromCustomData(array $data): ?string
+    {
+        $code = $data['custom_data']['affiliate_code'] ?? null;
+
+        return is_string($code) && $code !== '' ? $code : null;
     }
 
     private function orderFromSubscription(?string $subscriptionId): ?Order

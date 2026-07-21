@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Billing;
 use App\Enums\BillingPeriod;
 use App\Enums\OrderPlan;
 use App\Http\Controllers\Controller;
+use App\Services\Affiliates\ReferralService;
 use App\Services\Billing\DomesticCheckoutService;
 use App\Services\Billing\PaddleCheckoutService;
 use App\Services\Billing\RegionDetector;
@@ -27,6 +28,7 @@ class CheckoutController extends Controller
         PaddleCheckoutService $checkout,
         DomesticCheckoutService $domesticCheckout,
         RegionDetector $region,
+        ReferralService $referrals,
         string $plan,
     ): Response|RedirectResponse {
         $plan = OrderPlan::tryFrom($plan);
@@ -39,14 +41,19 @@ class CheckoutController extends Controller
 
         abort_if($period === null, 404);
 
+        // Affiliate attribution (SPEC §17.1 step 4): the referral cookie's
+        // code rides the checkout so the paid webhook attributes the order
+        // even after the cookie is gone.
+        $referralCode = $referrals->codeFromRequest($request);
+
         // CN region → CNY domestic QR checkout (SPEC §7.5).
         if ($region->preferredCurrency($request) === RegionDetector::CNY) {
-            $order = $domesticCheckout->checkout($request->user(), $plan, $period);
+            $order = $domesticCheckout->checkout($request->user(), $plan, $period, $referralCode);
 
             return redirect()->route('pay.domestic', $order);
         }
 
-        $session = $checkout->checkout($request->user(), $plan, $period);
+        $session = $checkout->checkout($request->user(), $plan, $period, $referralCode);
 
         return Inertia::render('checkout/show', [
             'plan' => $plan->value,

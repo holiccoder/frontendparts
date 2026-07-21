@@ -92,6 +92,14 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * The user's affiliate program membership (SPEC §17), when joined.
+     */
+    public function affiliate(): HasOne
+    {
+        return $this->hasOne(Affiliate::class);
+    }
+
+    /**
      * Whether any marketing category (digest / blog / product updates) is
      * still enabled — convenience delegate; the preference rules themselves
      * live only in NotificationPreferences (SPEC §16.3).

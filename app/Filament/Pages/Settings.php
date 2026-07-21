@@ -54,6 +54,11 @@ class Settings extends Page
         'goals_churn_max_pct' => 'goals.churn_max_pct',
         'goals_mrr_target_usd' => 'goals.mrr_target_usd',
         'fx_cny_to_usd' => 'fx.cny_to_usd',
+        'affiliate_commission_rate' => 'affiliate.commission_rate',
+        'affiliate_cookie_days' => 'affiliate.cookie_days',
+        'affiliate_recurring_months' => 'affiliate.recurring_months',
+        'affiliate_holding_days' => 'affiliate.holding_days',
+        'affiliate_payout_threshold' => 'affiliate.payout_threshold',
     ];
 
     /**
@@ -166,6 +171,37 @@ class Settings extends Page
                                 ->required(),
                             TextInput::make('fx_cny_to_usd')
                                 ->label('FX rate: CNY → USD')
+                                ->numeric()
+                                ->minValue(0)
+                                ->required(),
+                        ]),
+                    Section::make('Affiliate')
+                        ->description('Affiliate program knobs (SPEC §17.2) — commission rate, attribution cookie, renewal window, holding period and payout threshold.')
+                        ->columns(2)
+                        ->components([
+                            TextInput::make('affiliate_commission_rate')
+                                ->label('Commission rate (% of net)')
+                                ->numeric()
+                                ->minValue(0)
+                                ->maxValue(100)
+                                ->required(),
+                            TextInput::make('affiliate_cookie_days')
+                                ->label('Attribution cookie (days)')
+                                ->numeric()
+                                ->minValue(0)
+                                ->required(),
+                            TextInput::make('affiliate_recurring_months')
+                                ->label('Renewal commission window (months)')
+                                ->numeric()
+                                ->minValue(0)
+                                ->required(),
+                            TextInput::make('affiliate_holding_days')
+                                ->label('Holding period after refund window (days)')
+                                ->numeric()
+                                ->minValue(0)
+                                ->required(),
+                            TextInput::make('affiliate_payout_threshold')
+                                ->label('Payout threshold (USD)')
                                 ->numeric()
                                 ->minValue(0)
                                 ->required(),

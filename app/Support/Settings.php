@@ -31,6 +31,11 @@ class Settings
         'goals.churn_max_pct' => 5,
         'goals.mrr_target_usd' => 2000,
         'fx.cny_to_usd' => 0.14,
+        'affiliate.commission_rate' => 30,
+        'affiliate.cookie_days' => 30,
+        'affiliate.recurring_months' => 12,
+        'affiliate.holding_days' => 30,
+        'affiliate.payout_threshold' => 50,
     ];
 
     /**
