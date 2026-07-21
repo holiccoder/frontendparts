@@ -25,6 +25,9 @@ use App\Http\Controllers\Dashboard\AffiliateJoinController;
 use App\Http\Controllers\Dashboard\AffiliatePayoutMethodController;
 use App\Http\Controllers\Dashboard\DashboardController;
 use App\Http\Controllers\Dashboard\OrdersController;
+use App\Http\Controllers\Dashboard\TeamController;
+use App\Http\Controllers\Dashboard\TeamInvitationController;
+use App\Http\Controllers\Dashboard\TeamMemberController;
 use App\Http\Controllers\Dashboard\TicketController;
 use App\Http\Controllers\Dashboard\TicketMessageController;
 use App\Http\Controllers\DocsController;
@@ -42,6 +45,7 @@ use App\Http\Controllers\ReferralController;
 use App\Http\Controllers\RobotsController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SitemapController;
+use App\Http\Controllers\TeamInvitationAcceptController;
 use App\Http\Controllers\UnsubscribeController;
 use Illuminate\Support\Facades\Route;
 use Laravel\Paddle\Http\Middleware\VerifyWebhookSignature;
@@ -204,6 +208,22 @@ Route::get('/billing/reactivate/{order}', ReactivateOrderController::class)
 
 /*
 |--------------------------------------------------------------------------
+| Team invitation acceptance (task 5.2)
+|--------------------------------------------------------------------------
+|
+| Carried by the invitation email. Signature-authenticated instead of
+| session-authenticated so it survives being opened in any browser, but
+| auth-gated: guests are bounced through login/registration and back, so
+| one link covers existing users and post-registration claims alike.
+|
+*/
+
+Route::get('team/invitations/{invitation}/accept', TeamInvitationAcceptController::class)
+    ->middleware(['auth', 'signed', 'noindex'])
+    ->name('team.invitations.accept');
+
+/*
+|--------------------------------------------------------------------------
 | Infrastructure (SPEC §15.6)
 |--------------------------------------------------------------------------
 */
@@ -269,6 +289,23 @@ Route::middleware(['auth', 'verified', 'ssr.skip', 'noindex'])->group(function (
 
     /*
     |----------------------------------------------------------------------
+    | Team / organization seats (task 5.2): the owner's management page —
+    | members, invitations, removals. Acceptance uses a signed URL and
+    | lives outside this group (below) so unverified invitees can claim.
+    |----------------------------------------------------------------------
+    */
+    Route::get('dashboard/team', TeamController::class)->name('dashboard.team');
+    Route::post('dashboard/team', [TeamController::class, 'store'])->name('dashboard.team.store');
+    Route::post('dashboard/team/invitations', [TeamInvitationController::class, 'store'])
+        ->middleware('throttle:10,1')
+        ->name('dashboard.team.invitations.store');
+    Route::delete('dashboard/team/invitations/{invitation}', [TeamInvitationController::class, 'destroy'])
+        ->name('dashboard.team.invitations.destroy');
+    Route::delete('dashboard/team/members/{member}', [TeamMemberController::class, 'destroy'])
+        ->name('dashboard.team.members.destroy');
+
+    /*
+    |----------------------------------------------------------------------
     | Projects (SPEC §6.1, §15.4): list/detail pages, CRUD, component-set
     | add/remove (JSON for the catalog "Add to project" UI, redirects for
     | the Inertia pages), the queued pack-zip export (SPEC §6.2) and the
@@ -324,7 +361,7 @@ Route::middleware(['auth', 'verified', 'ssr.skip', 'noindex'])->group(function (
     Route::get('checkout/success', CheckoutSuccessController::class)->name('checkout.success');
 
     Route::get('checkout/{plan}', CheckoutController::class)
-        ->where('plan', 'starter|pro')
+        ->where('plan', 'starter|pro|team')
         ->name('checkout.show');
 
     /*

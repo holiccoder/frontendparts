@@ -68,9 +68,9 @@ class PlanPriceTest extends TestCase
     {
         $this->seed(PlanPriceSeeder::class);
 
-        $this->assertSame(16, PlanPrice::count());
-        $this->assertSame(8, PlanPrice::query()->where('provider', PlanProvider::Paddle)->count());
-        $this->assertSame(8, PlanPrice::query()->where('provider', PlanProvider::Domestic)->count());
+        $this->assertSame(24, PlanPrice::count());
+        $this->assertSame(12, PlanPrice::query()->where('provider', PlanProvider::Paddle)->count());
+        $this->assertSame(12, PlanPrice::query()->where('provider', PlanProvider::Domestic)->count());
 
         $expected = [
             // plan, period, paddle USD amount, domestic CNY amount
@@ -82,6 +82,12 @@ class PlanPriceTest extends TestCase
             ['pro', 'quarterly', '36.00', '259.00'],
             ['pro', 'yearly', '108.00', '778.00'],
             ['pro', 'lifetime', '299.00', '2153.00'],
+            // Team (task 5.2) is priced per seat: ≈ Starter × 1.5 recurring,
+            // lifetime at 2.5× yearly per the SPEC §7.2 lifetime convention.
+            ['team', 'monthly', '13.50', '97.00'],
+            ['team', 'quarterly', '36.00', '259.00'],
+            ['team', 'yearly', '108.00', '778.00'],
+            ['team', 'lifetime', '270.00', '1944.00'],
         ];
 
         foreach ($expected as [$plan, $period, $usd, $cny]) {
@@ -108,8 +114,10 @@ class PlanPriceTest extends TestCase
 
     public function test_enterprise_plan_no_longer_exists()
     {
+        // Free/Starter/Pro per SPEC §7.1, plus Team re-added in task 5.2;
+        // the legacy hardcoded enterprise plan stays gone (1.2.5).
         $this->assertSame(
-            [OrderPlan::Free, OrderPlan::Starter, OrderPlan::Pro],
+            [OrderPlan::Free, OrderPlan::Starter, OrderPlan::Pro, OrderPlan::Team],
             OrderPlan::cases(),
         );
         $this->assertNull(OrderPlan::tryFrom('enterprise'));

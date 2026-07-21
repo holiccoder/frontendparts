@@ -17,6 +17,11 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
  * rows — never hardcoded — then hands off to `/pay/domestic/{order}` for
  * the QR pre-order. The paid notify normalizes into the same orders state
  * machine as Paddle (§7.3).
+ *
+ * Team tier (task 5.2): team checkouts carry a seat count — the stored
+ * amount is the per-seat price multiplied by the seats (the QR pre-order
+ * charges the order's amount, so the total is what the buyer scans for) and
+ * the seat number caps the organization's membership once activated.
  */
 class DomesticCheckoutService
 {
@@ -28,7 +33,7 @@ class DomesticCheckoutService
      *
      * @throws NotFoundHttpException When the plan has no domestic CNY price for the period.
      */
-    public function checkout(User $user, OrderPlan $plan, BillingPeriod $period, ?string $referralCode = null): Order
+    public function checkout(User $user, OrderPlan $plan, BillingPeriod $period, ?string $referralCode = null, int $seats = 1): Order
     {
         $price = $plan->price($period, PlanProvider::Domestic);
 
@@ -36,7 +41,16 @@ class DomesticCheckoutService
             throw new NotFoundHttpException("No domestic price configured for {$plan->value} ({$period->value}).");
         }
 
-        return $this->pendingOrder($user, $plan, $period, $price, $referralCode);
+        return $this->pendingOrder($user, $plan, $period, $price, $referralCode, $this->seatCount($plan, $seats));
+    }
+
+    /**
+     * Only team orders are per-seat; solo plans always bill a single seat
+     * and leave the column null.
+     */
+    private function seatCount(OrderPlan $plan, int $seats): int
+    {
+        return $plan === OrderPlan::Team ? max(1, $seats) : 1;
     }
 
     /**
@@ -45,8 +59,9 @@ class DomesticCheckoutService
      * fresh one — mirrors PaddleCheckoutService so repeated checkouts never
      * pile up duplicates. A fresh referral code re-stamps the order
      * (last-click); a codeless checkout keeps the code it already carries.
+     * Team orders additionally store the seat count and total.
      */
-    private function pendingOrder(User $user, OrderPlan $plan, BillingPeriod $period, PlanPrice $price, ?string $referralCode = null): Order
+    private function pendingOrder(User $user, OrderPlan $plan, BillingPeriod $period, PlanPrice $price, ?string $referralCode = null, int $seats = 1): Order
     {
         $order = $user->orders()
             ->where('plan', $plan)
@@ -61,7 +76,8 @@ class DomesticCheckoutService
                 'plan' => $plan,
                 'status' => OrderStatus::Pending,
                 'billing_period' => $period,
-                'amount' => $price->amount,
+                'amount' => $this->total($price, $seats),
+                'seats' => $plan === OrderPlan::Team ? $seats : null,
                 'currency' => $price->currency,
                 'provider' => PlanProvider::Domestic,
                 'referral_code' => $referralCode,
@@ -69,7 +85,8 @@ class DomesticCheckoutService
         }
 
         $order->fill([
-            'amount' => $price->amount,
+            'amount' => $this->total($price, $seats),
+            'seats' => $plan === OrderPlan::Team ? $seats : null,
             'currency' => $price->currency,
         ]);
 
@@ -82,5 +99,14 @@ class DomesticCheckoutService
         }
 
         return $order;
+    }
+
+    /**
+     * Order total: the plan_prices amount is per seat for team checkouts,
+     * so the stored amount is the seat-multiplied total.
+     */
+    private function total(PlanPrice $price, int $seats): string
+    {
+        return number_format((float) $price->amount * $seats, 2, '.', '');
     }
 }

@@ -41,6 +41,7 @@ class Settings extends Page
         'plans_project_limit_free' => 'plans.project_limit.free',
         'plans_project_limit_starter' => 'plans.project_limit.starter',
         'plans_project_limit_pro' => 'plans.project_limit.pro',
+        'plans_project_limit_team' => 'plans.project_limit.team',
         'billing_refund_window_days' => 'billing.refund_window_days',
         'features_preview_dark_toggle' => 'features.preview_dark_toggle',
         'features_tree_interactions' => 'features.tree_interactions',
@@ -85,7 +86,7 @@ class Settings extends Page
             ->components([
                 Form::make([
                     Section::make('Plans & limits')
-                        ->description('Per-plan project limits and the refund window. Empty Pro limit means unlimited.')
+                        ->description('Per-plan project limits and the refund window. Empty Pro/Team limit means unlimited.')
                         ->columns(2)
                         ->components([
                             TextInput::make('plans_project_limit_free')
@@ -100,6 +101,12 @@ class Settings extends Page
                                 ->required(),
                             TextInput::make('plans_project_limit_pro')
                                 ->label('Pro project limit')
+                                ->numeric()
+                                ->minValue(0)
+                                ->placeholder('Unlimited')
+                                ->helperText('Leave empty for unlimited projects.'),
+                            TextInput::make('plans_project_limit_team')
+                                ->label('Team project limit (per seat)')
                                 ->numeric()
                                 ->minValue(0)
                                 ->placeholder('Unlimited')

@@ -33,6 +33,8 @@ interface CheckoutProps {
     plan: string;
     selectedPeriod: string;
     periods: Record<string, PeriodPrice>;
+    seats: number;
+    maxSeats: number;
     checkout: {
         items: { priceId: string; quantity: number }[];
         customer?: { id: string };
@@ -58,7 +60,7 @@ const PERIOD_LABELS: Record<string, string> = {
  * carry the checkout session for the selected plan × period; switching the
  * period re-requests the page with a new `?period=` query.
  */
-export default function Checkout({ plan, selectedPeriod, periods, checkout, paddle, successUrl, currencySwitchUrl }: CheckoutProps) {
+export default function Checkout({ plan, selectedPeriod, periods, seats, maxSeats, checkout, paddle, successUrl, currencySwitchUrl }: CheckoutProps) {
     const [paddleReady, setPaddleReady] = useState(false);
 
     useEffect(() => {
@@ -80,7 +82,15 @@ export default function Checkout({ plan, selectedPeriod, periods, checkout, padd
 
     const selectPeriod = (period: string) => {
         if (period !== selectedPeriod) {
-            router.get(`/checkout/${plan}`, { period }, { preserveState: false });
+            router.get(`/checkout/${plan}`, { period, seats }, { preserveState: false });
+        }
+    };
+
+    // Team tier (task 5.2): changing the seat count re-requests the page,
+    // rebuilding the checkout session with the new line item quantity.
+    const selectSeats = (count: number) => {
+        if (count !== seats) {
+            router.get(`/checkout/${plan}`, { period: selectedPeriod, seats: count }, { preserveState: false });
         }
     };
 
@@ -127,12 +137,39 @@ export default function Checkout({ plan, selectedPeriod, periods, checkout, padd
                     ))}
                 </div>
 
+                {plan === 'team' && (
+                    <div className="flex items-center justify-center gap-3">
+                        <label htmlFor="seats" className="text-sm text-neutral-600 dark:text-neutral-400">
+                            Seats
+                        </label>
+                        <input
+                            id="seats"
+                            type="number"
+                            min={1}
+                            max={maxSeats}
+                            value={seats}
+                            onChange={(event) => selectSeats(Math.max(1, Math.min(maxSeats, Number(event.target.value) || 1)))}
+                            className="w-20 rounded-md border border-neutral-300 px-3 py-1.5 text-center text-sm focus:border-neutral-900 focus:outline-none dark:border-neutral-700 dark:bg-neutral-900"
+                        />
+                        <span className="text-xs text-neutral-400">per-seat pricing · every seat gets Pro features</span>
+                    </div>
+                )}
+
                 {selected?.amount !== null && selected?.amount !== undefined && (
                     <p className="text-center text-sm text-neutral-600 dark:text-neutral-400">
                         {plan.charAt(0).toUpperCase() + plan.slice(1)} · {PERIOD_LABELS[selectedPeriod] ?? selectedPeriod} ·{' '}
                         <span className="font-semibold text-neutral-900 dark:text-neutral-100">
                             {selected.currency} {selected.amount}
                         </span>
+                        {plan === 'team' && (
+                            <>
+                                {' '}
+                                × {seats} {seats === 1 ? 'seat' : 'seats'} ={' '}
+                                <span className="font-semibold text-neutral-900 dark:text-neutral-100">
+                                    {selected.currency} {(Number(selected.amount) * seats).toFixed(2)}
+                                </span>
+                            </>
+                        )}
                     </p>
                 )}
 

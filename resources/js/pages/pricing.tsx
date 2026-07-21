@@ -39,6 +39,7 @@ interface PricingProps {
     plans: {
         starter: PaidPlan;
         pro: PaidPlan;
+        team: PaidPlan;
     };
     currency: string;
     currencySwitchUrl: string;
@@ -83,7 +84,6 @@ function Cell({ value }: { value: CellValue }) {
 function PaidPlanCard({ plan, period }: { plan: PaidPlan; period: Period }) {
     const price = plan.prices[period];
     const bestValue = period === 'yearly';
-
     return (
         <div
             className={`relative flex flex-col rounded-2xl border bg-white p-8 transition ${
@@ -137,6 +137,77 @@ function PaidPlanCard({ plan, period }: { plan: PaidPlan; period: Period }) {
                     Unavailable
                 </span>
             )}
+        </div>
+    );
+}
+
+/**
+ * Team tier card (task 5.2): per-seat pricing with a seat count selector.
+ * The displayed amount is the per-seat plan_prices row for the selected
+ * period; checkout receives the chosen seats as a query param.
+ */
+function TeamPlanCard({ plan, period }: { plan: PaidPlan; period: Period }) {
+    const [seats, setSeats] = useState(3);
+    const price = plan.prices[period];
+    const available = price.amount !== null;
+
+    const total = available ? (Number(price.amount) * seats).toFixed(2) : null;
+
+    return (
+        <div className="flex flex-col gap-6 rounded-2xl border border-neutral-200 bg-white p-8 sm:flex-row sm:items-start sm:justify-between">
+            <div className="flex max-w-md flex-col gap-2">
+                <h3 className="text-sm font-semibold tracking-wide uppercase">{plan.name}</h3>
+                <div className="flex items-baseline gap-1.5">
+                    {available ? (
+                        <>
+                            <span className="text-3xl font-semibold tracking-tight">{formatAmount(price.amount, price.currency)}</span>
+                            <span className="text-sm text-neutral-500">/ seat{period !== 'lifetime' ? ` / ${PERIOD_UNITS[period]}` : ''}</span>
+                        </>
+                    ) : (
+                        <span className="text-3xl font-semibold tracking-tight text-neutral-300">—</span>
+                    )}
+                </div>
+                <p className="mt-1 text-xs text-neutral-400">
+                    {available
+                        ? 'Every seat gets everything in Pro — full library, scaffolding and exports.'
+                        : 'Currently unavailable for this period.'}
+                </p>
+                <p className="text-sm leading-6 text-neutral-500">{plan.tagline}</p>
+            </div>
+
+            <div className="flex min-w-52 flex-col gap-2">
+                <label htmlFor="team-seats" className="text-xs font-semibold tracking-wide text-neutral-500 uppercase">
+                    Seats
+                </label>
+                <input
+                    id="team-seats"
+                    type="number"
+                    min={1}
+                    max={100}
+                    value={seats}
+                    disabled={!available}
+                    onChange={(event) => setSeats(Math.max(1, Math.min(100, Number(event.target.value) || 1)))}
+                    className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-900 focus:outline-none"
+                />
+                {total !== null && (
+                    <p className="text-sm text-neutral-600">
+                        Total: <span className="font-semibold text-neutral-900">{formatAmount(total, price.currency)}</span>
+                        {period !== 'lifetime' && <span className="text-neutral-400"> / {PERIOD_UNITS[period]}</span>}
+                    </p>
+                )}
+                {available ? (
+                    <Link
+                        href={`${plan.checkout_url}?period=${period}&seats=${seats}`}
+                        className="mt-2 inline-flex items-center justify-center rounded-md border border-neutral-300 px-4 py-2.5 text-sm font-semibold text-neutral-700 transition hover:border-neutral-400 hover:bg-neutral-50"
+                    >
+                        Get {plan.name}
+                    </Link>
+                ) : (
+                    <span className="mt-2 inline-flex cursor-not-allowed items-center justify-center rounded-md border border-neutral-200 px-4 py-2.5 text-sm font-semibold text-neutral-300">
+                        Unavailable
+                    </span>
+                )}
+            </div>
         </div>
     );
 }
@@ -253,6 +324,11 @@ export default function Pricing({ periods, plans, currency, currencySwitchUrl, c
 
                     <PaidPlanCard plan={plans.starter} period={period} />
                     <PaidPlanCard plan={plans.pro} period={period} />
+                </div>
+
+                {/* Team tier (task 5.2): per-seat pricing with a seat selector. */}
+                <div className="mt-6">
+                    <TeamPlanCard plan={plans.team} period={period} />
                 </div>
 
                 <p className="mt-8 text-center text-xs leading-5 text-neutral-400">

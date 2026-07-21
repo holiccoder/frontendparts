@@ -18,6 +18,7 @@ class Settings
         'plans.project_limit.free' => 1,
         'plans.project_limit.starter' => 3,
         'plans.project_limit.pro' => null,
+        'plans.project_limit.team' => null,
         'billing.refund_window_days' => 14,
         'features.preview_dark_toggle' => true,
         'features.tree_interactions' => true,

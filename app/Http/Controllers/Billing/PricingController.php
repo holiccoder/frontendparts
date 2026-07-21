@@ -43,6 +43,7 @@ class PricingController extends Controller
             'plans' => [
                 'starter' => $this->plan(OrderPlan::Starter, 'The full library for one developer.', $provider),
                 'pro' => $this->plan(OrderPlan::Pro, 'Library plus project scaffolding and exports.', $provider),
+                'team' => $this->plan(OrderPlan::Team, 'Everything in Pro, for every seat on your team — priced per seat.', $provider),
             ],
             'currency' => $currency,
             'currencySwitchUrl' => route('billing.currency.switch'),

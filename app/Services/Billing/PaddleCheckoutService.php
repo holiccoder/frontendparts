@@ -19,6 +19,11 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
  * A local Pending order is created (or reused) for the attempt and referenced
  * from the checkout's custom data, so the `transaction.completed` webhook can
  * activate exactly this order.
+ *
+ * Team tier (task 5.2): team checkouts carry a seat count — the Paddle line
+ * item quantity is the seat count and the pending order stores both the
+ * per-seat-multiplied total and the seat number itself, so the activated
+ * order later caps the organization's membership.
  */
 class PaddleCheckoutService
 {
@@ -35,7 +40,7 @@ class PaddleCheckoutService
      *
      * @throws NotFoundHttpException When the plan has no Paddle price for the period.
      */
-    public function checkout(User $user, OrderPlan $plan, BillingPeriod $period, ?string $referralCode = null): Checkout
+    public function checkout(User $user, OrderPlan $plan, BillingPeriod $period, ?string $referralCode = null, int $seats = 1): Checkout
     {
         $price = $plan->price($period);
 
@@ -43,9 +48,11 @@ class PaddleCheckoutService
             throw new NotFoundHttpException("No Paddle price configured for {$plan->value} ({$period->value}).");
         }
 
-        $order = $this->pendingOrder($user, $plan, $period, $price, $referralCode);
+        $seats = $this->seatCount($plan, $seats);
 
-        $checkout = $user->checkout($price->paddle_price_id)
+        $order = $this->pendingOrder($user, $plan, $period, $price, $referralCode, $seats);
+
+        $checkout = $user->checkout($price->paddle_price_id, $seats)
             ->customData(array_filter([
                 'order_id' => (string) $order->id,
                 'affiliate_code' => $order->referral_code,
@@ -62,12 +69,22 @@ class PaddleCheckoutService
     }
 
     /**
+     * Only team orders are per-seat; solo plans always bill a single seat
+     * and leave the column null.
+     */
+    private function seatCount(OrderPlan $plan, int $seats): int
+    {
+        return $plan === OrderPlan::Team ? max(1, $seats) : 1;
+    }
+
+    /**
      * Reuse the user's latest Pending order for this plan/period (re-priced
      * from the current plan_prices row) or create a fresh one. A fresh
      * referral code re-stamps the order (last-click); a codeless checkout
-     * keeps whatever code the order already carries.
+     * keeps whatever code the order already carries. Team orders additionally
+     * store the seat count and the per-seat-multiplied total.
      */
-    private function pendingOrder(User $user, OrderPlan $plan, BillingPeriod $period, PlanPrice $price, ?string $referralCode = null): Order
+    private function pendingOrder(User $user, OrderPlan $plan, BillingPeriod $period, PlanPrice $price, ?string $referralCode = null, int $seats = 1): Order
     {
         $order = $user->orders()
             ->where('plan', $plan)
@@ -81,14 +98,16 @@ class PaddleCheckoutService
                 'plan' => $plan,
                 'status' => OrderStatus::Pending,
                 'billing_period' => $period,
-                'amount' => $price->amount,
+                'amount' => $this->total($price, $seats),
+                'seats' => $plan === OrderPlan::Team ? $seats : null,
                 'currency' => $price->currency,
                 'referral_code' => $referralCode,
             ]);
         }
 
         $order->fill([
-            'amount' => $price->amount,
+            'amount' => $this->total($price, $seats),
+            'seats' => $plan === OrderPlan::Team ? $seats : null,
             'currency' => $price->currency,
         ]);
 
@@ -101,5 +120,14 @@ class PaddleCheckoutService
         }
 
         return $order;
+    }
+
+    /**
+     * Order total: the plan_prices amount is per seat for team checkouts,
+     * so the stored amount is the seat-multiplied total.
+     */
+    private function total(PlanPrice $price, int $seats): string
+    {
+        return number_format((float) $price->amount * $seats, 2, '.', '');
     }
 }

@@ -9,6 +9,7 @@ enum OrderPlan: string
     case Free = 'free';
     case Starter = 'starter';
     case Pro = 'pro';
+    case Team = 'team';
 
     public function price(BillingPeriod $period, PlanProvider $provider = PlanProvider::Paddle): ?PlanPrice
     {

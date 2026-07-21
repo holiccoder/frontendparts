@@ -20,9 +20,20 @@ use Inertia\Response;
  * selected plan × period (the period selector simply navigates with a
  * different `?period=` query); CNY creates the domestic Pending order and
  * forwards to the QR payment page at `/pay/domestic/{order}`.
+ *
+ * Team tier (task 5.2): `/checkout/team` additionally takes a `?seats=`
+ * query (1–100) — the Paddle line item quantity / domestic total multiply
+ * the per-seat price from `plan_prices`, and the seat count is stored on
+ * the order.
  */
 class CheckoutController extends Controller
 {
+    /**
+     * Upper bound for team seats per order — bigger purchases go through
+     * support instead of self-serve checkout.
+     */
+    public const MAX_SEATS = 100;
+
     public function __invoke(
         Request $request,
         PaddleCheckoutService $checkout,
@@ -41,6 +52,8 @@ class CheckoutController extends Controller
 
         abort_if($period === null, 404);
 
+        $seats = $this->seats($request, $plan);
+
         // Affiliate attribution (SPEC §17.1 step 4): the referral cookie's
         // code rides the checkout so the paid webhook attributes the order
         // even after the cookie is gone.
@@ -48,17 +61,19 @@ class CheckoutController extends Controller
 
         // CN region → CNY domestic QR checkout (SPEC §7.5).
         if ($region->preferredCurrency($request) === RegionDetector::CNY) {
-            $order = $domesticCheckout->checkout($request->user(), $plan, $period, $referralCode);
+            $order = $domesticCheckout->checkout($request->user(), $plan, $period, $referralCode, $seats);
 
             return redirect()->route('pay.domestic', $order);
         }
 
-        $session = $checkout->checkout($request->user(), $plan, $period, $referralCode);
+        $session = $checkout->checkout($request->user(), $plan, $period, $referralCode, $seats);
 
         return Inertia::render('checkout/show', [
             'plan' => $plan->value,
             'selectedPeriod' => $period->value,
             'periods' => $this->periods($plan),
+            'seats' => $seats,
+            'maxSeats' => self::MAX_SEATS,
             'checkout' => $session->options(),
             'paddle' => [
                 'token' => config('services.paddle.client_side_token'),
@@ -72,8 +87,27 @@ class CheckoutController extends Controller
     }
 
     /**
+     * Team checkouts are per-seat: the query carries the seat count, bounded
+     * to 1–MAX_SEATS — anything else 404s like an unknown period. Solo plans
+     * always bill exactly one seat.
+     */
+    private function seats(Request $request, OrderPlan $plan): int
+    {
+        if ($plan !== OrderPlan::Team) {
+            return 1;
+        }
+
+        $seats = $request->integer('seats', 1);
+
+        abort_if($seats < 1 || $seats > self::MAX_SEATS, 404);
+
+        return $seats;
+    }
+
+    /**
      * Every billing period with its plan_prices row, so the selector can
-     * display amounts and link each period — prices never hardcoded.
+     * display amounts and link each period — prices never hardcoded. For
+     * the team plan these are per-seat amounts.
      *
      * @return array<string, array{amount: string|null, currency: string, price_id: string|null}>
      */

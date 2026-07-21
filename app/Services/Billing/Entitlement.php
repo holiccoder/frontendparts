@@ -29,28 +29,29 @@ final readonly class Entitlement
 
     /**
      * Full-library copy/download rights (SPEC §7.1): Starter and Pro both get
-     * 100% of the catalog; Free is limited to the free subset.
+     * 100% of the catalog; Team seats are Pro-equivalent (task 5.2); Free is
+     * limited to the free subset.
      */
     public function hasFullLibrary(): bool
     {
-        return $this->plan === OrderPlan::Starter || $this->plan === OrderPlan::Pro;
+        return $this->plan === OrderPlan::Starter || $this->plan === OrderPlan::Pro || $this->plan === OrderPlan::Team;
     }
 
     /**
-     * Next.js / Nuxt scaffolding (SPEC §7.1): Pro only.
+     * Next.js / Nuxt scaffolding (SPEC §7.1): Pro and Team only.
      */
     public function canScaffold(): bool
     {
-        return $this->plan === OrderPlan::Pro;
+        return $this->plan === OrderPlan::Pro || $this->plan === OrderPlan::Team;
     }
 
     /**
      * GitHub repo export (SPEC §6.4): part of the Pro scaffolding family
-     * (§7.1) — Pro only.
+     * (§7.1) — Pro and Team only.
      */
     public function canExportToGithub(): bool
     {
-        return $this->plan === OrderPlan::Pro;
+        return $this->plan === OrderPlan::Pro || $this->plan === OrderPlan::Team;
     }
 
     /**
