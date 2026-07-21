@@ -19,6 +19,9 @@ use App\Http\Controllers\ComponentDownloadController;
 use App\Http\Controllers\ComponentEditDownloadController;
 use App\Http\Controllers\ComponentForkController;
 use App\Http\Controllers\ComponentPreviewController;
+use App\Http\Controllers\Dashboard\AffiliateController;
+use App\Http\Controllers\Dashboard\AffiliateJoinController;
+use App\Http\Controllers\Dashboard\AffiliatePayoutMethodController;
 use App\Http\Controllers\Dashboard\DashboardController;
 use App\Http\Controllers\Dashboard\OrdersController;
 use App\Http\Controllers\Dashboard\TicketController;
@@ -126,10 +129,10 @@ Route::get('/r/{code}', ReferralController::class)
 Route::get('/search', SearchController::class)->name('search');
 
 /*
-| Legal pages (SPEC §15.7, §15.1): seven SSR, SEO-indexed pages rendered by
-| one controller from markdown in resources/legal/. The footer links the
-| full set from every public page; `/affiliate-terms` ships with the
-| affiliate program at P2 (§17.7).
+| Legal pages (SPEC §15.7, §15.1): SSR, SEO-indexed pages rendered by one
+| controller from markdown in resources/legal/. The footer links the full
+| set from every public page; `/affiliate-terms` (§17.7) is linked from
+| the affiliate join flow as well.
 */
 Route::get('/terms', [LegalController::class, 'show'])->defaults('page', 'terms')->name('legal.terms');
 Route::get('/privacy', [LegalController::class, 'show'])->defaults('page', 'privacy')->name('legal.privacy');
@@ -138,6 +141,7 @@ Route::get('/refund-policy', [LegalController::class, 'show'])->defaults('page',
 Route::get('/cookie-policy', [LegalController::class, 'show'])->defaults('page', 'cookie-policy')->name('legal.cookie-policy');
 Route::get('/copyright', [LegalController::class, 'show'])->defaults('page', 'copyright')->name('legal.copyright');
 Route::get('/legal-notice', [LegalController::class, 'show'])->defaults('page', 'legal-notice')->name('legal.legal-notice');
+Route::get('/affiliate-terms', [LegalController::class, 'show'])->defaults('page', 'affiliate-terms')->name('legal.affiliate-terms');
 
 /*
 | Blog (SPEC §13.1, §15.1): index, article and category pages plus the RSS
@@ -239,6 +243,18 @@ Route::middleware(['auth', 'verified', 'ssr.skip', 'noindex'])->group(function (
     |----------------------------------------------------------------------
     */
     Route::get('dashboard/orders', OrdersController::class)->name('dashboard.orders.index');
+
+    /*
+    |----------------------------------------------------------------------
+    | Affiliate program (SPEC §17.4, §15.4): self-serve join (terms
+    | acceptance, §17.7), overview stats, referral link, commissions,
+    | payout history and the payout-method form.
+    |----------------------------------------------------------------------
+    */
+    Route::get('dashboard/affiliate', AffiliateController::class)->name('dashboard.affiliate');
+    Route::post('dashboard/affiliate/join', AffiliateJoinController::class)->name('dashboard.affiliate.join');
+    Route::put('dashboard/affiliate/payout-method', AffiliatePayoutMethodController::class)
+        ->name('dashboard.affiliate.payout-method.update');
 
     /*
     |----------------------------------------------------------------------

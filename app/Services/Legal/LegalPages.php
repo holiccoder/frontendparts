@@ -12,12 +12,13 @@ use League\CommonMark\Extension\HeadingPermalink\HeadingPermalinkExtension;
 use League\CommonMark\MarkdownConverter;
 
 /**
- * Legal page store (SPEC §15.7): the seven must-have pages live as markdown
- * under `resources/legal/{slug}.md` — code-first and PR-reviewable like the
+ * Legal page store (SPEC §15.7): the pages live as markdown under
+ * `resources/legal/{slug}.md` — code-first and PR-reviewable like the
  * docs store (§13.2) — rendered SSR by the LegalController. Each file has
- * minimal front matter (title/description/updated); `{{ refund_window_days }}`
- * in the body is interpolated from platform settings so legal copy never
- * hardcodes a knob an admin can turn (§8.7).
+ * minimal front matter (title/description/updated); tokens like
+ * `{{ refund_window_days }}` in the body are interpolated from platform
+ * settings (TOKENS) so legal copy never hardcodes a knob an admin can
+ * turn (§8.7).
  *
  * Rendering mirrors DocsRepository/PostContent: league/commonmark with
  * escaped raw HTML and invisible heading anchors; the h2/h3 TOC is read back
@@ -59,6 +60,10 @@ class LegalPages
         'legal-notice' => [
             'title' => 'Legal Notice',
             'description' => 'Operator identity and contact details for FrontendParts, and how Paddle appears as merchant of record on your invoices.',
+        ],
+        'affiliate-terms' => [
+            'title' => 'Affiliate Program Terms',
+            'description' => 'The rules of the FrontendParts affiliate program — FTC disclosure duties, no brand-bidding or spam, clawbacks, and how commissions, holding periods and payouts work.',
         ],
     ];
 
@@ -149,15 +154,30 @@ class LegalPages
     }
 
     /**
-     * Settings-driven tokens in legal copy (`{{ refund_window_days }}`), so
-     * an admin change to the refund window (SPEC §8.7) updates the published
-     * refund policy and terms without a content edit.
+     * Settings-driven tokens in legal copy (`{{ refund_window_days }}`,
+     * `{{ commission_rate }}`), so an admin change to a knob (SPEC §8.7)
+     * updates the published legal pages without a content edit. Token =>
+     * settings key.
+     *
+     * @var array<string, string>
+     */
+    private const TOKENS = [
+        '{{ refund_window_days }}' => 'billing.refund_window_days',
+        '{{ commission_rate }}' => 'affiliate.commission_rate',
+        '{{ cookie_days }}' => 'affiliate.cookie_days',
+        '{{ recurring_months }}' => 'affiliate.recurring_months',
+        '{{ holding_days }}' => 'affiliate.holding_days',
+        '{{ payout_threshold }}' => 'affiliate.payout_threshold',
+    ];
+
+    /**
+     * Replace every registered token with its current settings value.
      */
     private function interpolate(string $markdown): string
     {
         return str_replace(
-            '{{ refund_window_days }}',
-            (string) $this->settings->get('billing.refund_window_days'),
+            array_keys(self::TOKENS),
+            array_map(fn (string $key): string => (string) $this->settings->get($key), self::TOKENS),
             $markdown,
         );
     }

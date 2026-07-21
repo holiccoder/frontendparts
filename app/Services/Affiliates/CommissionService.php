@@ -100,6 +100,24 @@ class CommissionService
     }
 
     /**
+     * Void a single unpaid commission — the admin fraud control on the
+     * Commissions resource (SPEC §17.5). Paid commissions are past payout
+     * and stay (clawbacks after payout are a manual, terms-backed process,
+     * §17.7); voiding one is a no-op.
+     */
+    public function void(AffiliateCommission $commission, string $reason): void
+    {
+        if (! in_array($commission->status, [CommissionStatus::Pending, CommissionStatus::Payable], true)) {
+            return;
+        }
+
+        $commission->update([
+            'status' => CommissionStatus::Voided,
+            'voided_reason' => $reason,
+        ]);
+    }
+
+    /**
      * Flip every pending commission past the refund window + holding period
      * to payable (SPEC §17.1 step 5). Returns the commissions that became
      * payable on this run (the 3.9.7 "commission payable" mail hangs off

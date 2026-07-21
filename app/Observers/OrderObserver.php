@@ -5,6 +5,7 @@ namespace App\Observers;
 use App\Enums\OrderStatus;
 use App\Models\Admin;
 use App\Models\Order;
+use App\Notifications\AffiliateConversionCreditedNotification;
 use App\Notifications\DomesticPaymentConfirmedNotification;
 use App\Notifications\OrderStatusChanged;
 use App\Notifications\WelcomeToProNotification;
@@ -66,7 +67,15 @@ class OrderObserver
         // payout. Same single seam as the order-paid mail, so webhook,
         // notify and admin transitions all land here exactly once.
         if ($order->status === OrderStatus::Active) {
-            $this->commissions->attributePaidOrder($order);
+            $commission = $this->commissions->attributePaidOrder($order);
+
+            // Conversion-credited mail (SPEC §17.6): only on creation —
+            // replayed webhooks / repeat activations return the existing
+            // commission and must never re-mail the affiliate.
+            if ($commission?->wasRecentlyCreated) {
+                $commission->loadMissing('affiliate.user');
+                $commission->affiliate->user?->notify(new AffiliateConversionCreditedNotification($commission));
+            }
         }
 
         if ($order->status === OrderStatus::Refunded) {

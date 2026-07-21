@@ -15,4 +15,14 @@ enum CommissionStatus: string
     case Payable = 'payable';
     case Paid = 'paid';
     case Voided = 'voided';
+
+    /**
+     * @return array<string, string>
+     */
+    public static function options(): array
+    {
+        return collect(self::cases())
+            ->mapWithKeys(fn (self $status): array => [$status->value => ucfirst($status->value)])
+            ->all();
+    }
 }
