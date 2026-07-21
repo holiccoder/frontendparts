@@ -1,5 +1,5 @@
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
-import { Download, ExternalLink, Loader2, Trash2, X } from 'lucide-react';
+import { Download, ExternalLink, Loader2, Rocket, Trash2, X } from 'lucide-react';
 import { FormEventHandler, useEffect, useState } from 'react';
 
 import HeadingSmall from '@/components/heading-small';
@@ -53,6 +53,11 @@ interface ProjectShowProps {
         available: boolean;
         latest: ProjectExport | null;
     };
+    scaffold: {
+        url: string;
+        available: boolean;
+        latest: ProjectExport | null;
+    };
     forks: ComponentFork[];
 }
 
@@ -60,13 +65,13 @@ interface ProjectShowProps {
  * Project detail (SPEC §15.4, CSR): the component set with the dependency
  * view — direct picks are removable, auto-added closure members are marked
  * and follow the removal cascade (SPEC §6.1) — plus the pack-zip export
- * (SPEC §6.2): pick a framework, POST queues the build, and this page polls
- * the `export` prop until the zip is ready to download. Live-edit forks
- * (SPEC §5.6) list below with their rebuild progress — the page polls the
- * `forks` prop while any fork is pending/building, then links the rebuilt
- * preview.
+ * (SPEC §6.2) and the Pro-only Next.js starter scaffold (SPEC §6.3): POST
+ * queues the build, and this page polls the `export` / `scaffold` props
+ * until the zip is ready to download. Live-edit forks (SPEC §5.6) list
+ * below with their rebuild progress — the page polls the `forks` prop while
+ * any fork is pending/building, then links the rebuilt preview.
  */
-export default function ProjectShow({ project, components, export: exportAction, forks }: ProjectShowProps) {
+export default function ProjectShow({ project, components, export: exportAction, scaffold: scaffoldAction, forks }: ProjectShowProps) {
     const { flash, errors: pageErrors } = usePage<SharedData & { flash?: { notice?: string | null } }>().props;
 
     const breadcrumbs: BreadcrumbItem[] = [
@@ -89,6 +94,7 @@ export default function ProjectShow({ project, components, export: exportAction,
     const [framework, setFramework] = useState<'react' | 'vue'>('react');
 
     const building = exportAction.latest?.status === 'pending';
+    const scaffolding = scaffoldAction.latest?.status === 'pending';
     const forksBuilding = forks.some((fork) => fork.status === 'pending' || fork.status === 'building');
 
     useEffect(() => {
@@ -100,6 +106,16 @@ export default function ProjectShow({ project, components, export: exportAction,
 
         return () => clearInterval(timer);
     }, [building]);
+
+    useEffect(() => {
+        if (!scaffolding) {
+            return;
+        }
+
+        const timer = setInterval(() => router.reload({ only: ['scaffold'] }), 2500);
+
+        return () => clearInterval(timer);
+    }, [scaffolding]);
 
     useEffect(() => {
         if (!forksBuilding) {
@@ -139,6 +155,10 @@ export default function ProjectShow({ project, components, export: exportAction,
         router.post(exportAction.url, { framework }, { preserveScroll: true });
     };
 
+    const scaffoldProject = () => {
+        router.post(scaffoldAction.url, { framework: 'next' }, { preserveScroll: true });
+    };
+
     const direct = components.filter((component) => !component.is_dependency);
     const dependencies = components.filter((component) => component.is_dependency);
 
@@ -163,6 +183,20 @@ export default function ProjectShow({ project, components, export: exportAction,
                             {building ? <Loader2 className="size-4 animate-spin" /> : <Download className="size-4" />}
                             Export zip
                         </Button>
+                        {scaffoldAction.available ? (
+                            <Button variant="outline" onClick={scaffoldProject} disabled={scaffolding}>
+                                {scaffolding ? <Loader2 className="size-4 animate-spin" /> : <Rocket className="size-4" />}
+                                Scaffold Next.js
+                            </Button>
+                        ) : (
+                            <Button variant="outline" asChild>
+                                <Link href="/pricing">
+                                    <Rocket className="size-4" />
+                                    Scaffold Next.js
+                                    <Badge>Pro</Badge>
+                                </Link>
+                            </Button>
+                        )}
                         <Button variant="destructive" onClick={destroyProject}>
                             <Trash2 className="size-4" />
                             Delete
@@ -194,7 +228,33 @@ export default function ProjectShow({ project, components, export: exportAction,
                     </p>
                 )}
 
+                {scaffolding && (
+                    <p className="rounded-xl border border-dashed border-neutral-300 px-4 py-3 text-sm text-neutral-500 dark:border-neutral-700">
+                        Building your Next.js starter — routes, index page, configs and merged dependencies. The download link appears here when it's
+                        ready.
+                    </p>
+                )}
+
+                {scaffoldAction.latest?.status === 'ready' && scaffoldAction.latest.download_url && (
+                    <p className="flex flex-wrap items-center gap-3 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800 dark:border-green-900 dark:bg-green-950 dark:text-green-200">
+                        Your {scaffoldAction.latest.framework} starter is ready.
+                        <Button size="sm" asChild>
+                            <a href={scaffoldAction.latest.download_url}>
+                                <Download className="size-4" />
+                                Download starter
+                            </a>
+                        </Button>
+                    </p>
+                )}
+
+                {scaffoldAction.latest?.status === 'failed' && (
+                    <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 dark:border-red-900 dark:bg-red-950 dark:text-red-200">
+                        The scaffold build failed — please try again.
+                    </p>
+                )}
+
                 <InputError message={pageErrors.export} />
+                <InputError message={pageErrors.scaffold} />
 
                 {flash?.notice && (
                     <p className="rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800 dark:border-green-900 dark:bg-green-950 dark:text-green-200">

@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\ProjectExportKind;
 use App\Enums\ProjectExportStatus;
 use App\Models\Project;
 use App\Models\ProjectExport;
@@ -22,9 +23,18 @@ class ProjectExportFactory extends Factory
             'project_id' => Project::factory(),
             'user_id' => User::factory(),
             'framework' => 'react',
+            'kind' => ProjectExportKind::Pack,
             'status' => ProjectExportStatus::Pending,
             'path' => null,
         ];
+    }
+
+    public function scaffold(string $framework = 'next'): static
+    {
+        return $this->state(fn (): array => [
+            'framework' => $framework,
+            'kind' => ProjectExportKind::Scaffold,
+        ]);
     }
 
     public function ready(): static

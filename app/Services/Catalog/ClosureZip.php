@@ -9,8 +9,9 @@ use Illuminate\Support\Str;
 
 /**
  * Zip assembly kernel shared by the single-component export
- * (Catalog\ComponentZipper, SPEC §2.4) and the project pack zip export
- * (Projects\ProjectPackZipper, SPEC §6.2): given a deduplicated closure of
+ * (Catalog\ComponentZipper, SPEC §2.4), the project pack zip export
+ * (Projects\ProjectPackZipper, SPEC §6.2) and the starter scaffolds
+ * (Scaffold\ScaffoldZipper, SPEC §6.3): given a deduplicated closure of
  * components, produces the `components/{level}/…` source entries (with import
  * specifiers rewritten into the zip layout so the export compiles as-is) and
  * the `data/` sample-data modules, and resolves the closure's logical `@deps`
@@ -31,7 +32,9 @@ class ClosureZip
      *
      * @param  list<Component>  $members  deduplicated closure, already ordered
      *                                    by {@see order()}
-     * @return array{entries: array<string, string>, fileMap: list<array{path: string, component: string, note: string}>}
+     * @return array{entries: array<string, string>, fileMap: list<array{path: string, component: string, note: string}>, dataMap: array<string, string>}
+     *                                                                                                                                                    dataMap: member slug → its `data/` entry path (scaffolds wire
+     *                                                                                                                                                    sample-data imports from it, SPEC §6.3)
      */
     public function entries(array $members, string $framework): array
     {
@@ -42,6 +45,9 @@ class ClosureZip
 
         /** @var list<array{path: string, component: string, note: string}> $fileMap */
         $fileMap = [];
+
+        /** @var array<string, string> $dataMap */
+        $dataMap = [];
 
         /** @var list<string> $usedDataNames */
         $usedDataNames = [];
@@ -61,10 +67,11 @@ class ClosureZip
                 $entry = "data/{$dataName}.ts";
                 $entries[$entry] = $this->dataModule($content['data']);
                 $fileMap[] = ['path' => $entry, 'component' => $member->name, 'note' => 'sample data'];
+                $dataMap[$member->slug] = $entry;
             }
         }
 
-        return ['entries' => $entries, 'fileMap' => $fileMap];
+        return ['entries' => $entries, 'fileMap' => $fileMap, 'dataMap' => $dataMap];
     }
 
     /**

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Projects;
 
+use App\Enums\ProjectExportKind;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Projects\StoreProjectRequest;
 use App\Http\Requests\Projects\UpdateProjectRequest;
@@ -114,7 +115,17 @@ class ProjectController extends Controller
                 'url' => $component->publicUrl(),
             ]);
 
-        $latestExport = $project->exports()->orderByDesc('created_at')->orderByDesc('id')->first();
+        $latestExport = $project->exports()
+            ->where('kind', ProjectExportKind::Pack->value)
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
+            ->first();
+
+        $latestScaffold = $project->exports()
+            ->where('kind', ProjectExportKind::Scaffold->value)
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
+            ->first();
 
         $forks = $project->forks()
             ->with('component')
@@ -150,6 +161,18 @@ class ProjectController extends Controller
                     'status' => $latestExport->status->value,
                     'framework' => $latestExport->framework,
                     'download_url' => $latestExport->downloadUrl(),
+                ],
+            ],
+            // Starter scaffold (SPEC §6.3): Pro-only; same queued-build →
+            // poll → stream flow as the pack zip.
+            'scaffold' => [
+                'url' => route('dashboard.projects.scaffold', $project),
+                'available' => app(EntitlementService::class)->for($request->user())->canScaffold(),
+                'latest' => $latestScaffold === null ? null : [
+                    'id' => $latestScaffold->id,
+                    'status' => $latestScaffold->status->value,
+                    'framework' => $latestScaffold->framework,
+                    'download_url' => $latestScaffold->downloadUrl(),
                 ],
             ],
             // Live-edit forks (SPEC §5.6): the page polls this prop while any

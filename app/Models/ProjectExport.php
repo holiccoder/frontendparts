@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\ProjectExportKind;
 use App\Enums\ProjectExportStatus;
 use Database\Factories\ProjectExportFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -9,10 +10,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
- * One pack zip export of a project (SPEC §6.2): queued on POST export,
- * assembled by BuildProjectPackZip onto the `exports` disk (NFR-4 queued
- * heavy work), then streamed from the authorized download route. `path` is
- * the disk-relative zip location once status is `ready`.
+ * One export of a project — a pack zip (SPEC §6.2, kind `pack`) or a
+ * runnable starter scaffold (SPEC §6.3, kind `scaffold`): queued on POST,
+ * assembled by BuildProjectPackZip / BuildProjectScaffold onto the `exports`
+ * disk (NFR-4 queued heavy work), then streamed from the authorized download
+ * route. `path` is the disk-relative zip location once status is `ready`.
  */
 class ProjectExport extends Model
 {
@@ -25,6 +27,7 @@ class ProjectExport extends Model
     protected $fillable = [
         'user_id',
         'framework',
+        'kind',
         'status',
         'path',
     ];
@@ -35,6 +38,7 @@ class ProjectExport extends Model
     protected function casts(): array
     {
         return [
+            'kind' => ProjectExportKind::class,
             'status' => ProjectExportStatus::class,
         ];
     }
