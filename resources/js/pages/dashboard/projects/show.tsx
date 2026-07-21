@@ -65,7 +65,7 @@ interface ProjectShowProps {
  * Project detail (SPEC §15.4, CSR): the component set with the dependency
  * view — direct picks are removable, auto-added closure members are marked
  * and follow the removal cascade (SPEC §6.1) — plus the pack-zip export
- * (SPEC §6.2) and the Pro-only Next.js starter scaffold (SPEC §6.3): POST
+ * (SPEC §6.2) and the Pro-only Next.js / Nuxt starter scaffold (SPEC §6.3): POST
  * queues the build, and this page polls the `export` / `scaffold` props
  * until the zip is ready to download. Live-edit forks (SPEC §5.6) list
  * below with their rebuild progress — the page polls the `forks` prop while
@@ -155,8 +155,8 @@ export default function ProjectShow({ project, components, export: exportAction,
         router.post(exportAction.url, { framework }, { preserveScroll: true });
     };
 
-    const scaffoldProject = () => {
-        router.post(scaffoldAction.url, { framework: 'next' }, { preserveScroll: true });
+    const scaffoldProject = (starter: 'next' | 'nuxt') => {
+        router.post(scaffoldAction.url, { framework: starter }, { preserveScroll: true });
     };
 
     const direct = components.filter((component) => !component.is_dependency);
@@ -184,18 +184,33 @@ export default function ProjectShow({ project, components, export: exportAction,
                             Export zip
                         </Button>
                         {scaffoldAction.available ? (
-                            <Button variant="outline" onClick={scaffoldProject} disabled={scaffolding}>
-                                {scaffolding ? <Loader2 className="size-4 animate-spin" /> : <Rocket className="size-4" />}
-                                Scaffold Next.js
-                            </Button>
-                        ) : (
-                            <Button variant="outline" asChild>
-                                <Link href="/pricing">
-                                    <Rocket className="size-4" />
+                            <>
+                                <Button variant="outline" onClick={() => scaffoldProject('next')} disabled={scaffolding}>
+                                    {scaffolding ? <Loader2 className="size-4 animate-spin" /> : <Rocket className="size-4" />}
                                     Scaffold Next.js
-                                    <Badge>Pro</Badge>
-                                </Link>
-                            </Button>
+                                </Button>
+                                <Button variant="outline" onClick={() => scaffoldProject('nuxt')} disabled={scaffolding}>
+                                    {scaffolding ? <Loader2 className="size-4 animate-spin" /> : <Rocket className="size-4" />}
+                                    Scaffold Nuxt
+                                </Button>
+                            </>
+                        ) : (
+                            <>
+                                <Button variant="outline" asChild>
+                                    <Link href="/pricing">
+                                        <Rocket className="size-4" />
+                                        Scaffold Next.js
+                                        <Badge>Pro</Badge>
+                                    </Link>
+                                </Button>
+                                <Button variant="outline" asChild>
+                                    <Link href="/pricing">
+                                        <Rocket className="size-4" />
+                                        Scaffold Nuxt
+                                        <Badge>Pro</Badge>
+                                    </Link>
+                                </Button>
+                            </>
                         )}
                         <Button variant="destructive" onClick={destroyProject}>
                             <Trash2 className="size-4" />
@@ -230,14 +245,14 @@ export default function ProjectShow({ project, components, export: exportAction,
 
                 {scaffolding && (
                     <p className="rounded-xl border border-dashed border-neutral-300 px-4 py-3 text-sm text-neutral-500 dark:border-neutral-700">
-                        Building your Next.js starter — routes, index page, configs and merged dependencies. The download link appears here when it's
-                        ready.
+                        Building your {scaffoldAction.latest?.framework === 'nuxt' ? 'Nuxt' : 'Next.js'} starter — routes, index page, configs and
+                        merged dependencies. The download link appears here when it's ready.
                     </p>
                 )}
 
                 {scaffoldAction.latest?.status === 'ready' && scaffoldAction.latest.download_url && (
                     <p className="flex flex-wrap items-center gap-3 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800 dark:border-green-900 dark:bg-green-950 dark:text-green-200">
-                        Your {scaffoldAction.latest.framework} starter is ready.
+                        Your {scaffoldAction.latest.framework === 'nuxt' ? 'Nuxt' : 'Next.js'} starter is ready.
                         <Button size="sm" asChild>
                             <a href={scaffoldAction.latest.download_url}>
                                 <Download className="size-4" />

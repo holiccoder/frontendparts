@@ -1,0 +1,12 @@
+# dependencies
+node_modules
+
+# nuxt
+.nuxt
+.output
+.data
+dist
+
+# misc
+.DS_Store
+*.log

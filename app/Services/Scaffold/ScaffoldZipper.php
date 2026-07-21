@@ -20,9 +20,9 @@ use ZipArchive;
  * modules ship verbatim, nothing is downloaded into `public/`.
  *
  * This abstract class holds everything framework-agnostic — member
- * partitioning, pick naming/dedupe, zip writing — so each framework (Next.js
- * now, Nuxt next) only contributes its starter files, page/route modules,
- * package.json baseline and README via the abstract template methods.
+ * partitioning, pick naming/dedupe, zip writing — so each framework (Next.js,
+ * Nuxt) only contributes its starter files, page/route modules, package.json
+ * baseline and README via the abstract template methods.
  */
 abstract class ScaffoldZipper
 {
@@ -47,6 +47,7 @@ abstract class ScaffoldZipper
     {
         return match ($framework) {
             'next' => app(NextScaffoldZipper::class),
+            'nuxt' => app(NuxtScaffoldZipper::class),
             default => throw new InvalidArgumentException("Unknown scaffold framework [{$framework}]."),
         };
     }

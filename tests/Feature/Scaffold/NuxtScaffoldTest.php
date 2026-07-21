@@ -15,7 +15,7 @@ use App\Models\ComponentEvent;
 use App\Models\Order;
 use App\Models\Project;
 use App\Models\User;
-use App\Services\Scaffold\NextScaffoldZipper;
+use App\Services\Scaffold\NuxtScaffoldZipper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
@@ -25,16 +25,17 @@ use Tests\TestCase;
 use ZipArchive;
 
 /**
- * Next.js scaffolding (SPEC §6.3, FR-5): a project exports as a complete
- * runnable Next.js 15 + React 19 + Tailwind 4 starter — closure `components/`
- * + `data/` assembled by the shared ClosureZip kernel, page-level components
- * as App Router routes, loose selected sections assembled into the index page
+ * Nuxt scaffolding (SPEC §6.3, FR-5): a project exports as a complete
+ * runnable Nuxt 4 + Vue 3 + Tailwind 4 starter — closure `components/` +
+ * `data/` assembled by the shared ClosureZip kernel (Vue SFC sources, imports
+ * rewritten into the zip layout), page-level components as file-based routes
+ * under `app/pages/`, loose selected sections assembled into the index page
  * in selection order, sample images left as remote URLs. Pro-only (§7.1);
  * queued server-side assembly → zip download, with a `scaffold` component
  * event per exported component recorded at download time (§8.6, mirroring
  * the pack zip's download-event convention). Assembly is pure PHP — no npm.
  */
-class NextScaffoldTest extends TestCase
+class NuxtScaffoldTest extends TestCase
 {
     use BuildsLibraryFixtures;
     use RefreshDatabase;
@@ -51,7 +52,7 @@ class NextScaffoldTest extends TestCase
         $this->libraryComponent('sections/hero-01', data: [
             'heading' => 'Build faster',
             'image' => 'https://images.example.com/hero.png',
-        ], source: "export default function Hero01() { return <section />; }\n");
+        ]);
         $this->libraryComponent('sections/feature-01');
         $this->libraryComponent('sections/cta-01');
         $this->libraryComponent('pages/landing-page-01');
@@ -82,34 +83,35 @@ class NextScaffoldTest extends TestCase
         $this->assertSame([
             '.gitignore',
             'README.md',
-            'app/globals.css',
-            'app/landing-page-01/page.tsx',
-            'app/layout.tsx',
-            'app/page.tsx',
-            'components/pages/LandingPage01.tsx',
-            'components/sections/Hero01.tsx',
+            'app/app.vue',
+            'app/assets/css/main.css',
+            'app/pages/index.vue',
+            'app/pages/landing-page-01.vue',
+            'components/pages/LandingPage01.vue',
+            'components/sections/Hero01.vue',
             'data/hero-01.ts',
             'data/landing-page-01.ts',
-            'next.config.ts',
+            'nuxt.config.ts',
             'package.json',
-            'postcss.config.mjs',
             'public/',
             'tsconfig.json',
         ], $names);
 
-        // Tailwind 4 is pre-wired: PostCSS plugin + the single CSS import.
-        $this->assertSame('@import "tailwindcss";'."\n", $entries['app/globals.css']);
-        $this->assertStringContainsString('@tailwindcss/postcss', $entries['postcss.config.mjs']);
+        // Tailwind 4 is pre-wired: the Vite plugin + the single CSS import
+        // (the documented Nuxt setup, docs/content/install/nuxt.md).
+        $this->assertSame("@import 'tailwindcss';\n", $entries['app/assets/css/main.css']);
+        $this->assertStringContainsString('@tailwindcss/vite', $entries['nuxt.config.ts']);
+        $this->assertStringContainsString("css: ['~/assets/css/main.css']", $entries['nuxt.config.ts']);
 
-        // App Router shell: root layout carries the project name + globals.
-        $this->assertStringContainsString("title: 'Marketing site'", $entries['app/layout.tsx']);
-        $this->assertStringContainsString("import './globals.css';", $entries['app/layout.tsx']);
-        $this->assertStringContainsString('next-env.d.ts', $entries['.gitignore']);
-        $this->assertStringContainsString('"name": "next"', $entries['tsconfig.json']);
+        // Nuxt 4 app shell: app.vue carries the project name + NuxtPage.
+        $this->assertStringContainsString("title: 'Marketing site'", $entries['app/app.vue']);
+        $this->assertStringContainsString('<NuxtPage />', $entries['app/app.vue']);
+        $this->assertStringContainsString('.nuxt', $entries['.gitignore']);
+        $this->assertStringContainsString('./.nuxt/tsconfig.json', $entries['tsconfig.json']);
 
         // Closure sources keep the shared kernel's rewritten imports.
-        $this->assertStringContainsString('export default function Hero01()', $entries['components/sections/Hero01.tsx']);
-        $this->assertStringContainsString('# Marketing site — Next.js starter', $entries['README.md']);
+        $this->assertStringContainsString('<template><div /></template>', $entries['components/sections/Hero01.vue']);
+        $this->assertStringContainsString('# Marketing site — Nuxt starter', $entries['README.md']);
     }
 
     public function test_page_components_become_routes()
@@ -119,20 +121,20 @@ class NextScaffoldTest extends TestCase
 
         $entries = $this->scaffoldEntries();
 
-        // Each page-level component becomes an App Router route module that
-        // renders the component with its sample-data module spread in.
-        $route = $entries['app/landing-page-01/page.tsx'];
+        // Each page-level component becomes a file-based route module that
+        // renders the component with its sample-data module bound in.
+        $route = $entries['app/pages/landing-page-01.vue'];
 
-        $this->assertStringContainsString("import LandingPage01 from '../../components/pages/LandingPage01';", $route);
+        $this->assertStringContainsString("import LandingPage01 from '../../components/pages/LandingPage01.vue';", $route);
         $this->assertStringContainsString("import landingPage01Data from '../../data/landing-page-01';", $route);
-        $this->assertStringContainsString('<LandingPage01 {...(landingPage01Data as ComponentProps<typeof LandingPage01>)} />', $route);
+        $this->assertStringContainsString('<LandingPage01 v-bind="landingPage01Data" />', $route);
 
         $this->assertStringContainsString(
-            "import PricingPage01 from '../../components/pages/PricingPage01';",
-            $entries['app/pricing-page-01/page.tsx'],
+            "import PricingPage01 from '../../components/pages/PricingPage01.vue';",
+            $entries['app/pages/pricing-page-01.vue'],
         );
 
-        $this->assertArrayHasKey('components/pages/PricingPage01.tsx', $entries);
+        $this->assertArrayHasKey('components/pages/PricingPage01.vue', $entries);
 
         // The README lists the assembled routes.
         $this->assertStringContainsString('`/landing-page-01`', $entries['README.md']);
@@ -148,14 +150,15 @@ class NextScaffoldTest extends TestCase
         $this->add('sections/cta-01');
         $this->add('pages/landing-page-01');
 
-        $index = $this->scaffoldEntries()['app/page.tsx'];
+        $index = $this->scaffoldEntries()['app/pages/index.vue'];
 
-        $this->assertStringContainsString("import Hero01 from '../components/sections/Hero01';", $index);
-        $this->assertStringContainsString("import hero01Data from '../data/hero-01';", $index);
+        $this->assertStringContainsString('<script setup lang="ts">', $index);
+        $this->assertStringContainsString("import Hero01 from '../../components/sections/Hero01.vue';", $index);
+        $this->assertStringContainsString("import hero01Data from '../../data/hero-01';", $index);
 
-        $hero = strpos($index, '<Hero01 {...(hero01Data as ComponentProps<typeof Hero01>)} />');
-        $feature = strpos($index, '<Feature01 {...(feature01Data as ComponentProps<typeof Feature01>)} />');
-        $cta = strpos($index, '<Cta01 {...(cta01Data as ComponentProps<typeof Cta01>)} />');
+        $hero = strpos($index, '<Hero01 v-bind="hero01Data" />');
+        $feature = strpos($index, '<Feature01 v-bind="feature01Data" />');
+        $cta = strpos($index, '<Cta01 v-bind="cta01Data" />');
 
         $this->assertNotFalse($hero);
         $this->assertNotFalse($feature);
@@ -192,20 +195,19 @@ class NextScaffoldTest extends TestCase
 
         $this->assertSame('marketing-site', $package['name']);
         $this->assertTrue($package['private']);
-        $this->assertSame('next dev', $package['scripts']['dev']);
+        $this->assertSame('nuxt dev', $package['scripts']['dev']);
 
-        // Next 15 + React 19 baseline with the closure dep merged at its
-        // registry-pinned version, deduped by package name.
+        // Nuxt 4 + Vue 3 baseline with the closure dep merged at its
+        // registry-pinned version (vue column), deduped by package name.
         $this->assertSame([
-            'lucide-react' => '^1.25.0',
-            'next' => '^15.3.0',
-            'react' => '^19.1.0',
-            'react-dom' => '^19.1.0',
+            'lucide-vue-next' => '^1.0.0',
+            'nuxt' => '^4.1.0',
+            'vue' => '^3.5.0',
         ], $package['dependencies']);
 
         // Tailwind 4 + TS toolchain on the dev side.
         $this->assertSame('^4.1.0', $package['devDependencies']['tailwindcss']);
-        $this->assertSame('^4.1.0', $package['devDependencies']['@tailwindcss/postcss']);
+        $this->assertSame('^4.1.0', $package['devDependencies']['@tailwindcss/vite']);
         $this->assertArrayHasKey('typescript', $package['devDependencies']);
     }
 
@@ -217,7 +219,7 @@ class NextScaffoldTest extends TestCase
 
         // Free plan → 403 upgrade payload, nothing queued.
         $this->actingAs($this->user)
-            ->postJson("/dashboard/projects/{$this->project->id}/scaffold", ['framework' => 'next'])
+            ->postJson("/dashboard/projects/{$this->project->id}/scaffold", ['framework' => 'nuxt'])
             ->assertForbidden()
             ->assertExactJson([
                 'error' => 'upgrade_required',
@@ -238,7 +240,7 @@ class NextScaffoldTest extends TestCase
         ]);
 
         $this->actingAs($this->user)
-            ->postJson("/dashboard/projects/{$this->project->id}/scaffold")
+            ->postJson("/dashboard/projects/{$this->project->id}/scaffold", ['framework' => 'nuxt'])
             ->assertForbidden()
             ->assertJsonPath('error', 'upgrade_required');
 
@@ -246,7 +248,7 @@ class NextScaffoldTest extends TestCase
 
         // The Inertia form post gets a field error instead of the payload.
         $this->actingAs($this->user)
-            ->post("/dashboard/projects/{$this->project->id}/scaffold")
+            ->post("/dashboard/projects/{$this->project->id}/scaffold", ['framework' => 'nuxt'])
             ->assertSessionHasErrors('scaffold');
 
         // Pro proceeds: 202 + pending scaffold export + queued build.
@@ -257,10 +259,10 @@ class NextScaffoldTest extends TestCase
         ]);
 
         $this->actingAs($this->user)
-            ->postJson("/dashboard/projects/{$this->project->id}/scaffold", ['framework' => 'next'])
+            ->postJson("/dashboard/projects/{$this->project->id}/scaffold", ['framework' => 'nuxt'])
             ->assertAccepted()
             ->assertJsonPath('export.status', 'pending')
-            ->assertJsonPath('export.framework', 'next')
+            ->assertJsonPath('export.framework', 'nuxt')
             ->assertJsonPath('export.download_url', null);
 
         $export = $this->project->exports()->sole();
@@ -278,7 +280,7 @@ class NextScaffoldTest extends TestCase
 
         // Only the owner may scaffold.
         $this->actingAs(User::factory()->create())
-            ->postJson("/dashboard/projects/{$this->project->id}/scaffold")
+            ->postJson("/dashboard/projects/{$this->project->id}/scaffold", ['framework' => 'nuxt'])
             ->assertForbidden();
     }
 
@@ -297,7 +299,7 @@ class NextScaffoldTest extends TestCase
         $this->add('pages/landing-page-01');
 
         $this->actingAs($this->user)
-            ->postJson("/dashboard/projects/{$this->project->id}/scaffold", ['framework' => 'next'])
+            ->postJson("/dashboard/projects/{$this->project->id}/scaffold", ['framework' => 'nuxt'])
             ->assertAccepted();
 
         $export = $this->project->exports()->sole();
@@ -308,7 +310,7 @@ class NextScaffoldTest extends TestCase
         $export->refresh();
 
         $this->assertSame(ProjectExportStatus::Ready, $export->status);
-        $this->assertSame("project-exports/{$export->id}-scaffold-next.zip", $export->path);
+        $this->assertSame("project-exports/{$export->id}-scaffold-nuxt.zip", $export->path);
         Storage::disk('exports')->assertExists($export->path);
 
         // Scaffolding alone records nothing — events fire on download,
@@ -333,14 +335,14 @@ class NextScaffoldTest extends TestCase
         $response->assertOk();
 
         $this->assertStringContainsString(
-            'attachment; filename=marketing-site-next.zip',
+            'attachment; filename=marketing-site-nuxt.zip',
             (string) $response->headers->get('Content-Disposition')
         );
 
         $entries = $this->zipEntriesFromString($response->streamedContent());
 
-        $this->assertArrayHasKey('app/page.tsx', $entries);
-        $this->assertArrayHasKey('app/landing-page-01/page.tsx', $entries);
+        $this->assertArrayHasKey('app/pages/index.vue', $entries);
+        $this->assertArrayHasKey('app/pages/landing-page-01.vue', $entries);
 
         // One scaffold event per exported component, attributed to the user.
         foreach (['sections/hero-01', 'pages/landing-page-01'] as $slug) {
@@ -361,9 +363,9 @@ class NextScaffoldTest extends TestCase
 
         $entries = $this->scaffoldEntries();
 
-        $this->assertStringContainsString('<main />', $entries['app/page.tsx']);
-        $this->assertStringContainsString('export default function Home()', $entries['app/page.tsx']);
-        $this->assertArrayHasKey('app/landing-page-01/page.tsx', $entries);
+        $this->assertStringContainsString('<main />', $entries['app/pages/index.vue']);
+        $this->assertStringNotContainsString('<script', $entries['app/pages/index.vue']);
+        $this->assertArrayHasKey('app/pages/landing-page-01.vue', $entries);
     }
 
     public function test_index_imports_dedupe_shared_basenames()
@@ -373,15 +375,15 @@ class NextScaffoldTest extends TestCase
         $this->add('sections/demo-01');
         $this->add('blocks/demo-01');
 
-        $index = $this->scaffoldEntries()['app/page.tsx'];
+        $index = $this->scaffoldEntries()['app/pages/index.vue'];
 
-        $this->assertStringContainsString("import Demo01 from '../components/sections/Demo01';", $index);
-        $this->assertStringContainsString("import BlocksDemo01 from '../components/blocks/Demo01';", $index);
+        $this->assertStringContainsString("import Demo01 from '../../components/sections/Demo01.vue';", $index);
+        $this->assertStringContainsString("import BlocksDemo01 from '../../components/blocks/Demo01.vue';", $index);
         // Closure members are zipped blocks-first, so the block's data
         // module keeps the bare name and the section's gets the prefix.
-        $this->assertStringContainsString("import blocksDemo01Data from '../data/demo-01';", $index);
-        $this->assertStringContainsString("import demo01Data from '../data/sections-demo-01';", $index);
-        $this->assertStringContainsString('<BlocksDemo01 {...(blocksDemo01Data as ComponentProps<typeof BlocksDemo01>)} />', $index);
+        $this->assertStringContainsString("import blocksDemo01Data from '../../data/demo-01';", $index);
+        $this->assertStringContainsString("import demo01Data from '../../data/sections-demo-01';", $index);
+        $this->assertStringContainsString('<BlocksDemo01 v-bind="blocksDemo01Data" />', $index);
     }
 
     /**
@@ -431,7 +433,7 @@ class NextScaffoldTest extends TestCase
      */
     private function scaffoldEntries(): array
     {
-        $path = app(NextScaffoldZipper::class)->build($this->project->refresh());
+        $path = app(NuxtScaffoldZipper::class)->build($this->project->refresh());
 
         $entries = $this->readZip($path);
         @unlink($path);

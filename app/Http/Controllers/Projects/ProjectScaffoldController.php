@@ -17,8 +17,8 @@ use Illuminate\Validation\Rule;
  * POST /dashboard/projects/{project}/scaffold (SPEC §6.3, FR-5): queues the
  * starter assembly (NFR-4 — heavy work is queued, the request returns
  * immediately) and the dashboard polls the project page until the export is
- * ready, then streams it from the shared export download route. Next.js now;
- * Nuxt joins the framework allowlist with Phase 3.5.
+ * ready, then streams it from the shared export download route. Next.js and
+ * Nuxt starters share the flow (SPEC §6.3).
  *
  * Gating (SPEC §7.1): scaffolding is Pro-only — Free/Starter resolve the
  * established 403 upgrade payload, checked at scaffold time.
@@ -30,7 +30,7 @@ class ProjectScaffoldController extends Controller
         abort_unless($project->user_id === $request->user()->id, 403);
 
         $validated = $request->validate([
-            'framework' => ['sometimes', 'nullable', Rule::in(['next'])],
+            'framework' => ['sometimes', 'nullable', Rule::in(['next', 'nuxt'])],
         ]);
 
         $framework = $validated['framework'] ?? 'next';
@@ -38,7 +38,7 @@ class ProjectScaffoldController extends Controller
         if (! app(EntitlementService::class)->for($request->user())->canScaffold()) {
             if (! $request->expectsJson()) {
                 return back()->withErrors([
-                    'scaffold' => 'Scaffolding is a Pro feature — upgrade to generate a runnable Next.js starter.',
+                    'scaffold' => 'Scaffolding is a Pro feature — upgrade to generate a runnable starter.',
                 ]);
             }
 
