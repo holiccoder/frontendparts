@@ -175,6 +175,16 @@ class ProjectController extends Controller
                     'download_url' => $latestScaffold->downloadUrl(),
                 ],
             ],
+            // GitHub repo export (SPEC §6.4): Pro-only and needs a connected
+            // GitHub account; the page posts JSON and shows the repo URL
+            // straight from the response (no build/poll cycle). Queried
+            // fresh — a connection created mid-session must show at once.
+            'github' => [
+                'url' => route('dashboard.projects.github-export', $project),
+                'available' => app(EntitlementService::class)->for($request->user())->canExportToGithub(),
+                'connected' => ($githubConnection = $request->user()->githubConnection()->first()) !== null,
+                'account' => $githubConnection?->github_login,
+            ],
             // Live-edit forks (SPEC §5.6): the page polls this prop while any
             // fork's preview rebuild is pending/building.
             'forks' => $forks,

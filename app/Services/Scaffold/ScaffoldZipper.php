@@ -53,10 +53,15 @@ abstract class ScaffoldZipper
     }
 
     /**
-     * Build the starter zip into a temp file and return its path. The caller
-     * (BuildProjectScaffold) moves it onto the exports disk.
+     * The starter files in memory, zip/repo path → contents — the same map
+     * the zip writer consumes. The GitHub repo export (SPEC §6.4) commits
+     * exactly these files, so both export channels can never drift apart.
+     * Empty directories (the starter's `public/`) are a zip-only concern and
+     * are not part of this map.
+     *
+     * @return array<string, string>
      */
-    final public function build(Project $project): string
+    final public function entries(Project $project): array
     {
         $members = $this->closureZip->order($project->components()->get()->all());
 
@@ -84,6 +89,15 @@ abstract class ScaffoldZipper
             $entries = [...$entries, ...$this->routeEntries($page, $this->picks([$page], $dataMap)[0])];
         }
 
+        return $entries;
+    }
+
+    /**
+     * Build the starter zip into a temp file and return its path. The caller
+     * (BuildProjectScaffold) moves it onto the exports disk.
+     */
+    final public function build(Project $project): string
+    {
         $path = (string) tempnam(sys_get_temp_dir(), 'fp-scaffold-');
 
         $zip = new ZipArchive;
@@ -93,7 +107,7 @@ abstract class ScaffoldZipper
         // starter ships it empty but ready.
         $zip->addEmptyDir('public');
 
-        foreach ($entries as $entry => $contents) {
+        foreach ($this->entries($project) as $entry => $contents) {
             $zip->addFromString($entry, $contents);
         }
 

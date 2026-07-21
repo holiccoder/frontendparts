@@ -15,6 +15,7 @@
         "laravel/cashier-paddle": "^2.8",
         "laravel/framework": "^13.0",
         "laravel/mcp": "^0.8.1",
+        "laravel/socialite": "^5.28",
         "laravel/tinker": "^3.0",
         "spatie/browsershot": "^5.4",
         "tightenco/ziggy": "^2.4"

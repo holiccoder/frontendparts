@@ -45,6 +45,15 @@ final readonly class Entitlement
     }
 
     /**
+     * GitHub repo export (SPEC §6.4): part of the Pro scaffolding family
+     * (§7.1) — Pro only.
+     */
+    public function canExportToGithub(): bool
+    {
+        return $this->plan === OrderPlan::Pro;
+    }
+
+    /**
      * Project limit resolved from platform settings (SPEC §8.7);
      * `null` means unlimited.
      */

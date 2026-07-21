@@ -46,6 +46,23 @@ return [
         'sandbox' => env('PADDLE_SANDBOX', true),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | GitHub (repo export — SPEC §6.4)
+    |--------------------------------------------------------------------------
+    |
+    | OAuth app credentials for the Socialite GitHub driver (`repo` scope);
+    | the access token is stored encrypted and used only by the GitHub API
+    | client to create export repos and commit scaffolds.
+    |
+    */
+
+    'github' => [
+        'client_id' => env('GITHUB_CLIENT_ID'),
+        'client_secret' => env('GITHUB_CLIENT_SECRET'),
+        'redirect' => env('GITHUB_REDIRECT_URL'),
+    ],
+
     'slack' => [
         'notifications' => [
             'bot_user_oauth_token' => env('SLACK_BOT_USER_OAUTH_TOKEN'),

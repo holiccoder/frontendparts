@@ -4,6 +4,7 @@ import { FormEventHandler, useEffect, useState } from 'react';
 
 import HeadingSmall from '@/components/heading-small';
 import InputError from '@/components/input-error';
+import GithubExportDialog, { type GithubExportAction } from '@/components/projects/github-export-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -58,6 +59,7 @@ interface ProjectShowProps {
         available: boolean;
         latest: ProjectExport | null;
     };
+    github: GithubExportAction;
     forks: ComponentFork[];
 }
 
@@ -71,7 +73,14 @@ interface ProjectShowProps {
  * below with their rebuild progress — the page polls the `forks` prop while
  * any fork is pending/building, then links the rebuilt preview.
  */
-export default function ProjectShow({ project, components, export: exportAction, scaffold: scaffoldAction, forks }: ProjectShowProps) {
+export default function ProjectShow({
+    project,
+    components,
+    export: exportAction,
+    scaffold: scaffoldAction,
+    github: githubAction,
+    forks,
+}: ProjectShowProps) {
     const { flash, errors: pageErrors } = usePage<SharedData & { flash?: { notice?: string | null } }>().props;
 
     const breadcrumbs: BreadcrumbItem[] = [
@@ -212,6 +221,7 @@ export default function ProjectShow({ project, components, export: exportAction,
                                 </Button>
                             </>
                         )}
+                        <GithubExportDialog action={githubAction} projectName={project.name} />
                         <Button variant="destructive" onClick={destroyProject}>
                             <Trash2 className="size-4" />
                             Delete
@@ -270,6 +280,7 @@ export default function ProjectShow({ project, components, export: exportAction,
 
                 <InputError message={pageErrors.export} />
                 <InputError message={pageErrors.scaffold} />
+                <InputError message={pageErrors.github} />
 
                 {flash?.notice && (
                     <p className="rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800 dark:border-green-900 dark:bg-green-950 dark:text-green-200">

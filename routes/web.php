@@ -28,6 +28,7 @@ use App\Http\Controllers\Projects\ProjectComponentController;
 use App\Http\Controllers\Projects\ProjectController;
 use App\Http\Controllers\Projects\ProjectExportController;
 use App\Http\Controllers\Projects\ProjectExportDownloadController;
+use App\Http\Controllers\Projects\ProjectGithubExportController;
 use App\Http\Controllers\Projects\ProjectScaffoldController;
 use App\Http\Controllers\RobotsController;
 use App\Http\Controllers\SearchController;
@@ -242,6 +243,7 @@ Route::middleware(['auth', 'verified', 'ssr.skip', 'noindex'])->group(function (
         Route::delete('/{project}/components/{component}', [ProjectComponentController::class, 'destroy'])->name('components.destroy');
         Route::post('/{project}/export', ProjectExportController::class)->name('export');
         Route::post('/{project}/scaffold', ProjectScaffoldController::class)->name('scaffold');
+        Route::post('/{project}/github-export', ProjectGithubExportController::class)->name('github-export');
         Route::get('/{project}/export/{export}/download', ProjectExportDownloadController::class)
             ->scopeBindings()
             ->name('export.download');

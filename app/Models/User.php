@@ -7,6 +7,7 @@ use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Paddle\Billable;
@@ -80,6 +81,14 @@ class User extends Authenticatable implements MustVerifyEmail
     public function sequenceSends(): HasMany
     {
         return $this->hasMany(SequenceSend::class);
+    }
+
+    /**
+     * The connected GitHub account used for repo exports (SPEC §6.4).
+     */
+    public function githubConnection(): HasOne
+    {
+        return $this->hasOne(GithubConnection::class);
     }
 
     /**

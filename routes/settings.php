@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Settings\BillingController;
+use App\Http\Controllers\Settings\ConnectionsController;
 use App\Http\Controllers\Settings\NotificationPreferenceController;
 use App\Http\Controllers\Settings\PasswordController;
 use App\Http\Controllers\Settings\PreviewLayoutController;
@@ -34,6 +35,18 @@ Route::middleware('auth')->group(function () {
     */
     Route::get('settings/billing', [BillingController::class, 'edit'])->name('settings.billing');
     Route::post('settings/billing/cancel', [BillingController::class, 'cancel'])->name('settings.billing.cancel');
+
+    /*
+    |----------------------------------------------------------------------
+    | Connected accounts (SPEC §6.4): the connections page plus the GitHub
+    | OAuth handshake (`repo` scope). The callback URL must match the GitHub
+    | OAuth app's authorization callback (GITHUB_REDIRECT_URL).
+    |----------------------------------------------------------------------
+    */
+    Route::get('settings/connections', [ConnectionsController::class, 'edit'])->name('connections.edit');
+    Route::get('settings/connections/github/redirect', [ConnectionsController::class, 'redirect'])->name('connections.github.redirect');
+    Route::get('settings/connections/github/callback', [ConnectionsController::class, 'callback'])->name('connections.github.callback');
+    Route::delete('settings/connections/github', [ConnectionsController::class, 'destroy'])->name('connections.github.destroy');
 
     Route::patch('settings/preview-layout', [PreviewLayoutController::class, 'update'])
         ->middleware('verified')
