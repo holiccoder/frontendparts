@@ -5,12 +5,22 @@ import PublicLayout from '@/layouts/public-layout';
 import type { BlogPostCard } from '@/types/blog';
 import type { ComponentCardData, PageMeta } from '@/types/catalog';
 import { Link } from '@inertiajs/react';
-import { Search } from 'lucide-react';
+import { Search, Sparkles } from 'lucide-react';
+
+interface AiSearchState {
+    available: boolean;
+    requested: boolean;
+    active: boolean;
+    limited: boolean;
+    keywords: string | null;
+    filters: string[];
+}
 
 interface SearchProps {
     query: string;
     components: ComponentCardData[];
     posts: BlogPostCard[];
+    ai: AiSearchState;
     meta: PageMeta;
 }
 
@@ -20,8 +30,14 @@ interface SearchProps {
  * GET so results stay deep-linkable; empty queries and zero-hit queries
  * both land on a helpful empty state. The page is noindex (search results
  * are excluded from indexing).
+ *
+ * AI-assisted mode (task 5.4, features.ai_search): when the flag is on the
+ * form gains an "AI-assisted" checkbox that resubmits with ai=1. AI results
+ * are labeled, show the refined keywords and applied taxonomy filters, and
+ * any failure (rate limit, provider error) silently falls back to plain
+ * results.
  */
-export default function SearchPage({ query, components, posts, meta }: SearchProps) {
+export default function SearchPage({ query, components, posts, ai, meta }: SearchProps) {
     const hasResults = components.length > 0 || posts.length > 0;
 
     return (
@@ -49,7 +65,45 @@ export default function SearchPage({ query, components, posts, meta }: SearchPro
                             className="h-11 w-full rounded-md border border-neutral-300 bg-white pr-3 pl-9 text-sm outline-none placeholder:text-neutral-400 focus:border-neutral-500"
                         />
                     </div>
+
+                    {ai.available && (
+                        <label className="mt-3 inline-flex cursor-pointer items-center gap-2 text-sm text-neutral-600 select-none">
+                            <input
+                                type="checkbox"
+                                name="ai"
+                                value="1"
+                                defaultChecked={ai.requested}
+                                className="h-4 w-4 rounded border-neutral-300 accent-neutral-900"
+                            />
+                            <Sparkles className="h-4 w-4 text-neutral-400" />
+                            AI-assisted search — describe what you need in plain words
+                        </label>
+                    )}
                 </form>
+
+                {ai.active && (
+                    <div className="mt-8 flex flex-wrap items-center gap-x-3 gap-y-2 rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm">
+                        <span className="inline-flex items-center gap-1.5 font-semibold">
+                            <Sparkles className="h-4 w-4" />
+                            AI-assisted results
+                        </span>
+                        {ai.keywords && <span className="text-neutral-500">keywords: “{ai.keywords}”</span>}
+                        {ai.filters.map((filter) => (
+                            <span
+                                key={filter}
+                                className="rounded-full bg-white px-2.5 py-0.5 text-xs font-medium text-neutral-600 ring-1 ring-neutral-200 ring-inset"
+                            >
+                                {filter}
+                            </span>
+                        ))}
+                    </div>
+                )}
+
+                {ai.limited && (
+                    <p className="mt-8 rounded-xl border border-dashed border-neutral-300 px-4 py-3 text-sm text-neutral-500">
+                        AI-assisted search is temporarily rate-limited — showing standard results instead.
+                    </p>
+                )}
 
                 {query !== '' && !hasResults && (
                     <div className="mt-10 rounded-2xl border border-dashed border-neutral-300 py-20 text-center">

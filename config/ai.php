@@ -142,4 +142,25 @@ return [
         ],
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | FrontendParts AI Features (task 5.4)
+    |--------------------------------------------------------------------------
+    |
+    | App-level knobs consumed by App\Services\Ai\AiGateway — the single seam
+    | for all AI calls (natural-language catalog search + admin component
+    | variants, both behind feature flags). provider/model fall back to the
+    | SDK defaults above when null; credentials come from the matching
+    | provider entry above, so swapping providers is an env-only change.
+    | search_rate_limit caps AI-assisted searches per IP per minute.
+    |
+    */
+
+    'features' => [
+        'provider' => env('AI_PROVIDER'),
+        'model' => env('AI_MODEL'),
+        'timeout' => (int) env('AI_TIMEOUT', 30),
+        'search_rate_limit' => (int) env('AI_SEARCH_RATE_LIMIT', 10),
+    ],
+
 ];

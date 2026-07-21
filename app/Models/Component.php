@@ -37,6 +37,7 @@ class Component extends Model
         'version',
         'source_name',
         'source_url',
+        'variant_of',
         'deps',
         'source_hash',
         'preview_paths',
@@ -54,6 +55,7 @@ class Component extends Model
             'level' => ComponentLevel::class,
             'access_level' => AccessLevel::class,
             'status' => ComponentStatus::class,
+            'variant_of' => 'integer',
             'deps' => 'array',
             'preview_paths' => 'array',
             'preview_built_at' => 'datetime',
@@ -81,6 +83,23 @@ class Component extends Model
         return $this->belongsToMany(Component::class, 'component_children', 'parent_id', 'child_id')
             ->withPivot('slot', 'sort_order')
             ->orderBy('component_children.sort_order');
+    }
+
+    /**
+     * The component this one was AI-generated from (task 5.4); null for
+     * human-authored components.
+     */
+    public function variantOf(): BelongsTo
+    {
+        return $this->belongsTo(Component::class, 'variant_of');
+    }
+
+    /**
+     * AI-generated variants derived from this component (task 5.4).
+     */
+    public function variants(): HasMany
+    {
+        return $this->hasMany(Component::class, 'variant_of');
     }
 
     public function parents(): BelongsToMany

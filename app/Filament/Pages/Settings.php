@@ -46,6 +46,8 @@ class Settings extends Page
         'features_preview_dark_toggle' => 'features.preview_dark_toggle',
         'features_tree_interactions' => 'features.tree_interactions',
         'features_live_edit' => 'features.live_edit',
+        'features_ai_search' => 'features.ai_search',
+        'features_ai_variants' => 'features.ai_variants',
         'goals_launch_component_target' => 'goals.launch_component_target',
         'goals_components_per_month' => 'goals.components_per_month',
         'goals_organic_visits_monthly' => 'goals.organic_visits_monthly',
@@ -127,6 +129,12 @@ class Settings extends Page
                             Toggle::make('features_live_edit')
                                 ->label('Live-edit mode')
                                 ->helperText('In-browser Edit tab (React) in the preview modal. Phase 3.1.'),
+                            Toggle::make('features_ai_search')
+                                ->label('AI-assisted catalog search')
+                                ->helperText('Natural-language mode on /search (ai=1). Requires an AI provider key. Phase 5.4.'),
+                            Toggle::make('features_ai_variants')
+                                ->label('AI component variants')
+                                ->helperText('"Generate variant" action on catalog components; results land in review, never auto-published. Phase 5.4.'),
                         ]),
                     Section::make('Goals')
                         ->description('Targets surfaced on the admin dashboard as target-vs-actual tracking.')

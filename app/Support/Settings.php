@@ -23,6 +23,8 @@ class Settings
         'features.preview_dark_toggle' => true,
         'features.tree_interactions' => true,
         'features.live_edit' => false,
+        'features.ai_search' => false,
+        'features.ai_variants' => false,
         'goals.launch_component_target' => 100,
         'goals.components_per_month' => 20,
         'goals.organic_visits_monthly' => 10000,
