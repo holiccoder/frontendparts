@@ -3,6 +3,8 @@
 namespace App\Providers;
 
 use App\Services\Sequences\CancelFollowupSequence;
+use App\Services\Sequences\CategoryInterestSequence;
+use App\Services\Sequences\DormantDownloaderSequence;
 use App\Services\Sequences\DunningSequence;
 use App\Services\Sequences\FreeOnboardingSequence;
 use App\Services\Sequences\NewDropsDigestSequence;
@@ -25,7 +27,8 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(Settings::class);
 
         // Lifecycle sequences (SPEC §16.2) — one entry per sequence; B8
-        // registers here when implemented.
+        // registers here when implemented. B9/B10 are the §16.4 P3
+        // behavioral triggers beyond the B2 blur-gate.
         $this->app->singleton(SequenceRegistry::class, fn (Application $app): SequenceRegistry => new SequenceRegistry([
             $app->make(FreeOnboardingSequence::class),
             $app->make(UpgradeTriggerSequence::class),
@@ -34,6 +37,8 @@ class AppServiceProvider extends ServiceProvider
             $app->make(RenewalReminderSequence::class),
             $app->make(DunningSequence::class),
             $app->make(CancelFollowupSequence::class),
+            $app->make(CategoryInterestSequence::class),
+            $app->make(DormantDownloaderSequence::class),
         ]));
 
         // The app runs its own order state machine (SPEC §7.3) on
