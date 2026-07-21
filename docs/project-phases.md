@@ -376,7 +376,7 @@
 
 **Status:** planning placeholders. Each item gets its own mini-spec (added to SPEC.md via the change-log flow) before tasks are written; acceptance tests are defined at that point.
 
-- [ ] **5.1 Meilisearch** — Laravel Scout driver swap for catalog + docs search (FR-1.3, SPEC §13.2).
+- [x] **5.1 Meilisearch** — Laravel Scout driver swap for catalog + docs search (FR-1.3, SPEC §13.2).
 - [ ] **5.2 Team tier** — organization seats; `OrderPlan` re-gains a team value; per-seat pricing (SPEC §7.1, §7.4).
 - [ ] **5.3 Community submissions** — external component submission + review pipeline into `library/` (PRD §4.2).
 - [ ] **5.4 AI features** — `laravel/ai` groundwork already installed (agent conversations tables); candidates: AI-assisted component variants, natural-language catalog search.
