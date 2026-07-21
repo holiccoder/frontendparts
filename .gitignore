@@ -28,3 +28,7 @@ yarn-error.log
 /library/*/.build
 /storage/app/previews/*
 !/storage/app/previews/.gitkeep
+/database/browser.sqlite*
+/tests/Browser/.cache/
+/tests/Browser/results/
+/tests/Browser/report/
