@@ -6,6 +6,7 @@ use App\Enums\CategoryType;
 use App\Models\Blog;
 use App\Models\BlogCategory;
 use App\Models\Category;
+use App\Models\Collection;
 use App\Models\Component;
 use App\Services\Docs\DocsRepository;
 use App\Services\Legal\LegalPages;
@@ -65,6 +66,22 @@ class SitemapController extends Controller
             $urls[] = [
                 'loc' => route('industries.show', ['industry' => $industry->slug]),
                 'lastmod' => null,
+            ];
+        }
+
+        // Curated bundles (SPEC §15.1): index plus every published
+        // collection; drafts stay out like any other hidden content.
+        $urls[] = ['loc' => route('collections.index'), 'lastmod' => null];
+
+        $collections = Collection::query()
+            ->published()
+            ->orderBy('sort_order')
+            ->get();
+
+        foreach ($collections as $collection) {
+            $urls[] = [
+                'loc' => $collection->publicUrl(),
+                'lastmod' => $collection->updated_at?->toDateString(),
             ];
         }
 

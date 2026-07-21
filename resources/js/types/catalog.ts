@@ -179,6 +179,14 @@ export interface IndustryTile {
     url: string;
 }
 
+export interface CollectionTile {
+    name: string;
+    slug: string;
+    components_count: number;
+    description: string | null;
+    url: string;
+}
+
 export interface UsageFilter {
     name: string;
     slug: string;

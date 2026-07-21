@@ -12,6 +12,7 @@ use App\Http\Controllers\Billing\ReactivateOrderController;
 use App\Http\Controllers\BlogController;
 use App\Http\Controllers\BlogFeedController;
 use App\Http\Controllers\CatalogController;
+use App\Http\Controllers\CollectionController;
 use App\Http\Controllers\ComponentApiController;
 use App\Http\Controllers\ComponentController;
 use App\Http\Controllers\ComponentCopyController;
@@ -104,6 +105,16 @@ Route::get('/industries', [IndustryController::class, 'index'])->name('industrie
 Route::get('/industries/{industry}', [IndustryController::class, 'show'])
     ->where('industry', '[a-z0-9\-]+')
     ->name('industries.show');
+
+/*
+| Collections (SPEC §15.1): curated component bundles ("restaurant
+| landing kit"). Index + detail are SSR and SEO-indexed; drafts 404.
+*/
+Route::get('/collections', [CollectionController::class, 'index'])->name('collections.index');
+
+Route::get('/collections/{slug}', [CollectionController::class, 'show'])
+    ->where('slug', '[a-z0-9\-]+')
+    ->name('collections.show');
 
 Route::get('/docs', [DocsController::class, 'index'])->name('docs.index');
 

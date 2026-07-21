@@ -17,6 +17,7 @@ const FOOTER_COLUMNS = [
         links: [
             { label: 'All components', href: '/components' },
             { label: 'Industries', href: '/industries' },
+            { label: 'Collections', href: '/collections' },
             { label: 'Search', href: '/search' },
         ],
     },
