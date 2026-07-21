@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Orders\Tables;
 
+use App\Enums\DomesticChannel;
 use App\Models\Order;
 use App\Services\Billing\RefundNotAllowedException;
 use App\Services\Billing\RefundService;
@@ -63,10 +64,11 @@ class OrdersTable
                     ->requiresConfirmation()
                     ->modalHeading('Refund order')
                     ->modalDescription(fn (Order $record): string => sprintf(
-                        'Refund %s %s for order #%d in full via Paddle? The buyer loses library access immediately.',
+                        'Refund %s %s for order #%d in full via %s? The buyer loses library access immediately.',
                         $record->amount,
                         strtoupper($record->currency),
                         $record->id,
+                        self::refundRailLabel($record),
                     ))
                     // Settings-driven refund window + paid states only (SPEC §7.3, §8.7).
                     ->visible(fn (Order $record): bool => app(RefundService::class)->refundable($record))
@@ -95,5 +97,18 @@ class OrdersTable
                     DeleteBulkAction::make(),
                 ]),
             ]);
+    }
+
+    /**
+     * The provider rail the refund goes through: Paddle for international
+     * orders, the domestic rail (Alipay / WeChat Pay) for CNY orders.
+     */
+    private static function refundRailLabel(Order $record): string
+    {
+        if (! $record->isDomestic()) {
+            return 'Paddle';
+        }
+
+        return $record->domestic_channel === DomesticChannel::Wechat ? 'WeChat Pay' : 'Alipay';
     }
 }

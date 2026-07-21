@@ -5,6 +5,7 @@ namespace Tests\Feature\Admin;
 use App\Enums\BillingPeriod;
 use App\Enums\OrderPlan;
 use App\Enums\OrderStatus;
+use App\Enums\PlanProvider;
 use App\Filament\Widgets\LatestOrdersWidget;
 use App\Filament\Widgets\PlanMixChartWidget;
 use App\Filament\Widgets\RevenueStatsWidget;
@@ -14,6 +15,7 @@ use App\Models\Component;
 use App\Models\Order;
 use App\Models\User;
 use App\Services\Admin\RevenueStats;
+use App\Support\Settings;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Livewire\Livewire;
@@ -197,6 +199,40 @@ class RevenueWidgetTest extends TestCase
             ->assertSee('Pro · Lifetime');
     }
 
+    public function test_cny_revenue_normalized_at_configured_fx_rate()
+    {
+        $this->travelTo(Carbon::parse('2026-07-15 12:00:00'));
+
+        // USD baseline (Paddle) — untouched by the FX rate.
+        $this->paidOrder(OrderPlan::Starter, OrderStatus::Active, BillingPeriod::Monthly, 30.00);
+        // CNY domestic revenue converts at fx.cny_to_usd (default 0.14).
+        $this->paidOrder(OrderPlan::Pro, OrderStatus::Active, BillingPeriod::Monthly, 100.00, currency: 'CNY', provider: PlanProvider::Domestic);
+        // Lifetime CNY: real revenue (normalized), never MRR.
+        $this->paidOrder(OrderPlan::Pro, OrderStatus::Active, BillingPeriod::Lifetime, 1000.00, currency: 'CNY', provider: PlanProvider::Domestic);
+
+        $stats = app(RevenueStats::class);
+
+        // 30 + 100×0.14; the CNY lifetime order stays out of MRR.
+        $this->assertSame(44.00, $stats->mrr());
+
+        $trend = $stats->revenueTrend();
+
+        $this->assertSame(44.00, $trend['subscription'][11]);
+        $this->assertSame(140.00, $trend['lifetime'][11]); // 1000×0.14
+
+        // The rate is admin-configurable (§8.7): a new rate applies without
+        // a deploy.
+        app(Settings::class)->set('fx.cny_to_usd', 0.20);
+
+        // 30 + 100×0.20.
+        $this->assertSame(50.00, app(RevenueStats::class)->mrr());
+
+        $trend = app(RevenueStats::class)->revenueTrend();
+
+        $this->assertSame(50.00, $trend['subscription'][11]);
+        $this->assertSame(200.00, $trend['lifetime'][11]);
+    }
+
     public function test_latest_orders_widget_lists_recent_orders_with_paddle_link()
     {
         $this->travelTo(Carbon::parse('2026-07-15 12:00:00'));
@@ -239,7 +275,8 @@ class RevenueWidgetTest extends TestCase
 
     /**
      * An order in a deterministic state; starts/ends default to a fresh
-     * period from "now" unless given.
+     * period from "now" unless given. Currency/provider default to the
+     * Paddle USD shape; pass CNY + Domestic for domestic QR orders.
      */
     private function paidOrder(
         OrderPlan $plan,
@@ -249,6 +286,8 @@ class RevenueWidgetTest extends TestCase
         ?Carbon $startsAt = null,
         ?Carbon $endsAt = null,
         ?User $user = null,
+        string $currency = 'USD',
+        PlanProvider $provider = PlanProvider::Paddle,
     ): Order {
         return Order::factory()->create([
             'user_id' => $user?->id ?? User::factory(),
@@ -256,6 +295,8 @@ class RevenueWidgetTest extends TestCase
             'status' => $status,
             'billing_period' => $period,
             'amount' => $amount,
+            'currency' => $currency,
+            'provider' => $provider,
             'starts_at' => $startsAt ?? now(),
             'ends_at' => $endsAt ?? match ($period) {
                 BillingPeriod::Monthly => now()->addMonth(),

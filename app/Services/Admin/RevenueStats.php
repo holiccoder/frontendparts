@@ -9,6 +9,7 @@ use App\Enums\OrderStatus;
 use App\Models\Component;
 use App\Models\Order;
 use App\Models\User;
+use App\Support\Settings;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 
@@ -33,9 +34,10 @@ use Illuminate\Support\Collection;
  * - MRR normalizes each order to a monthly figure: monthly → amount,
  *   quarterly → amount/3, yearly → amount/12. Lifetime is EXCLUDED from
  *   MRR (one-off, not recurring) but INCLUDED in revenue.
- * - Amounts are USD (all Paddle orders are USD); CNY domestic orders are a
- *   Phase-3 concern — the `fx.cny_to_usd` settings key already exists for
- *   that conversion.
+ * - Amounts are normalized to USD: CNY domestic orders convert at the
+ *   admin-configurable `fx.cny_to_usd` settings rate (SPEC §7.5, §8.7),
+ *   rounded to cents per order before summing; USD Paddle rows pass
+ *   through untouched.
  */
 class RevenueStats
 {
@@ -50,6 +52,10 @@ class RevenueStats
         OrderStatus::Cancelled,
         OrderStatus::Expired,
     ];
+
+    public function __construct(
+        private readonly Settings $settings = new Settings,
+    ) {}
 
     /**
      * Normalized monthly recurring revenue in USD across contributing
@@ -125,9 +131,9 @@ class RevenueStats
             }
 
             if ($order->billing_period === BillingPeriod::Lifetime) {
-                $lifetime[$key] += (float) $order->amount;
+                $lifetime[$key] += $this->usdAmount($order);
             } else {
-                $subscription[$key] += (float) $order->amount;
+                $subscription[$key] += $this->usdAmount($order);
             }
         }
 
@@ -201,11 +207,12 @@ class RevenueStats
     }
 
     /**
-     * One month's worth of an order's price (SPEC §8.6 MRR normalization).
+     * One month's worth of an order's price in USD (SPEC §8.6 MRR
+     * normalization, §7.5 FX).
      */
     private function monthlyAmount(Order $order): float
     {
-        $amount = (float) $order->amount;
+        $amount = $this->usdAmount($order);
 
         return match ($order->billing_period) {
             BillingPeriod::Monthly => $amount,
@@ -213,5 +220,22 @@ class RevenueStats
             BillingPeriod::Yearly => $amount / 12,
             BillingPeriod::Lifetime => 0.0,
         };
+    }
+
+    /**
+     * The order's amount in USD: CNY domestic revenue converts at the
+     * admin-configurable `fx.cny_to_usd` rate (SPEC §7.5, §8.7), rounded to
+     * cents so mixed-currency sums stay clean; other currencies pass
+     * through (all Paddle orders are USD).
+     */
+    private function usdAmount(Order $order): float
+    {
+        $amount = (float) $order->amount;
+
+        if (strtoupper((string) $order->currency) !== 'CNY') {
+            return $amount;
+        }
+
+        return round($amount * (float) $this->settings->get('fx.cny_to_usd'), 2);
     }
 }

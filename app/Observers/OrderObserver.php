@@ -5,6 +5,7 @@ namespace App\Observers;
 use App\Enums\OrderStatus;
 use App\Models\Admin;
 use App\Models\Order;
+use App\Notifications\DomesticPaymentConfirmedNotification;
 use App\Notifications\OrderStatusChanged;
 use App\Notifications\WelcomeToProNotification;
 use Illuminate\Support\Facades\Notification;
@@ -38,10 +39,18 @@ class OrderObserver
         if ($order->user) {
             $order->user->notify(new OrderStatusChanged($order, $previousValue));
 
-            // Order-paid welcome mail (SPEC §16.1) — the single send point for
-            // activation, so webhook and admin activations can't double-send.
+            // Order-paid mail (SPEC §16.1) — the single send point for
+            // activation, so webhook/notify and admin activations can't
+            // double-send. The two §16.1 rows stay distinct: Paddle (MoR)
+            // emails its own receipts, so Paddle buyers get the EN
+            // welcome/license summary, while domestic buyers get the zh
+            // payment-confirmed + access-unlocked mail INSTEAD — we are
+            // their only payment confirmation. Exactly one of the two per
+            // activation, never both.
             if ($order->status === OrderStatus::Active) {
-                $order->user->notify(new WelcomeToProNotification($order));
+                $order->user->notify($order->isDomestic()
+                    ? new DomesticPaymentConfirmedNotification($order)
+                    : new WelcomeToProNotification($order));
             }
         }
 

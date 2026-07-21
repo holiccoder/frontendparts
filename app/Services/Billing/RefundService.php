@@ -8,10 +8,14 @@ use App\Notifications\RefundProcessedNotification;
 use App\Support\Settings;
 
 /**
- * Refunds paid orders through Paddle, honoring the settings-driven refund
- * window (SPEC §7.3: 14 days, admin-editable via `billing.refund_window_days`,
- * §8.7). A successful refund flips the order to Refunded — which revokes
- * entitlement — and queues the refund-processed email (SPEC §16.1).
+ * Refunds paid orders through the provider that collected them (SPEC §7.3,
+ * §7.5), honoring the settings-driven refund window (14 days,
+ * admin-editable via `billing.refund_window_days`, §8.7). Paddle orders go
+ * through Paddle's adjustments API; domestic (Alipay / WeChat Pay, CNY)
+ * orders go through the DomesticGateway seam's provider refund. A
+ * successful refund flips the order to Refunded — which revokes
+ * entitlement — and queues the refund-processed email (SPEC §16.1; zh for
+ * domestic buyers per the §16.3 domestic convention).
  */
 class RefundService
 {
@@ -28,12 +32,14 @@ class RefundService
 
     public function __construct(
         private readonly PaddleGateway $gateway = new PaddleGateway,
+        private readonly DomesticGateway $domesticGateway = new DomesticGateway,
         private readonly Settings $settings = new Settings,
     ) {}
 
     /**
-     * Whether the order can currently be refunded: paid, linked to a Paddle
-     * transaction, and still inside the refund window.
+     * Whether the order can currently be refunded: paid, carrying the
+     * provider reference its rail refunds by, and still inside the refund
+     * window.
      */
     public function refundable(Order $order): bool
     {
@@ -41,7 +47,7 @@ class RefundService
             return false;
         }
 
-        if ($order->paddle_transaction_id === null) {
+        if (! $this->hasProviderReference($order)) {
             return false;
         }
 
@@ -66,7 +72,7 @@ class RefundService
     }
 
     /**
-     * Refund the order in full via Paddle and mark it Refunded.
+     * Refund the order in full via its provider and mark it Refunded.
      *
      * @throws RefundNotAllowedException When the order is not refundable.
      */
@@ -79,7 +85,16 @@ class RefundService
             );
         }
 
-        $this->gateway->refund($order->paddle_transaction_id, $reason);
+        if ($order->isDomestic()) {
+            $this->domesticGateway->refund(
+                $order->domestic_channel,
+                $order,
+                $reason,
+                self::outRefundNoFor($order),
+            );
+        } else {
+            $this->gateway->refund($order->paddle_transaction_id, $reason);
+        }
 
         $order->update(['status' => OrderStatus::Refunded]);
 
@@ -87,5 +102,26 @@ class RefundService
         $order->user?->notify(new RefundProcessedNotification($order));
 
         return $order;
+    }
+
+    /**
+     * The reference each rail needs for a refund: a Paddle transaction id,
+     * or the domestic channel + out_trade_no both domestic rails refund by.
+     */
+    private function hasProviderReference(Order $order): bool
+    {
+        return $order->isDomestic()
+            ? $order->out_trade_no !== null && $order->domestic_channel !== null
+            : $order->paddle_transaction_id !== null;
+    }
+
+    /**
+     * The refund reference WeChat Pay requires (Alipay refunds key off
+     * out_trade_no alone): unique per refund attempt, ASCII, ≤ 64 chars —
+     * the same shape as DomesticGateway::outTradeNoFor.
+     */
+    private static function outRefundNoFor(Order $order): string
+    {
+        return sprintf('fpr%d%s', $order->id, bin2hex(random_bytes(6)));
     }
 }

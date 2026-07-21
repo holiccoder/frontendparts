@@ -7,6 +7,7 @@ use App\Services\Sequences\DunningSequence;
 use App\Services\Sequences\FreeOnboardingSequence;
 use App\Services\Sequences\NewDropsDigestSequence;
 use App\Services\Sequences\PaidOnboardingSequence;
+use App\Services\Sequences\RenewalReminderSequence;
 use App\Services\Sequences\SequenceRegistry;
 use App\Services\Sequences\UpgradeTriggerSequence;
 use App\Support\Settings;
@@ -23,13 +24,14 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->app->singleton(Settings::class);
 
-        // Lifecycle sequences (SPEC §16.2) — one entry per sequence; B5, B8
-        // register here when implemented.
+        // Lifecycle sequences (SPEC §16.2) — one entry per sequence; B8
+        // registers here when implemented.
         $this->app->singleton(SequenceRegistry::class, fn (Application $app): SequenceRegistry => new SequenceRegistry([
             $app->make(FreeOnboardingSequence::class),
             $app->make(UpgradeTriggerSequence::class),
             $app->make(PaidOnboardingSequence::class),
             $app->make(NewDropsDigestSequence::class),
+            $app->make(RenewalReminderSequence::class),
             $app->make(DunningSequence::class),
             $app->make(CancelFollowupSequence::class),
         ]));

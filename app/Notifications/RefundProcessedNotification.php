@@ -11,8 +11,11 @@ use Illuminate\Notifications\Notification;
 
 /**
  * Refund-processed mail (SPEC §16.1): confirms the refund was handed to
- * Paddle and that library access has ended. Payment records stay with
- * Paddle (merchant of record).
+ * the provider that collected the payment (Paddle adjustments API for
+ * international, Alipay/WeChat refund APIs for domestic, SPEC §7.5) and
+ * that library access has ended. Paddle payment records stay with Paddle
+ * (merchant of record). Domestic buyers get the zh template (SPEC §16.3);
+ * everyone else stays in the app locale.
  */
 class RefundProcessedNotification extends Notification implements ShouldQueue
 {
@@ -20,19 +23,24 @@ class RefundProcessedNotification extends Notification implements ShouldQueue
 
     public function __construct(
         public Order $order,
-    ) {}
+    ) {
+        $this->locale = $this->order->isDomestic() ? 'zh' : null;
+    }
 
     public function toMail(object $notifiable): MailMessage
     {
-        $plan = ucfirst($this->order->plan->value);
         $amount = trim($this->order->amount.' '.strtoupper($this->order->currency));
 
         return (new MailMessage)
-            ->subject('Your refund has been processed')
-            ->greeting("Hi {$notifiable->name},")
-            ->line("We've processed the refund for your {$plan} order (#{$this->order->id}) — {$amount} is on its way back to your original payment method.")
-            ->line('Your library access has ended; any code you previously downloaded remains yours to use under the license terms.')
-            ->action('Browse the free library', route('components.index'));
+            ->subject(__('Your refund has been processed'))
+            ->greeting(__('Hi :name,', ['name' => $notifiable->name]))
+            ->line(__("We've processed the refund for your :plan order (#:id) — :amount is on its way back to your original payment method.", [
+                'plan' => ucfirst($this->order->plan->value),
+                'id' => (string) $this->order->id,
+                'amount' => $amount,
+            ]))
+            ->line(__('Your library access has ended; any code you previously downloaded remains yours to use under the license terms.'))
+            ->action(__('Browse the free library'), route('components.index'));
     }
 
     /**
@@ -41,8 +49,8 @@ class RefundProcessedNotification extends Notification implements ShouldQueue
     public function toDatabase(object $notifiable): array
     {
         return FilamentNotification::make()
-            ->title('Refund processed')
-            ->body("Order #{$this->order->id} was refunded.")
+            ->title(__('Refund processed'))
+            ->body(__('Order #:id was refunded.', ['id' => (string) $this->order->id]))
             ->icon('heroicon-o-arrow-uturn-left')
             ->getDatabaseMessage();
     }

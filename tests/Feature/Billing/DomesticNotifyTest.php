@@ -11,6 +11,7 @@ use App\Enums\PlanProvider;
 use App\Models\DomesticEvent;
 use App\Models\Order;
 use App\Models\User;
+use App\Notifications\DomesticPaymentConfirmedNotification;
 use App\Notifications\WelcomeToProNotification;
 use App\Services\Billing\DomesticGateway;
 use App\Services\Billing\DomesticTradeResult;
@@ -65,10 +66,15 @@ class DomesticNotifyTest extends TestCase
         // the shared state machine.
         $this->assertSame(OrderPlan::Pro, app(EntitlementService::class)->for($order->user)->plan());
 
-        // OrderObserver side effects fire for domestic orders too: the
-        // order-paid welcome mail went out exactly once.
+        // OrderObserver side effects fire for domestic orders too: the zh
+        // payment-confirmed + access-unlocked mail (SPEC §16.1) went out
+        // exactly once — INSTEAD of the Paddle-oriented welcome mail.
         $this->assertSame(
             1,
+            Notification::sent($order->user, DomesticPaymentConfirmedNotification::class)->count(),
+        );
+        $this->assertSame(
+            0,
             Notification::sent($order->user, WelcomeToProNotification::class)->count(),
         );
 
@@ -120,6 +126,10 @@ class DomesticNotifyTest extends TestCase
 
         $this->assertSame(
             1,
+            Notification::sent($order->user, DomesticPaymentConfirmedNotification::class)->count(),
+        );
+        $this->assertSame(
+            0,
             Notification::sent($order->user, WelcomeToProNotification::class)->count(),
         );
     }
@@ -148,7 +158,7 @@ class DomesticNotifyTest extends TestCase
         $this->assertSame(0, DomesticEvent::count());
         $this->assertSame(
             0,
-            Notification::sent($order->user, WelcomeToProNotification::class)->count(),
+            Notification::sent($order->user, DomesticPaymentConfirmedNotification::class)->count(),
         );
     }
 
@@ -195,6 +205,10 @@ class DomesticNotifyTest extends TestCase
 
         $this->assertSame(
             1,
+            Notification::sent($order->user, DomesticPaymentConfirmedNotification::class)->count(),
+        );
+        $this->assertSame(
+            0,
             Notification::sent($order->user, WelcomeToProNotification::class)->count(),
         );
     }
@@ -225,10 +239,10 @@ class DomesticNotifyTest extends TestCase
         $this->assertSame(1, DomesticEvent::count());
         $this->assertTrue($order->refresh()->starts_at->equalTo($startsAt));
 
-        // The welcome mail went out exactly once.
+        // The payment-confirmed mail went out exactly once despite the replay.
         $this->assertSame(
             1,
-            Notification::sent($order->user, WelcomeToProNotification::class)->count(),
+            Notification::sent($order->user, DomesticPaymentConfirmedNotification::class)->count(),
         );
     }
 
