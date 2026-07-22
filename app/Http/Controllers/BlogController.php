@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Resources\ComponentCardResource;
 use App\Models\Blog;
 use App\Models\BlogCategory;
 use App\Services\Blog\PostContent;
@@ -35,12 +34,14 @@ class BlogController extends Controller
             ->withQueryString()
             ->through(fn (Blog $post): array => $this->card($post));
 
+        $appName = config('app.name');
+
         return Inertia::render('blog/index', [
             'posts' => $this->paginatedCards($posts),
             'categories' => $this->categoryList(),
             'meta' => [
-                'title' => 'Blog — FrontendParts',
-                'description' => 'Design teardowns and industry × usage keyword articles, recreated as production-ready React & Vue components.',
+                'title' => "Blog — {$appName}",
+                'description' => "Articles, guides and product updates from the {$appName} team.",
                 'canonical' => route('blog.index'),
                 'og_image' => URL::to('/brand/logo.png'),
             ],
@@ -68,9 +69,9 @@ class BlogController extends Controller
             'posts' => $this->paginatedCards($posts),
             'categories' => $this->categoryList(),
             'meta' => [
-                'title' => "{$category->name} — FrontendParts Blog",
+                'title' => "{$category->name} — ".config('app.name').' Blog',
                 'description' => $category->description
-                    ?: "Articles about {$category->name} on the FrontendParts blog.",
+                    ?: "Articles about {$category->name} on the ".config('app.name').' blog.',
                 'canonical' => route('blog.category', ['slug' => $category->slug]),
                 'og_image' => URL::to('/brand/logo.png'),
             ],
@@ -86,12 +87,6 @@ class BlogController extends Controller
             ->firstOrFail();
 
         ['html' => $html, 'toc' => $toc] = $this->content->render($post->body);
-
-        $relatedComponents = $post->relatedComponents()
-            ->published()
-            ->with('usageCategory')
-            ->limit(6)
-            ->get();
 
         $description = $post->meta_description
             ?: ($post->excerpt ?: Str::limit(trim(strip_tags($post->body)), 160));
@@ -113,7 +108,6 @@ class BlogController extends Controller
                 'updated_at_iso' => $post->updated_at?->toIso8601String(),
             ],
             'relatedPosts' => $this->relatedPosts($post),
-            'relatedComponents' => ComponentCardResource::collection($relatedComponents)->resolve(request()),
             'jsonLd' => [
                 '@context' => 'https://schema.org',
                 '@type' => 'Article',
@@ -124,16 +118,16 @@ class BlogController extends Controller
                 'dateModified' => $post->updated_at?->toIso8601String(),
                 'author' => [
                     '@type' => 'Person',
-                    'name' => $post->author?->name ?? 'FrontendParts',
+                    'name' => $post->author?->name ?? config('app.name'),
                 ],
                 'publisher' => [
                     '@type' => 'Organization',
-                    'name' => 'FrontendParts',
+                    'name' => config('app.name'),
                 ],
                 'mainEntityOfPage' => $canonical,
             ],
             'meta' => [
-                'title' => $post->meta_title ?: "{$post->title} — FrontendParts Blog",
+                'title' => $post->meta_title ?: "{$post->title} — ".config('app.name').' Blog',
                 'description' => $description,
                 'canonical' => $canonical,
                 'og_image' => $ogImage,

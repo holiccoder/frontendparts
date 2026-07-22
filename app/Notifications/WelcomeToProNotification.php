@@ -27,18 +27,19 @@ class WelcomeToProNotification extends Notification implements ShouldQueue
     public function toMail(object $notifiable): MailMessage
     {
         $plan = ucfirst($this->order->plan->value);
+        $appName = config('app.name');
 
         return (new MailMessage)
-            ->subject("Welcome to FrontendParts {$plan}")
+            ->subject("Welcome to {$appName} {$plan}")
             ->greeting("Hi {$notifiable->name},")
-            ->line("Your {$plan} license is now active — the full component library, in both React and Vue, is unlocked for you.")
-            ->line('**Your license**')
+            ->line("Your {$plan} plan is now active — everything it includes is unlocked for you.")
+            ->line('**Your plan**')
             ->line("- Plan: {$plan} ({$this->periodLabel()})")
-            ->line('- Usage: unlimited personal and commercial projects, including client work')
+            ->line('- Usage: unlimited personal and commercial use, including client work')
             ->line("- Access: {$this->accessLabel()}")
             ->line('**First steps**')
-            ->line('- [Browse the library]('.route('components.index').') — copy or download any component')
-            ->line('- [Open your dashboard]('.route('dashboard').') to start a project and export your first pack');
+            ->line('- [Open your dashboard]('.route('dashboard').') to get started')
+            ->line('- [Manage your orders]('.route('dashboard.orders.index').') to see renewal dates and plan status');
     }
 
     /**
@@ -49,8 +50,8 @@ class WelcomeToProNotification extends Notification implements ShouldQueue
         $plan = ucfirst($this->order->plan->value);
 
         return FilamentNotification::make()
-            ->title("Welcome to FrontendParts {$plan}")
-            ->body("Your {$plan} license is active — the full library is unlocked.")
+            ->title('Welcome to '.config('app.name')." {$plan}")
+            ->body("Your {$plan} plan is active — everything it includes is unlocked.")
             ->icon('heroicon-o-sparkles')
             ->getDatabaseMessage();
     }

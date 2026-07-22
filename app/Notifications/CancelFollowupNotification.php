@@ -67,9 +67,9 @@ class CancelFollowupNotification extends Notification implements MarketingNotifi
     private function subject(): string
     {
         return match ($this->step) {
-            'day-7' => 'Your library access has ended — want it back?',
-            'day-30' => 'What you missed this month at FrontendParts',
-            default => 'FrontendParts',
+            'day-7' => 'Your access has ended — want it back?',
+            'day-30' => 'What you missed this month at '.config('app.name'),
+            default => config('app.name'),
         };
     }
 
@@ -81,16 +81,14 @@ class CancelFollowupNotification extends Notification implements MarketingNotifi
         $plan = ucfirst($this->order->plan->value);
 
         return match ($this->step) {
-            // Day 7 — reactivation (SPEC §16.2).
+            // Day 7 — reactivation.
             'day-7' => [
-                "Your {$plan} subscription ended a week ago and the full library is locked again.",
-                'Reactivate now and pick up exactly where you left off — your projects and packs are still here.',
+                "Your {$plan} subscription ended a week ago and your access is locked again.",
+                'Reactivate now and pick up exactly where you left off — your account and data are still here.',
             ],
-            // Day 30 — win-back (SPEC §16.2).
+            // Day 30 — win-back.
             'day-30' => [
-                'It has been a month since you cancelled. Since then the library has kept growing:',
-                '- New components drop every week, in both React and Vue',
-                '- Pro subscribers get every new drop the day it lands',
+                'It has been a month since you cancelled — and the product has kept improving since then.',
                 'Come back and see what is new — reactivation takes less than a minute.',
             ],
             default => ['We would love to have you back.'],
@@ -102,7 +100,7 @@ class CancelFollowupNotification extends Notification implements MarketingNotifi
         return match ($this->step) {
             'day-7' => 'Reactivate my subscription',
             'day-30' => 'Reactivate and catch up',
-            default => 'Open FrontendParts',
+            default => 'Open '.config('app.name'),
         };
     }
 

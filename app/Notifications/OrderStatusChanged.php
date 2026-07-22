@@ -36,7 +36,7 @@ class OrderStatusChanged extends Notification
                 $this->order->status->value,
             ))
             ->action('View order', url('/admin/orders/'.$this->order->id))
-            ->line('Thank you for using FrontendParts.');
+            ->line('Thank you for using '.config('app.name').'.');
     }
 
     /**

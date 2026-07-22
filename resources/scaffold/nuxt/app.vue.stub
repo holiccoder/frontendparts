@@ -1,9 +1,0 @@
-<script setup lang="ts">
-useHead({
-    title: '{{ project_name }}',
-});
-</script>
-
-<template>
-    <NuxtPage />
-</template>

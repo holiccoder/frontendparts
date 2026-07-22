@@ -82,13 +82,6 @@ class BlogForm
                             ->alphaDash()
                             ->unique('blog_tags', 'slug'),
                     ]),
-                Select::make('relatedComponents')
-                    ->label('Related components')
-                    ->relationship('relatedComponents', 'name')
-                    ->multiple()
-                    ->searchable()
-                    ->preload()
-                    ->helperText('Catalog components cross-linked at the end of the article.'),
                 TextInput::make('meta_title')
                     ->maxLength(255)
                     ->helperText('Defaults to the post title when empty.'),

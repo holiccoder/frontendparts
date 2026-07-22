@@ -61,9 +61,9 @@ class PaidOnboardingNotification extends Notification implements MarketingNotifi
     private function subject(): string
     {
         return match ($this->step) {
-            'day-3' => 'Get the most from your license: scaffolding & workflow tips',
-            'day-7' => 'How is FrontendParts working for you?',
-            default => 'FrontendParts',
+            'day-3' => 'Get the most from your plan: tips & workflow',
+            'day-7' => 'How is '.config('app.name').' working for you?',
+            default => config('app.name'),
         };
     }
 
@@ -73,19 +73,19 @@ class PaidOnboardingNotification extends Notification implements MarketingNotifi
     private function lines(): array
     {
         return match ($this->step) {
-            // Day 3 — scaffolding/GitHub tips (SPEC §16.2).
+            // Day 3 — tips.
             'day-3' => [
-                'A few ways to move faster with your license:',
-                '- Export whole packs from a project instead of copying components one by one',
-                '- Pro licenses can scaffold straight into a Next.js or Nuxt app from the dashboard',
-                '- Every component ships typed props and the same code in React and Vue — pick per project, not per purchase',
+                'A few ways to move faster with your plan:',
+                '- Explore every feature your plan unlocks from the dashboard',
+                '- The docs cover setup, billing and common questions',
+                '- Manage orders, receipts and renewal dates under Dashboard → Orders',
             ],
-            // Day 7 — feedback ask (SPEC §16.2).
+            // Day 7 — feedback ask.
             'day-7' => [
-                'You have had a week with the full library — what is working, and what is missing?',
-                'Feature requests go straight to the roadmap, and billing or license questions land with a human. Either way, a support ticket is the fastest route.',
+                'You have had a week with your plan — what is working, and what is missing?',
+                'Feature requests go straight to the roadmap, and billing questions land with a human. Either way, a support ticket is the fastest route.',
             ],
-            default => ['Tips and updates from FrontendParts.'],
+            default => ['Tips and updates from '.config('app.name').'.'],
         };
     }
 
@@ -94,7 +94,7 @@ class PaidOnboardingNotification extends Notification implements MarketingNotifi
         return match ($this->step) {
             'day-3' => 'Read the docs',
             'day-7' => 'Share feedback',
-            default => 'Open FrontendParts',
+            default => 'Open '.config('app.name'),
         };
     }
 

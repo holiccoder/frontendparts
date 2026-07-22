@@ -3,10 +3,8 @@
 namespace App\Services\Admin;
 
 use App\Enums\BillingPeriod;
-use App\Enums\ComponentStatus;
 use App\Enums\OrderPlan;
 use App\Enums\OrderStatus;
-use App\Models\Component;
 use App\Models\Order;
 use App\Models\User;
 use App\Support\Settings;
@@ -92,14 +90,6 @@ class RevenueStats
     public function activeSubscribers(): int
     {
         return $this->contributingOrders()->pluck('user_id')->unique()->count();
-    }
-
-    /**
-     * Components sitting in the review queue.
-     */
-    public function awaitingReview(): int
-    {
-        return Component::query()->where('status', ComponentStatus::InReview)->count();
     }
 
     /**

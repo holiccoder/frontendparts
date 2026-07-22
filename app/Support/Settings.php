@@ -9,30 +9,13 @@ use InvalidArgumentException;
 class Settings
 {
     /**
-     * Registered keys with their typed defaults (SPEC §8.7).
+     * Registered keys with their typed defaults.
      * `null` means "no value / unlimited" for that key.
      *
      * @var array<string, mixed>
      */
     private const DEFAULTS = [
-        'plans.project_limit.free' => 1,
-        'plans.project_limit.starter' => 3,
-        'plans.project_limit.pro' => null,
-        'plans.project_limit.team' => null,
         'billing.refund_window_days' => 14,
-        'features.preview_dark_toggle' => true,
-        'features.tree_interactions' => true,
-        'features.live_edit' => false,
-        'features.ai_search' => false,
-        'features.ai_variants' => false,
-        'goals.launch_component_target' => 100,
-        'goals.components_per_month' => 20,
-        'goals.organic_visits_monthly' => 10000,
-        'goals.signup_conversion_pct' => 5,
-        'goals.paid_conversion_pct_min' => 3,
-        'goals.paid_conversion_pct_max' => 5,
-        'goals.churn_max_pct' => 5,
-        'goals.mrr_target_usd' => 2000,
         'fx.cny_to_usd' => 0.14,
         'affiliate.commission_rate' => 30,
         'affiliate.cookie_days' => 30,

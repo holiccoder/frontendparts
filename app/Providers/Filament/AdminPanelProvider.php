@@ -53,7 +53,6 @@ class AdminPanelProvider extends PanelProvider
                 LatestOrdersWidget::class,
             ])
             ->navigationGroups([
-                'Library',
                 'Manage',
                 'System',
             ])

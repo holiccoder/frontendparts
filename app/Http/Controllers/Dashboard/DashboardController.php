@@ -2,14 +2,9 @@
 
 namespace App\Http\Controllers\Dashboard;
 
-use App\Enums\ComponentEventType;
 use App\Enums\LicenseState;
 use App\Http\Controllers\Controller;
-use App\Http\Resources\ComponentCardResource;
-use App\Models\Component;
-use App\Models\ComponentEvent;
 use App\Models\Order;
-use App\Models\Project;
 use App\Services\Billing\Entitlement;
 use App\Services\Billing\EntitlementService;
 use Illuminate\Http\Request;
@@ -17,10 +12,9 @@ use Inertia\Inertia;
 use Inertia\Response;
 
 /**
- * Dashboard overview (SPEC §15.4, CSR): plan status from the entitlement,
- * the user's projects with usage against the plan limit, their recent
- * downloads from component events, and the newest published drops (same
- * query as the catalog home page's latest drops).
+ * Dashboard overview (CSR): plan status from the entitlement plus an
+ * orders summary — the chassis home for a signed-in user. New products
+ * add their own widgets here.
  */
 class DashboardController extends Controller
 {
@@ -35,49 +29,24 @@ class DashboardController extends Controller
             ->orderByDesc('id')
             ->first();
 
-        $projects = $user->projects()
-            ->withCount('components')
-            ->latest()
-            ->limit(4)
-            ->get()
-            ->map(fn (Project $project): array => [
-                'id' => $project->id,
-                'name' => $project->name,
-                'components_count' => $project->components_count,
-                'url' => route('dashboard.projects.show', $project),
-            ]);
-
-        $recentDownloads = ComponentEvent::query()
-            ->where('user_id', $user->id)
-            ->where('type', ComponentEventType::Download)
-            ->with('component.usageCategory')
+        $recentOrders = $user->orders()
             ->orderByDesc('created_at')
             ->orderByDesc('id')
-            ->limit(6)
+            ->limit(5)
             ->get()
-            ->map(fn (ComponentEvent $event): array => [
-                'id' => $event->id,
-                'downloaded_at' => $event->created_at->toIso8601String(),
-                'component' => [
-                    'name' => $event->component->name,
-                    'url' => $event->component->publicUrl(),
-                ],
+            ->map(fn (Order $order): array => [
+                'id' => $order->id,
+                'plan' => $order->plan->value,
+                'status' => $order->status->value,
+                'amount' => $order->amount,
+                'currency' => $order->currency,
+                'created_at' => $order->created_at->toIso8601String(),
             ]);
-
-        $newDrops = Component::query()
-            ->published()
-            ->with('usageCategory')
-            ->orderByDesc('created_at')
-            ->orderByDesc('id')
-            ->limit(6)
-            ->get();
 
         return Inertia::render('dashboard', [
             'plan' => [
                 'name' => $entitlement->plan()->value,
                 'is_paid' => $entitlement->isPaid(),
-                'has_full_library' => $entitlement->hasFullLibrary(),
-                'can_scaffold' => $entitlement->canScaffold(),
                 'license' => $license === null ? null : [
                     'state' => $license->licenseState()->value,
                     'status' => $license->status->value,
@@ -86,14 +55,11 @@ class DashboardController extends Controller
                 ],
                 'cta' => $this->cta($entitlement, $license),
             ],
-            'projects' => [
-                'items' => $projects,
-                'total' => $user->projects()->count(),
-                'limit' => $entitlement->projectLimit(),
-                'index_url' => route('dashboard.projects.index'),
+            'orders' => [
+                'items' => $recentOrders,
+                'total' => $user->orders()->count(),
+                'index_url' => route('dashboard.orders.index'),
             ],
-            'recentDownloads' => $recentDownloads,
-            'newDrops' => ComponentCardResource::collection($newDrops)->resolve($request),
         ]);
     }
 
@@ -109,7 +75,7 @@ class DashboardController extends Controller
         if (! $entitlement->isPaid()) {
             return [
                 'kind' => 'upgrade',
-                'label' => 'Upgrade to unlock the full library',
+                'label' => 'Upgrade to a paid plan',
                 'url' => route('pricing'),
             ];
         }
@@ -125,7 +91,7 @@ class DashboardController extends Controller
         if ($license?->licenseState() === LicenseState::CancelledValidUntil) {
             return [
                 'kind' => 'renew',
-                'label' => 'Renew to keep library access',
+                'label' => 'Renew to keep your access',
                 'url' => route('pricing'),
             ];
         }

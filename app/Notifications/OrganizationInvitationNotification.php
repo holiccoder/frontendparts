@@ -40,12 +40,13 @@ class OrganizationInvitationNotification extends Notification implements ShouldQ
     {
         $organization = $this->invitation->organization;
         $inviter = $this->invitation->inviter;
+        $appName = config('app.name');
 
         return (new MailMessage)
-            ->subject("{$inviter->name} invited you to join {$organization->name} on FrontendParts")
+            ->subject("{$inviter->name} invited you to join {$organization->name} on {$appName}")
             ->greeting('Hi there,')
-            ->line("{$inviter->name} invited you to join the **{$organization->name}** team on FrontendParts.")
-            ->line('As a team member you get the full component library in React and Vue, project scaffolding and exports — covered by the team license.')
+            ->line("{$inviter->name} invited you to join the **{$organization->name}** team on {$appName}.")
+            ->line('As a team member you get everything the team plan includes — covered by the team subscription.')
             ->action('Accept invitation', $this->invitation->acceptUrl())
             ->line('If you were not expecting this invitation, you can ignore this email.');
     }

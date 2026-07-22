@@ -13,7 +13,7 @@ use App\Models\User;
  * win-back, …) must consult this service instead of reading
  * users.notification_preferences directly.
  *
- * Storage: JSON column on users (same convention as preview_layout); null
+ * Storage: JSON column on users (nullable JSON); null
  * means defaults — opted in to everything with a weekly digest.
  * Transactional mail (order, ticket, security, receipts) is mandatory:
  * it is not stored, cannot be disabled, and allows() always returns true

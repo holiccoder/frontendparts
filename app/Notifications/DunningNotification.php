@@ -63,15 +63,15 @@ class DunningNotification extends Notification implements ShouldQueue
         return match ($this->step) {
             'touch-1' => 'Your payment failed — we will retry shortly',
             'touch-2' => 'Your payment is still failing',
-            'touch-3' => 'Action needed: your library access is at risk',
+            'touch-3' => 'Action needed: your access is at risk',
             'touch-4' => 'Final reminder: update your payment method',
-            'touch-5' => 'Last chance to keep your FrontendParts access',
+            'touch-5' => 'Last chance to keep your '.config('app.name').' access',
             default => 'Payment issue with your subscription',
         };
     }
 
     /**
-     * Escalating urgency across the 15-day schedule (SPEC §16.2).
+     * Escalating urgency across the 15-day schedule.
      *
      * @return list<string>
      */
@@ -89,12 +89,12 @@ class DunningNotification extends Notification implements ShouldQueue
                 'Please update your payment method so we can settle the balance on the next retry.',
             ],
             'touch-3' => [
-                "Your {$plan} subscription has an outstanding failed payment and your library access is at risk.",
-                'Update your payment method today to keep unlimited access to the full component library.',
+                "Your {$plan} subscription has an outstanding failed payment and your access is at risk.",
+                'Update your payment method today to keep everything your plan unlocks.',
             ],
             'touch-4' => [
                 "This is a final reminder that the payment for your {$plan} subscription is still outstanding.",
-                'If the balance is not settled, your access to the Pro library will end when the grace period closes.',
+                'If the balance is not settled, your paid access will end when the grace period closes.',
             ],
             'touch-5' => [
                 "Your {$plan} subscription is about to lose access: the payment could not be collected within the grace period.",

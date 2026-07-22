@@ -67,18 +67,17 @@ class RenewalReminderNotification extends Notification implements ShouldQueue
     private function subject(): string
     {
         return match ($this->step) {
-            't-minus-7' => __('Your FrontendParts subscription expires in 7 days'),
-            't-minus-3' => __('Your FrontendParts subscription expires in 3 days'),
-            't-minus-1' => __('Your FrontendParts subscription expires tomorrow'),
-            'expired-plus-1' => __('Your FrontendParts subscription has expired'),
-            'expired-plus-7' => __('Last call: renew your FrontendParts subscription'),
-            default => __('Your FrontendParts subscription renewal'),
+            't-minus-7' => __('Your :app subscription expires in 7 days', ['app' => config('app.name')]),
+            't-minus-3' => __('Your :app subscription expires in 3 days', ['app' => config('app.name')]),
+            't-minus-1' => __('Your :app subscription expires tomorrow', ['app' => config('app.name')]),
+            'expired-plus-1' => __('Your :app subscription has expired', ['app' => config('app.name')]),
+            'expired-plus-7' => __('Last call: renew your :app subscription', ['app' => config('app.name')]),
+            default => __('Your :app subscription renewal', ['app' => config('app.name')]),
         };
     }
 
     /**
-     * Anchoring line (expiry date) + escalating nudge across the schedule
-     * (SPEC §16.2).
+     * Anchoring line (expiry date) + escalating nudge across the schedule.
      *
      * @return list<string>
      */
@@ -90,9 +89,9 @@ class RenewalReminderNotification extends Notification implements ShouldQueue
 
         $nudge = match ($this->step) {
             't-minus-7' => __('Domestic subscriptions do not auto-renew — renew anytime before the expiry date to keep your access without interruption.'),
-            't-minus-3' => __('Only three days left — renew now so your library access continues without a gap.'),
+            't-minus-3' => __('Only three days left — renew now so your access continues without a gap.'),
             't-minus-1' => __('Your access pauses tomorrow unless the subscription is renewed — it only takes a minute to scan the QR code again.'),
-            'expired-plus-1' => __('Your library access is on hold — renew to unlock the full component library again immediately.'),
+            'expired-plus-1' => __('Your access is on hold — renew to unlock everything your plan includes again immediately.'),
             'expired-plus-7' => __('Your subscription expired a week ago — renew now to pick up right where you left off.'),
             default => __('Renew anytime to keep your access without interruption.'),
         };

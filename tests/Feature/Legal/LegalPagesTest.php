@@ -25,7 +25,7 @@ class LegalPagesTest extends TestCase
     private const PAGES = [
         '/terms' => 'Terms of Service',
         '/privacy' => 'Privacy Policy',
-        '/license' => 'Component License',
+        '/license' => 'License',
         '/refund-policy' => 'Refund Policy',
         '/cookie-policy' => 'Cookie Policy',
         '/copyright' => 'Copyright & Takedown Policy',

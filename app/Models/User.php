@@ -49,7 +49,6 @@ class User extends Authenticatable implements MustVerifyEmail
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
-            'preview_layout' => 'array',
             'notification_preferences' => 'array',
         ];
     }
@@ -78,11 +77,6 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(Organization::class, 'owner_user_id');
     }
 
-    public function projects(): HasMany
-    {
-        return $this->hasMany(Project::class);
-    }
-
     public function blogs(): HasMany
     {
         return $this->hasMany(Blog::class);
@@ -93,26 +87,13 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(SupportTicket::class);
     }
 
-    /**
-     * Community components the user submitted for inclusion (task 5.3).
-     */
-    public function componentSubmissions(): HasMany
-    {
-        return $this->hasMany(ComponentSubmission::class);
-    }
-
-    public function componentEvents(): HasMany
-    {
-        return $this->hasMany(ComponentEvent::class);
-    }
-
     public function sequenceSends(): HasMany
     {
         return $this->hasMany(SequenceSend::class);
     }
 
     /**
-     * The connected GitHub account used for repo exports (SPEC §6.4).
+     * The connected GitHub account (settings → connections).
      */
     public function githubConnection(): HasOne
     {

@@ -11,7 +11,6 @@ use App\Filament\Widgets\PlanMixChartWidget;
 use App\Filament\Widgets\RevenueStatsWidget;
 use App\Filament\Widgets\RevenueTrendChartWidget;
 use App\Models\Admin;
-use App\Models\Component;
 use App\Models\Order;
 use App\Models\User;
 use App\Services\Admin\RevenueStats;
@@ -135,11 +134,6 @@ class RevenueWidgetTest extends TestCase
         $this->paidOrder(OrderPlan::Pro, OrderStatus::Expired, BillingPeriod::Monthly, 19.00);
 
         $this->assertSame(3, app(RevenueStats::class)->activeSubscribers());
-
-        Component::factory()->count(2)->inReview()->create();
-        Component::factory()->draft()->create();
-
-        $this->assertSame(2, app(RevenueStats::class)->awaitingReview());
     }
 
     public function test_revenue_stats_widget_renders_kpis()
@@ -151,7 +145,6 @@ class RevenueWidgetTest extends TestCase
         User::factory()->create(['created_at' => now()->subDays(2)]);
         $this->paidOrder(OrderPlan::Starter, OrderStatus::Active, BillingPeriod::Monthly, 30.00, user: $buyer);
         $this->paidOrder(OrderPlan::Pro, OrderStatus::Active, BillingPeriod::Quarterly, 90.00, user: $buyer);
-        Component::factory()->inReview()->create();
 
         $this->actingAs($admin, 'admin');
 
@@ -160,9 +153,7 @@ class RevenueWidgetTest extends TestCase
             ->assertSee('+2 this week')
             ->assertSee('Active subscribers')
             ->assertSee('MRR')
-            ->assertSee('$60.00')
-            ->assertSee('Awaiting review')
-            ->assertSee('Needs attention');
+            ->assertSee('$60.00');
     }
 
     public function test_revenue_trend_chart_renders_service_data()

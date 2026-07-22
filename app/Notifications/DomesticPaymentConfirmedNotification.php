@@ -38,19 +38,19 @@ class DomesticPaymentConfirmedNotification extends Notification implements Shoul
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject(__('Payment confirmed — your FrontendParts access is unlocked'))
+            ->subject(__('Payment confirmed — your :app access is unlocked', ['app' => config('app.name')]))
             ->greeting(__('Hi :name,', ['name' => $notifiable->name]))
             ->line(__('We have received your :channel payment of ¥:amount (order #:id).', [
                 'channel' => $this->channelLabel(),
                 'amount' => (string) $this->order->amount,
                 'id' => (string) $this->order->id,
             ]))
-            ->line(__('Your :plan license (:period) is now active — the full component library, in both React and Vue, is unlocked for you.', [
+            ->line(__('Your :plan plan (:period) is now active — everything it includes is unlocked for you.', [
                 'plan' => ucfirst($this->order->plan->value),
                 'period' => $this->periodLabel(),
             ]))
             ->line($this->accessLine())
-            ->action(__('Start building'), route('dashboard'));
+            ->action(__('Open your dashboard'), route('dashboard'));
     }
 
     /**

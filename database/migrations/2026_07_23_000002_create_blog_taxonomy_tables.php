@@ -36,18 +36,10 @@ return new class extends Migration
 
             $table->primary(['blog_id', 'blog_tag_id']);
         });
-
-        Schema::create('blog_component', function (Blueprint $table) {
-            $table->foreignId('blog_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('component_id')->constrained()->cascadeOnDelete();
-
-            $table->primary(['blog_id', 'component_id']);
-        });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('blog_component');
         Schema::dropIfExists('blog_tag');
         Schema::dropIfExists('blog_category');
         Schema::dropIfExists('blog_tags');

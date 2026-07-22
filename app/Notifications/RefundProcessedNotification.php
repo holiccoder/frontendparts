@@ -13,7 +13,7 @@ use Illuminate\Notifications\Notification;
  * Refund-processed mail (SPEC §16.1): confirms the refund was handed to
  * the provider that collected the payment (Paddle adjustments API for
  * international, Alipay/WeChat refund APIs for domestic, SPEC §7.5) and
- * that library access has ended. Paddle payment records stay with Paddle
+ * that paid access has ended. Paddle payment records stay with Paddle
  * (merchant of record). Domestic buyers get the zh template (SPEC §16.3);
  * everyone else stays in the app locale.
  */
@@ -39,8 +39,8 @@ class RefundProcessedNotification extends Notification implements ShouldQueue
                 'id' => (string) $this->order->id,
                 'amount' => $amount,
             ]))
-            ->line(__('Your library access has ended; any code you previously downloaded remains yours to use under the license terms.'))
-            ->action(__('Browse the free library'), route('components.index'));
+            ->line(__('Your paid access has ended; anything you created stays in your account.'))
+            ->action(__('Back to pricing'), route('pricing'));
     }
 
     /**

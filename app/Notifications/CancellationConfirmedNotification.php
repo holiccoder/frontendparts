@@ -42,7 +42,7 @@ class CancellationConfirmedNotification extends Notification implements ShouldQu
             ->subject("Your {$plan} subscription is cancelled")
             ->greeting("Hi {$notifiable->name},")
             ->line("Your {$plan} subscription has been cancelled and will not renew.")
-            ->line("**Access until: {$accessUntil}** — the full library stays unlocked for you until then.")
+            ->line("**Access until: {$accessUntil}** — everything your plan includes stays unlocked for you until then.")
             ->line('Changed your mind? You can reactivate the same plan any time:')
             ->action('Reactivate my subscription', $this->reactivationUrl());
     }

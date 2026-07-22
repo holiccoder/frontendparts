@@ -31,7 +31,7 @@ class GithubConnectedNotification extends Notification implements ShouldQueue
         return (new MailMessage)
             ->subject('GitHub account connected')
             ->greeting("Hi {$notifiable->name},")
-            ->line("The GitHub account \"{$this->githubLogin}\" was connected to your FrontendParts account on {$this->connectedAt->toDayDateTimeString()}.")
+            ->line("The GitHub account \"{$this->githubLogin}\" was connected to your ".config('app.name')." account on {$this->connectedAt->toDayDateTimeString()}.")
             ->line('It can create repositories and push project exports to them. If you didn\'t connect it, disconnect it immediately to secure your account.')
             ->action('Review connections', route('connections.edit'));
     }

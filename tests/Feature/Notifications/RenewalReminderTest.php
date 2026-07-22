@@ -137,12 +137,14 @@ class RenewalReminderTest extends TestCase
 
         App::setLocale('zh');
 
+        $appName = config('app.name');
+
         $expectedSubjects = [
-            't-minus-7' => '您的 FrontendParts 订阅将于 7 天后到期',
-            't-minus-3' => '您的 FrontendParts 订阅将于 3 天后到期',
-            't-minus-1' => '您的 FrontendParts 订阅将于明天到期',
-            'expired-plus-1' => '您的 FrontendParts 订阅已到期',
-            'expired-plus-7' => '最后提醒：请续费您的 FrontendParts 订阅',
+            't-minus-7' => "您的 {$appName} 订阅将于 7 天后到期",
+            't-minus-3' => "您的 {$appName} 订阅将于 3 天后到期",
+            't-minus-1' => "您的 {$appName} 订阅将于明天到期",
+            'expired-plus-1' => "您的 {$appName} 订阅已到期",
+            'expired-plus-7' => "最后提醒：请续费您的 {$appName} 订阅",
         ];
 
         foreach ($expectedSubjects as $step => $subject) {
@@ -176,7 +178,7 @@ class RenewalReminderTest extends TestCase
 
         $confirmedMail = $confirmed->toMail($user);
 
-        $this->assertSame('支付成功——您的 FrontendParts 访问权限已开通', $confirmedMail->subject);
+        $this->assertSame('支付成功——您的 '.config('app.name').' 访问权限已开通', $confirmedMail->subject);
 
         $confirmedHtml = (string) $confirmedMail->render();
 
@@ -195,7 +197,7 @@ class RenewalReminderTest extends TestCase
 
         $enMail = (new RenewalReminderNotification('t-minus-7', $order))->toMail($user);
 
-        $this->assertSame('Your FrontendParts subscription expires in 7 days', $enMail->subject);
+        $this->assertSame('Your '.config('app.name').' subscription expires in 7 days', $enMail->subject);
     }
 
     public function test_payment_confirmed_email_queued()

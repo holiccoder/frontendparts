@@ -2,15 +2,9 @@
 
 namespace Tests\Feature\Security;
 
-use App\Enums\ProjectExportStatus;
-use App\Models\Category;
-use App\Models\Component;
-use App\Models\Project;
-use App\Models\ProjectExport;
 use App\Models\SupportTicket;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class RateLimitTest extends TestCase
@@ -53,21 +47,6 @@ class RateLimitTest extends TestCase
         ])->assertTooManyRequests();
     }
 
-    public function test_download_endpoint_throttled(): void
-    {
-        $usage = Category::factory()->usage()->create(['slug' => 'hero']);
-        Component::factory()->published()->free()->create([
-            'slug' => 'elements/limited-01',
-            'usage_category_id' => $usage->id,
-        ]);
-
-        for ($attempt = 0; $attempt < 10; $attempt++) {
-            $this->get('/components/hero/limited-01/download')->assertOk();
-        }
-
-        $this->get('/components/hero/limited-01/download')->assertTooManyRequests();
-    }
-
     public function test_ticket_creation_throttled(): void
     {
         $user = User::factory()->create();
@@ -105,49 +84,5 @@ class RateLimitTest extends TestCase
         $this->post("/dashboard/tickets/{$ticket->id}/messages", [
             'body' => 'This should be blocked.',
         ])->assertTooManyRequests();
-    }
-
-    public function test_project_export_throttled(): void
-    {
-        $user = User::factory()->create();
-        $project = Project::factory()->create(['user_id' => $user->id]);
-
-        $this->actingAs($user);
-
-        for ($attempt = 0; $attempt < 5; $attempt++) {
-            $this->post("/dashboard/projects/{$project->id}/export", [
-                'framework' => 'react',
-            ])->assertRedirect();
-        }
-
-        $this->post("/dashboard/projects/{$project->id}/export", [
-            'framework' => 'react',
-        ])->assertTooManyRequests();
-    }
-
-    public function test_project_export_download_throttled(): void
-    {
-        Storage::fake('exports');
-
-        $user = User::factory()->create();
-        $project = Project::factory()->create(['user_id' => $user->id]);
-        $export = ProjectExport::factory()->create([
-            'project_id' => $project->id,
-            'user_id' => $user->id,
-            'status' => ProjectExportStatus::Ready,
-            'path' => 'exports/test.zip',
-        ]);
-
-        Storage::disk('exports')->put('exports/test.zip', 'zip-content');
-
-        $this->actingAs($user);
-
-        for ($attempt = 0; $attempt < 30; $attempt++) {
-            $this->get("/dashboard/projects/{$project->id}/export/{$export->id}/download")
-                ->assertOk();
-        }
-
-        $this->get("/dashboard/projects/{$project->id}/export/{$export->id}/download")
-            ->assertTooManyRequests();
     }
 }

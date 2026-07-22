@@ -4,7 +4,6 @@ use App\Http\Controllers\Settings\BillingController;
 use App\Http\Controllers\Settings\ConnectionsController;
 use App\Http\Controllers\Settings\NotificationPreferenceController;
 use App\Http\Controllers\Settings\PasswordController;
-use App\Http\Controllers\Settings\PreviewLayoutController;
 use App\Http\Controllers\Settings\ProfileController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -47,8 +46,4 @@ Route::middleware('auth')->group(function () {
     Route::get('settings/connections/github/redirect', [ConnectionsController::class, 'redirect'])->name('connections.github.redirect');
     Route::get('settings/connections/github/callback', [ConnectionsController::class, 'callback'])->name('connections.github.callback');
     Route::delete('settings/connections/github', [ConnectionsController::class, 'destroy'])->name('connections.github.destroy');
-
-    Route::patch('settings/preview-layout', [PreviewLayoutController::class, 'update'])
-        ->middleware('verified')
-        ->name('settings.preview-layout');
 });

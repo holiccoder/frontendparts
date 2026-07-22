@@ -46,16 +46,13 @@ class HandleInertiaRequests extends Middleware
             'quote' => ['message' => trim($message), 'author' => trim($author)],
             'auth' => [
                 'user' => $request->user(),
-                // Preview-modal pane layout (SPEC §5.4); guests keep theirs
-                // in localStorage instead.
-                'preview_layout' => $request->user()?->preview_layout,
-                // Effective plan entitlements (SPEC §7.1); guests resolve to
-                // a Free entitlement, so this is always populated.
+                // Effective plan entitlements; guests resolve to a Free
+                // entitlement, so this is always populated.
                 'entitlements' => fn (): array => $this->entitlements($request),
             ],
-            // Footer legal links (SPEC §15.7): every public page's footer
-            // renders the full seven from the LegalPages registry, so the
-            // sitemap, routes and footer can never drift apart.
+            // Footer legal links: every public page's footer renders the full
+            // set from the LegalPages registry, so the sitemap, routes and
+            // footer can never drift apart.
             'legalNav' => fn (): array => app(LegalPages::class)->navigation(),
             // Shared explicitly so the SSR bundle (no @routes script) can
             // build Ziggy's route() helper from page props.
@@ -63,22 +60,22 @@ class HandleInertiaRequests extends Middleware
                 ...(new Ziggy)->toArray(),
                 'location' => $request->url(),
             ],
-            // One-shot user notices (e.g. project removal prune cascade,
-            // SPEC §6.1) flashed by dashboard-zone POST/DELETE endpoints.
+            // One-shot user notices flashed by dashboard-zone POST/DELETE
+            // endpoints.
             'flash' => [
                 'notice' => fn (): ?string => $request->session()->get('notice'),
-                // B7 cancel flow (SPEC §16.2): the reason-mapped save offer
-                // presented between the exit survey and confirmation.
+                // B7 cancel flow: the reason-mapped save offer presented
+                // between the exit survey and confirmation.
                 'save_offer' => fn (): ?array => $request->session()->get('save_offer'),
             ],
         ]);
     }
 
     /**
-     * Serializable shape of the user's Entitlement for the frontend
-     * (SPEC §7.1 feature matrix + §8.7 settings-driven project limit).
+     * Serializable shape of the user's Entitlement for the frontend. New
+     * products extend this with their own capability flags.
      *
-     * @return array{plan: string, is_paid: bool, has_full_library: bool, can_scaffold: bool, project_limit: int|null}
+     * @return array{plan: string, is_paid: bool}
      */
     private function entitlements(Request $request): array
     {
@@ -87,9 +84,6 @@ class HandleInertiaRequests extends Middleware
         return [
             'plan' => $entitlement->plan()->value,
             'is_paid' => $entitlement->isPaid(),
-            'has_full_library' => $entitlement->hasFullLibrary(),
-            'can_scaffold' => $entitlement->canScaffold(),
-            'project_limit' => $entitlement->projectLimit(),
         ];
     }
 }

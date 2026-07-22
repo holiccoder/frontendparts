@@ -11,19 +11,9 @@ use App\Http\Controllers\Billing\PricingController;
 use App\Http\Controllers\Billing\ReactivateOrderController;
 use App\Http\Controllers\BlogController;
 use App\Http\Controllers\BlogFeedController;
-use App\Http\Controllers\CatalogController;
-use App\Http\Controllers\CollectionController;
-use App\Http\Controllers\ComponentApiController;
-use App\Http\Controllers\ComponentController;
-use App\Http\Controllers\ComponentCopyController;
-use App\Http\Controllers\ComponentDownloadController;
-use App\Http\Controllers\ComponentEditDownloadController;
-use App\Http\Controllers\ComponentForkController;
-use App\Http\Controllers\ComponentPreviewController;
 use App\Http\Controllers\Dashboard\AffiliateController;
 use App\Http\Controllers\Dashboard\AffiliateJoinController;
 use App\Http\Controllers\Dashboard\AffiliatePayoutMethodController;
-use App\Http\Controllers\Dashboard\ComponentSubmissionController;
 use App\Http\Controllers\Dashboard\DashboardController;
 use App\Http\Controllers\Dashboard\OrdersController;
 use App\Http\Controllers\Dashboard\TeamController;
@@ -33,18 +23,9 @@ use App\Http\Controllers\Dashboard\TicketController;
 use App\Http\Controllers\Dashboard\TicketMessageController;
 use App\Http\Controllers\DocsController;
 use App\Http\Controllers\HomeController;
-use App\Http\Controllers\IndustryController;
 use App\Http\Controllers\LegalController;
-use App\Http\Controllers\Projects\ComponentForkPreviewController;
-use App\Http\Controllers\Projects\ProjectComponentController;
-use App\Http\Controllers\Projects\ProjectController;
-use App\Http\Controllers\Projects\ProjectExportController;
-use App\Http\Controllers\Projects\ProjectExportDownloadController;
-use App\Http\Controllers\Projects\ProjectGithubExportController;
-use App\Http\Controllers\Projects\ProjectScaffoldController;
 use App\Http\Controllers\ReferralController;
 use App\Http\Controllers\RobotsController;
-use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\TeamInvitationAcceptController;
 use App\Http\Controllers\UnsubscribeController;
@@ -53,73 +34,11 @@ use Laravel\Paddle\Http\Middleware\VerifyWebhookSignature;
 
 /*
 |--------------------------------------------------------------------------
-| Public zone (SSR, SEO-indexed — SPEC §10.1, §15.1)
+| Public zone (SSR, SEO-indexed)
 |--------------------------------------------------------------------------
 */
 
 Route::get('/', HomeController::class)->name('home');
-
-Route::get('/components', [CatalogController::class, 'index'])->name('components.index');
-
-Route::get('/components/{usage}', [CatalogController::class, 'usage'])
-    ->where('usage', '[a-z0-9\-]+')
-    ->name('components.usage');
-
-Route::get('/components/{usage}/{slug}', [ComponentController::class, 'show'])
-    ->where('usage', '[a-z0-9\-]+')
-    ->where('slug', '[a-z0-9\-]+')
-    ->name('components.show');
-
-Route::get('/components/{usage}/{slug}/download', ComponentDownloadController::class)
-    ->where('usage', '[a-z0-9\-]+')
-    ->where('slug', '[a-z0-9\-]+')
-    ->middleware('throttle:10,1')
-    ->name('components.download');
-
-Route::post('/components/{usage}/{slug}/copy', ComponentCopyController::class)
-    ->where('usage', '[a-z0-9\-]+')
-    ->where('slug', '[a-z0-9\-]+')
-    ->middleware('throttle:30,1')
-    ->name('components.copy');
-
-/*
-| Instant download of live-edit sources (SPEC §5.6): the edit tab's edited
-| files zipped verbatim — no server-side build. Feature-flagged inside the
-| controller (404 while features.live_edit is off).
-*/
-Route::post('/components/{usage}/{slug}/edit-download', ComponentEditDownloadController::class)
-    ->where('usage', '[a-z0-9\-]+')
-    ->where('slug', '[a-z0-9\-]+')
-    ->middleware('throttle:10,1')
-    ->name('components.edit-download');
-
-/*
-| Save to Project (SPEC §5.6): persist the edit tab's edited sources as a
-| customized fork linked to one of the reader's projects; the preview
-| rebuild is queued and the project page tracks it. Account-bound (auth +
-| verified), feature-flagged inside the controller.
-*/
-Route::post('/components/{usage}/{slug}/forks', ComponentForkController::class)
-    ->where('usage', '[a-z0-9\-]+')
-    ->where('slug', '[a-z0-9\-]+')
-    ->middleware(['auth', 'verified', 'throttle:10,1'])
-    ->name('components.forks.store');
-
-Route::get('/industries', [IndustryController::class, 'index'])->name('industries.index');
-
-Route::get('/industries/{industry}', [IndustryController::class, 'show'])
-    ->where('industry', '[a-z0-9\-]+')
-    ->name('industries.show');
-
-/*
-| Collections (SPEC §15.1): curated component bundles ("restaurant
-| landing kit"). Index + detail are SSR and SEO-indexed; drafts 404.
-*/
-Route::get('/collections', [CollectionController::class, 'index'])->name('collections.index');
-
-Route::get('/collections/{slug}', [CollectionController::class, 'show'])
-    ->where('slug', '[a-z0-9\-]+')
-    ->name('collections.show');
 
 Route::get('/docs', [DocsController::class, 'index'])->name('docs.index');
 
@@ -133,22 +52,19 @@ Route::get('/docs/{section}/{page}', [DocsController::class, 'show'])
 Route::get('/pricing', PricingController::class)->name('pricing');
 
 /*
-| Affiliate referral links (SPEC §17.1): `/r/{code}` records the click,
-| stamps the 30-day first-party attribution cookie and 301-redirects to
-| pricing; unknown or suspended codes silently redirect without recording.
-| Rate-limited per IP (fraud control, §17.2).
+| Affiliate referral links: `/r/{code}` records the click, stamps the
+| 30-day first-party attribution cookie and 301-redirects to pricing;
+| unknown or suspended codes silently redirect without recording.
+| Rate-limited per IP (fraud control).
 */
 Route::get('/r/{code}', ReferralController::class)
     ->middleware('throttle:30,1')
     ->name('affiliate.referral');
 
-Route::get('/search', SearchController::class)->name('search');
-
 /*
-| Legal pages (SPEC §15.7, §15.1): SSR, SEO-indexed pages rendered by one
-| controller from markdown in resources/legal/. The footer links the full
-| set from every public page; `/affiliate-terms` (§17.7) is linked from
-| the affiliate join flow as well.
+| Legal pages: SSR, SEO-indexed pages rendered by one controller from
+| markdown in resources/legal/. The footer links the full set from every
+| public page; `/affiliate-terms` is linked from the affiliate join flow.
 */
 Route::get('/terms', [LegalController::class, 'show'])->defaults('page', 'terms')->name('legal.terms');
 Route::get('/privacy', [LegalController::class, 'show'])->defaults('page', 'privacy')->name('legal.privacy');
@@ -160,9 +76,9 @@ Route::get('/legal-notice', [LegalController::class, 'show'])->defaults('page', 
 Route::get('/affiliate-terms', [LegalController::class, 'show'])->defaults('page', 'affiliate-terms')->name('legal.affiliate-terms');
 
 /*
-| Blog (SPEC §13.1, §15.1): index, article and category pages plus the RSS
-| feed. Feed and category routes are declared before the article slug so
-| `/blog/feed` and `/blog/category/…` are never captured as a post slug.
+| Blog: index, article and category pages plus the RSS feed. Feed and
+| category routes are declared before the article slug so `/blog/feed`
+| and `/blog/category/…` are never captured as a post slug.
 */
 Route::get('/blog', [BlogController::class, 'index'])->name('blog.index');
 
@@ -178,7 +94,7 @@ Route::get('/blog/{slug}', [BlogController::class, 'show'])
 
 /*
 |--------------------------------------------------------------------------
-| One-click unsubscribe (SPEC §16.3)
+| One-click unsubscribe
 |--------------------------------------------------------------------------
 |
 | Carried by every marketing email. Signature-authenticated instead of
@@ -193,7 +109,7 @@ Route::get('/unsubscribe/{user}', UnsubscribeController::class)
 
 /*
 |--------------------------------------------------------------------------
-| Reactivation link (SPEC §16.2 B7)
+| Reactivation link (B7)
 |--------------------------------------------------------------------------
 |
 | Carried by the cancellation confirmation and Day 7 / Day 30 followup
@@ -209,7 +125,7 @@ Route::get('/billing/reactivate/{order}', ReactivateOrderController::class)
 
 /*
 |--------------------------------------------------------------------------
-| Team invitation acceptance (task 5.2)
+| Team invitation acceptance
 |--------------------------------------------------------------------------
 |
 | Carried by the invitation email. Signature-authenticated instead of
@@ -225,7 +141,7 @@ Route::get('team/invitations/{invitation}/accept', TeamInvitationAcceptControlle
 
 /*
 |--------------------------------------------------------------------------
-| Infrastructure (SPEC §15.6)
+| Infrastructure
 |--------------------------------------------------------------------------
 */
 
@@ -233,35 +149,9 @@ Route::get('/sitemap.xml', SitemapController::class)->name('sitemap');
 
 Route::get('/robots.txt', RobotsController::class)->name('robots');
 
-Route::get('/previews/{component}/{version}/shots/{file}', [ComponentPreviewController::class, 'shot'])
-    ->where('component', '[a-z0-9\-/]+')
-    ->where('file', '(react|vue)-\d+\.png')
-    ->name('previews.shots');
-
-Route::get('/previews/{component}/{version}/{framework}.html', [ComponentPreviewController::class, 'show'])
-    ->where('component', '[a-z0-9\-/]+')
-    ->where('framework', 'react|vue')
-    ->name('previews.show');
-
 /*
 |--------------------------------------------------------------------------
-| JSON payload for the preview-modal overlay (SPEC §5.4)
-|--------------------------------------------------------------------------
-|
-| Lives on the stateful web stack so an authenticated reader keeps their
-| session (the resource's `entitled` placeholder reads the auth user).
-|
-*/
-
-Route::get('/api/components/{usage}/{slug}', [ComponentApiController::class, 'show'])
-    ->where('usage', '[a-z0-9\-]+')
-    ->where('slug', '[a-z0-9\-]+')
-    ->middleware('throttle:60,1')
-    ->name('api.components.show');
-
-/*
-|--------------------------------------------------------------------------
-| User dashboard zone (CSR, auth, noindex — SPEC §10.1, §15.4)
+| User dashboard zone (CSR, auth, noindex)
 |--------------------------------------------------------------------------
 */
 
@@ -270,17 +160,17 @@ Route::middleware(['auth', 'verified', 'ssr.skip', 'noindex'])->group(function (
 
     /*
     |----------------------------------------------------------------------
-    | Orders (SPEC §7.3, §15.4): order history with Paddle receipt/invoice
-    | URLs, license state and renewal dates.
+    | Orders: order history with Paddle receipt/invoice URLs, license
+    | state and renewal dates.
     |----------------------------------------------------------------------
     */
     Route::get('dashboard/orders', OrdersController::class)->name('dashboard.orders.index');
 
     /*
     |----------------------------------------------------------------------
-    | Affiliate program (SPEC §17.4, §15.4): self-serve join (terms
-    | acceptance, §17.7), overview stats, referral link, commissions,
-    | payout history and the payout-method form.
+    | Affiliate program: self-serve join (terms acceptance), overview
+    | stats, referral link, commissions, payout history and the
+    | payout-method form.
     |----------------------------------------------------------------------
     */
     Route::get('dashboard/affiliate', AffiliateController::class)->name('dashboard.affiliate');
@@ -290,9 +180,9 @@ Route::middleware(['auth', 'verified', 'ssr.skip', 'noindex'])->group(function (
 
     /*
     |----------------------------------------------------------------------
-    | Team / organization seats (task 5.2): the owner's management page —
-    | members, invitations, removals. Acceptance uses a signed URL and
-    | lives outside this group (below) so unverified invitees can claim.
+    | Team / organization seats: the owner's management page — members,
+    | invitations, removals. Acceptance uses a signed URL and lives
+    | outside this group (above) so unverified invitees can claim.
     |----------------------------------------------------------------------
     */
     Route::get('dashboard/team', TeamController::class)->name('dashboard.team');
@@ -307,63 +197,9 @@ Route::middleware(['auth', 'verified', 'ssr.skip', 'noindex'])->group(function (
 
     /*
     |----------------------------------------------------------------------
-    | Projects (SPEC §6.1, §15.4): list/detail pages, CRUD, component-set
-    | add/remove (JSON for the catalog "Add to project" UI, redirects for
-    | the Inertia pages), the queued pack-zip export (SPEC §6.2) and the
-    | queued starter scaffold (SPEC §6.3).
-    |----------------------------------------------------------------------
-    */
-    Route::prefix('dashboard/projects')->name('dashboard.projects.')->group(function () {
-        Route::get('/', [ProjectController::class, 'index'])->name('index');
-        Route::post('/', [ProjectController::class, 'store'])->name('store');
-        Route::get('/{project}', [ProjectController::class, 'show'])->name('show');
-        Route::patch('/{project}', [ProjectController::class, 'update'])->name('update');
-        Route::delete('/{project}', [ProjectController::class, 'destroy'])->name('destroy');
-        Route::post('/{project}/components', [ProjectComponentController::class, 'store'])->name('components.store');
-        Route::delete('/{project}/components/{component}', [ProjectComponentController::class, 'destroy'])->name('components.destroy');
-        Route::post('/{project}/export', ProjectExportController::class)
-            ->middleware('throttle:5,1')
-            ->name('export');
-        Route::post('/{project}/scaffold', ProjectScaffoldController::class)
-            ->middleware('throttle:5,1')
-            ->name('scaffold');
-        Route::post('/{project}/github-export', ProjectGithubExportController::class)
-            ->middleware('throttle:5,1')
-            ->name('github-export');
-        Route::get('/{project}/export/{export}/download', ProjectExportDownloadController::class)
-            ->scopeBindings()
-            ->middleware('throttle:30,1')
-            ->name('export.download');
-        Route::get('/{project}/forks/{fork}/preview', [ComponentForkPreviewController::class, 'show'])
-            ->scopeBindings()
-            ->name('forks.preview');
-        Route::get('/{project}/forks/{fork}/shots/{file}', [ComponentForkPreviewController::class, 'shot'])
-            ->scopeBindings()
-            ->where('file', '(react|vue)-\d+\.png')
-            ->name('forks.shots');
-    });
-
-    /*
-    |----------------------------------------------------------------------
-    | Community submissions (task 5.3): users submit components for
-    | inclusion; admins review in Filament and approval lands the code in
-    | the library tree. Users only ever see their own submissions (owner
-    | scoping in the controller). Creation rate-limited per NFR-10.
-    |----------------------------------------------------------------------
-    */
-    Route::prefix('dashboard/submissions')->name('dashboard.submissions.')->group(function () {
-        Route::get('/', [ComponentSubmissionController::class, 'index'])->name('index');
-        Route::get('/new', [ComponentSubmissionController::class, 'create'])->name('create');
-        Route::post('/', [ComponentSubmissionController::class, 'store'])
-            ->middleware('throttle:5,1')
-            ->name('store');
-    });
-
-    /*
-    |----------------------------------------------------------------------
-    | Support tickets (SPEC §13.3, §15.4): list, create (rate-limited per
-    | NFR-10), threaded replies and user-close. Users only ever see and
-    | touch their own tickets (owner check in the controllers).
+    | Support tickets: list, create (rate-limited), threaded replies and
+    | user-close. Users only ever see and touch their own tickets (owner
+    | check in the controllers).
     |----------------------------------------------------------------------
     */
     Route::prefix('dashboard/tickets')->name('dashboard.tickets.')->group(function () {
@@ -381,7 +217,7 @@ Route::middleware(['auth', 'verified', 'ssr.skip', 'noindex'])->group(function (
 
     /*
     |----------------------------------------------------------------------
-    | Checkout zone (CSR, noindex — SPEC §15.3)
+    | Checkout zone (CSR, noindex)
     |----------------------------------------------------------------------
     */
     Route::get('checkout/success', CheckoutSuccessController::class)->name('checkout.success');
@@ -392,9 +228,9 @@ Route::middleware(['auth', 'verified', 'ssr.skip', 'noindex'])->group(function (
 
     /*
     |----------------------------------------------------------------------
-    | Domestic QR payment (CSR, noindex — SPEC §7.5, §15.3): QR scan on
-    | desktop / app wake-up on mobile, plus the result-polling endpoint the
-    | page calls until the order flips Active.
+    | Domestic QR payment (CSR, noindex): QR scan on desktop / app wake-up
+    | on mobile, plus the result-polling endpoint the page calls until the
+    | order flips Active.
     |----------------------------------------------------------------------
     */
     Route::get('pay/domestic/{order}', DomesticPaymentController::class)
@@ -407,7 +243,7 @@ Route::middleware(['auth', 'verified', 'ssr.skip', 'noindex'])->group(function (
 
 /*
 |--------------------------------------------------------------------------
-| Manual currency switch (SPEC §7.5)
+| Manual currency switch
 |--------------------------------------------------------------------------
 |
 | Persists the buyer's USD/CNY choice in the session (guests included) and
@@ -421,7 +257,7 @@ Route::post('billing/currency', CurrencySwitchController::class)
 
 /*
 |--------------------------------------------------------------------------
-| Paddle webhooks (SPEC §7.3)
+| Paddle webhooks
 |--------------------------------------------------------------------------
 |
 | Signature-verified by Cashier's middleware (HMAC-SHA256 over `ts:body`
@@ -436,7 +272,7 @@ Route::post('paddle/webhook', PaddleWebhookController::class)
 
 /*
 |--------------------------------------------------------------------------
-| Domestic payment notifies (SPEC §7.5)
+| Domestic payment notifies
 |--------------------------------------------------------------------------
 |
 | Server-to-server POSTs from Alipay / WeChat Pay, signature-verified at the

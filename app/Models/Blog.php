@@ -70,15 +70,6 @@ class Blog extends Model
     }
 
     /**
-     * Catalog components cross-linked from the article (SPEC §13.1 — the
-     * core SEO interlinking mechanic between blog and catalog).
-     */
-    public function relatedComponents(): BelongsToMany
-    {
-        return $this->belongsToMany(Component::class, 'blog_component');
-    }
-
-    /**
      * Reading-time estimate in whole minutes, derived from the body so it
      * can never drift out of sync with the content (SPEC §13.1).
      */

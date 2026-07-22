@@ -64,12 +64,11 @@ class OrderPaidTest extends TestCase
 
         $html = (string) (new WelcomeToProNotification($order))->toMail($order->user)->render();
 
-        // License summary + first steps.
+        // Plan summary + first steps.
         $this->assertStringContainsString('Pro', $html);
-        $this->assertStringContainsString('icense', $html);
-        $this->assertStringContainsString('unlimited personal and commercial projects', $html);
-        $this->assertStringContainsString(route('components.index'), $html);
+        $this->assertStringContainsString('unlimited personal and commercial use', $html);
         $this->assertStringContainsString(route('dashboard'), $html);
+        $this->assertStringContainsString(route('dashboard.orders.index'), $html);
 
         // Paddle (merchant of record) sends its own receipts/invoices — this
         // mail never duplicates them (SPEC §16.1).

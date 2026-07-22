@@ -1,44 +1,39 @@
 ---
-title: Component License
-description: One license for every paid plan — unlimited commercial and client work, no redistribution or resale, code you download stays yours after a lapse, single seat.
+title: License
+description: The license and acceptable-use terms for the service — what your plan entitles you to, what is not allowed, and what happens when a plan lapses or is refunded.
 updated: 2026-07-21
 ---
 
-# Component License
+# License
 
-One license covers every plan — no per-component or per-site tiers. The short version: **build anything for yourself or your clients, keep the code forever, don't redistribute the library itself.** This license forms part of the [Terms of Service](/terms) and applies to every component you copy or download, free or paid. For answers in plain Q&A form see the [License FAQ](/docs/license/faq).
+This page describes, in plain language, how you may use the service under each plan. It forms part of the [Terms of Service](/terms). Replace this text with your own product's license or acceptable-use terms before launch.
 
 ## What you may do
 
-Under this license you may use FrontendParts components in **unlimited personal and commercial projects, including client work**:
+Under this license you may use the service, within your plan's allowances, for **personal and commercial purposes, including client work**:
 
-- websites, apps, SaaS products, marketing pages, internal tools — anything you or your client owns;
-- modify the components freely to fit the project (params, markup, styles, structure);
-- ship the compiled or source result as part of your product, and hand it over to clients, **without attribution**;
-- commit components to your project's **private** repository.
-
-Free components are usable under this same license without an account; paid components require any paid plan. Starter and Pro unlock the same 100% of the library — Pro adds scaffolding and export features on top.
+- access every feature your plan unlocks, from any device you own;
+- use the service to build, run and grow your own projects and products;
+- invite teammates to seats you have purchased on a team plan.
 
 ## What you may not do
 
-Three restrictions, all about protecting the library rather than your work:
-
-- **No redistribution, resale, or sublicensing** of the components themselves — you may not sell, share, publish, or give away the component sources, in original or modified form, whether for free or for payment.
-- **No publishing a competing library** — you may not repackage FrontendParts components (or close derivatives) as a component library, UI kit, template marketplace, theme shop, or similar product.
-- **No public repositories of the sources** — committing components to your app's private repo is fine; publishing them where others can lift the library is redistribution.
+- **No abuse of the service** — no scraping, reselling access, or sharing one account across multiple people.
+- **No unlawful use** — nothing that violates applicable law or third-party rights.
+- **No circumvention** — do not attempt to bypass plan limits, seat counts, or billing.
 
 ## When your plan lapses
 
-**Code you already downloaded is yours to keep using forever** — usage rights do not expire. What ends is access to *new* downloads, new drops, and exports of paid components: a project that contains paid components asks you to renew before it will export again. Nothing in your shipped product stops working, and there is no telemetry or callback in downloaded code.
+Your access continues until the end of the paid term. After that your account returns to the Free plan: your data stays put, and you can resubscribe anytime.
 
 ## Seats
 
-The license is **single-seat** — one developer per account. Each developer who downloads components needs their own plan until a team tier ships.
+Paid plans are **per-seat** unless stated otherwise — each person who uses the service needs their own seat. Team plans let you purchase and assign seats from the dashboard.
 
 ## Refunded purchases
 
-If a purchase is refunded under the [Refund Policy](/refund-policy), the license for that purchase ends: you must stop using paid components obtained under it and remove them from projects where feasible.
+If a purchase is refunded under the [Refund Policy](/refund-policy), the access granted by that purchase ends with the refund.
 
 ## Ownership
 
-Components are licensed, not sold. The library remains the property of the operator identified in the [Legal Notice](/legal-notice). Components are recreated layouts inspired by third-party sites and always attributed — see the [Copyright & Takedown Policy](/copyright).
+The service is licensed, not sold. It remains the property of the operator identified in the [Legal Notice](/legal-notice).

@@ -44,7 +44,7 @@ class EmailChangedNotification extends Notification implements ShouldQueue
         return (new MailMessage)
             ->subject('Your email address was changed')
             ->greeting('Hello,')
-            ->line("The email address on your FrontendParts account was changed from {$this->oldEmail} to {$this->newEmail} on {$this->changedAt->toDayDateTimeString()}.")
+            ->line('The email address on your '.config('app.name')." account was changed from {$this->oldEmail} to {$this->newEmail} on {$this->changedAt->toDayDateTimeString()}.")
             ->line("If you didn't make this change, reset your password immediately and contact support.")
             ->action('Reset your password', route('password.request'));
     }

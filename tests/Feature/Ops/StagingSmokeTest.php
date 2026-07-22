@@ -5,8 +5,7 @@ namespace Tests\Feature\Ops;
 use App\Enums\BillingPeriod;
 use App\Enums\OrderPlan;
 use App\Enums\PlanProvider;
-use App\Models\Category;
-use App\Models\Component;
+use App\Models\Blog;
 use App\Models\PlanPrice;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -18,24 +17,6 @@ class StagingSmokeTest extends TestCase
     public function test_home_page_200(): void
     {
         $this->get('/')
-            ->assertOk();
-    }
-
-    public function test_catalog_page_200(): void
-    {
-        $this->get('/components')
-            ->assertOk();
-    }
-
-    public function test_component_detail_page_200(): void
-    {
-        $usage = Category::factory()->usage()->create(['slug' => 'hero']);
-        Component::factory()->published()->free()->create([
-            'slug' => 'elements/hero-01',
-            'usage_category_id' => $usage->id,
-        ]);
-
-        $this->get('/components/hero/hero-01')
             ->assertOk();
     }
 
@@ -54,6 +35,26 @@ class StagingSmokeTest extends TestCase
 
         $this->get('/pricing')
             ->assertOk();
+    }
+
+    public function test_blog_index_200(): void
+    {
+        Blog::factory()->published()->create();
+
+        $this->get('/blog')
+            ->assertOk();
+    }
+
+    public function test_legal_page_200(): void
+    {
+        $this->get('/terms')
+            ->assertOk();
+    }
+
+    public function test_docs_redirects_to_first_page(): void
+    {
+        $this->get('/docs')
+            ->assertRedirect();
     }
 
     public function test_checkout_route_redirects_to_login(): void

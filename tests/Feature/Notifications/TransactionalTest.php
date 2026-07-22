@@ -2,7 +2,6 @@
 
 namespace Tests\Feature\Notifications;
 
-use App\Models\Component;
 use App\Models\User;
 use App\Notifications\EmailChangedNotification;
 use App\Notifications\PasswordChangedNotification;
@@ -34,24 +33,14 @@ class TransactionalTest extends TestCase
         Notification::assertSentTo($user, VerifyEmail::class);
     }
 
-    public function test_welcome_email_contains_component_links_when_components_exist()
+    public function test_welcome_email_greets_and_links_to_the_dashboard()
     {
-        $components = Component::factory()->count(3)->published()->create();
-        $user = User::factory()->create();
+        $user = User::factory()->create(['name' => 'Test User']);
 
         $html = (string) (new WelcomeNotification)->toMail($user)->render();
 
-        foreach ($components as $component) {
-            $this->assertStringContainsString($component->name, $html);
-        }
-
-        // Fail-soft: with fewer than three published components the email
-        // falls back to the plain catalog CTA (SPEC §16.2 Day-0).
-        Component::query()->delete();
-
-        $fallbackHtml = (string) (new WelcomeNotification)->toMail($user)->render();
-
-        $this->assertStringContainsString(route('components.index'), $fallbackHtml);
+        $this->assertStringContainsString('Test User', $html);
+        $this->assertStringContainsString(route('dashboard'), $html);
     }
 
     public function test_password_change_queues_confirmation()

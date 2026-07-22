@@ -25,7 +25,7 @@ class PasswordChangedNotification extends Notification implements ShouldQueue
         return (new MailMessage)
             ->subject('Your password was changed')
             ->greeting("Hi {$notifiable->name},")
-            ->line("Your FrontendParts password was changed on {$this->changedAt->toDayDateTimeString()}.")
+            ->line('Your '.config('app.name')." password was changed on {$this->changedAt->toDayDateTimeString()}.")
             ->line("If you didn't make this change, reset your password immediately to secure your account.")
             ->action('Reset your password', route('password.request'));
     }

@@ -8,8 +8,8 @@ use Filament\Widgets\StatsOverviewWidget\Stat;
 
 /**
  * P1 KPI row (SPEC §8.6 row 1): registered users with the week-over-week
- * delta, active subscribers, normalized MRR, and the review queue. All
- * math lives in RevenueStats so the counting rules stay testable.
+ * delta, active subscribers, and normalized MRR. All math lives in
+ * RevenueStats so the counting rules stay testable.
  */
 class RevenueStatsWidget extends StatsOverviewWidget
 {
@@ -22,7 +22,6 @@ class RevenueStatsWidget extends StatsOverviewWidget
         $stats = app(RevenueStats::class);
 
         $growth = $stats->userGrowth();
-        $awaitingReview = $stats->awaitingReview();
 
         return [
             Stat::make('Registered users', $growth['total'])
@@ -32,9 +31,6 @@ class RevenueStatsWidget extends StatsOverviewWidget
                 ->description('Starter + Pro, incl. dunning grace'),
             Stat::make('MRR', '$'.number_format($stats->mrr(), 2))
                 ->description('Quarterly ÷3 · yearly ÷12 · lifetime excluded'),
-            Stat::make('Awaiting review', $awaitingReview)
-                ->description($awaitingReview > 0 ? 'Needs attention' : 'Queue empty')
-                ->color($awaitingReview > 0 ? 'danger' : 'gray'),
         ];
     }
 }

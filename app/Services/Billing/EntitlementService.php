@@ -7,7 +7,6 @@ use App\Enums\OrderStatus;
 use App\Models\Order;
 use App\Models\Organization;
 use App\Models\User;
-use App\Support\Settings;
 
 /**
  * Resolves a user's effective plan from their orders (SPEC §7.3 order state
@@ -30,10 +29,6 @@ use App\Support\Settings;
  */
 class EntitlementService
 {
-    public function __construct(
-        private readonly Settings $settings = new Settings,
-    ) {}
-
     public function for(?User $user): Entitlement
     {
         $personal = $user === null ? OrderPlan::Free : $this->planFor($user->orders()
@@ -43,14 +38,14 @@ class EntitlementService
 
         // A personally entitled order always beats an inherited team seat.
         if ($personal !== OrderPlan::Free) {
-            return new Entitlement($personal, $this->projectLimit($personal));
+            return new Entitlement($personal);
         }
 
         $plan = $user !== null && $this->hasEntitledOrganization($user)
             ? OrderPlan::Team
             : OrderPlan::Free;
 
-        return new Entitlement($plan, $this->projectLimit($plan));
+        return new Entitlement($plan);
     }
 
     /**
@@ -89,12 +84,5 @@ class EntitlementService
         };
 
         return $entitled ? $order->plan : OrderPlan::Free;
-    }
-
-    private function projectLimit(OrderPlan $plan): ?int
-    {
-        $limit = $this->settings->get("plans.project_limit.{$plan->value}");
-
-        return $limit === null ? null : (int) $limit;
     }
 }

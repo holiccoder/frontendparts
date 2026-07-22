@@ -8,7 +8,6 @@ use App\Models\Admin;
 use App\Models\Blog;
 use App\Models\BlogCategory;
 use App\Models\BlogTag;
-use App\Models\Component;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -27,7 +26,6 @@ class BlogResourceTest extends TestCase
         $author = User::factory()->create();
         $category = BlogCategory::factory()->create();
         $tag = BlogTag::factory()->create();
-        $component = Component::factory()->create();
         $publishedAt = now()->subDay();
 
         Livewire::test(CreateBlog::class)
@@ -41,7 +39,6 @@ class BlogResourceTest extends TestCase
                 'published_at' => $publishedAt->toDateTimeString(),
                 'categories' => [$category->id],
                 'tags' => [$tag->id],
-                'relatedComponents' => [$component->id],
                 'meta_title' => 'SaaS pricing pages, recreated',
                 'meta_description' => 'A teardown of ten SaaS pricing pages.',
             ])
@@ -58,32 +55,28 @@ class BlogResourceTest extends TestCase
 
         $this->assertSame([$category->id], $post->categories->modelKeys());
         $this->assertSame([$tag->id], $post->tags->modelKeys());
-        $this->assertSame([$component->id], $post->relatedComponents->modelKeys());
     }
 
-    public function test_related_components_picker_persists()
+    public function test_taxonomy_pickers_persist()
     {
         $admin = Admin::factory()->create();
 
         $this->actingAs($admin, 'admin');
 
         $post = Blog::factory()->create();
-        $keep = Component::factory()->create();
-        $components = Component::factory()->count(2)->create();
-
-        $post->relatedComponents()->attach($keep);
+        $categories = BlogCategory::factory()->count(2)->create();
+        $tags = BlogTag::factory()->count(2)->create();
 
         Livewire::test(EditBlog::class, ['record' => $post->id])
             ->fillForm([
-                'relatedComponents' => $components->modelKeys(),
+                'categories' => $categories->modelKeys(),
+                'tags' => $tags->modelKeys(),
             ])
             ->call('save')
             ->assertHasNoFormErrors();
 
-        // The picker syncs the pivot: previously attached rows are replaced.
-        $this->assertEqualsCanonicalizing(
-            $components->modelKeys(),
-            $post->fresh()->relatedComponents->modelKeys(),
-        );
+        // The pickers sync the pivots: previously attached rows are replaced.
+        $this->assertEqualsCanonicalizing($categories->modelKeys(), $post->fresh()->categories->modelKeys());
+        $this->assertEqualsCanonicalizing($tags->modelKeys(), $post->fresh()->tags->modelKeys());
     }
 }

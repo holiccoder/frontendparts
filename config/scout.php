@@ -1,8 +1,6 @@
 <?php
 
 use App\Models\Blog;
-use App\Models\Component;
-use App\Models\DocsPage;
 
 return [
 
@@ -102,13 +100,11 @@ return [
     | and (admin) key, then import the existing records and push the index
     | settings on deploy:
     |
-    |   php artisan scout:import "App\Models\Component"
     |   php artisan scout:import "App\Models\Blog"
-    |   php artisan scout:import "App\Models\DocsPage"
     |   php artisan scout:sync-index-settings
     |
-    | Index settings are keyed by model class. Site search applies no
-    | engine-side wheres or orderings — published gating happens via
+    | Index settings are keyed by model class. Search applies no engine-side
+    | wheres or orderings — published gating happens via
     | shouldBeSearchable() and ranking stays engine-native — so the entries
     | are empty placeholders for future filterable/sortable attributes.
     |
@@ -118,9 +114,7 @@ return [
         'host' => env('MEILISEARCH_HOST', 'http://localhost:7700'),
         'key' => env('MEILISEARCH_KEY'),
         'index-settings' => [
-            Component::class => [],
             Blog::class => [],
-            DocsPage::class => [],
         ],
     ],
 

@@ -8,15 +8,13 @@ use App\Enums\OrderStatus;
 use App\Models\Order;
 use App\Models\User;
 use App\Services\Billing\EntitlementService;
-use App\Support\Settings;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 /**
- * Entitlement resolution (SPEC §7.1 feature matrix, §7.3 order states,
- * §8.7 settings-driven limits): the effective plan comes from the user's
- * latest order; Active / PastDue-grace / Cancelled-until-ends_at entitle,
- * everything else falls back to Free.
+ * Entitlement resolution (order state machine): the effective plan comes
+ * from the user's latest order; Active / PastDue-grace /
+ * Cancelled-until-ends_at entitle, everything else falls back to Free.
  */
 class EntitlementTest extends TestCase
 {
@@ -31,9 +29,6 @@ class EntitlementTest extends TestCase
 
         $this->assertSame(OrderPlan::Free, $guest->plan());
         $this->assertFalse($guest->isPaid());
-        $this->assertFalse($guest->hasFullLibrary());
-        $this->assertFalse($guest->canScaffold());
-        $this->assertSame(1, $guest->projectLimit());
 
         // A registered user with no orders is Free too.
         $user = User::factory()->create();
@@ -41,12 +36,9 @@ class EntitlementTest extends TestCase
 
         $this->assertSame(OrderPlan::Free, $entitlement->plan());
         $this->assertFalse($entitlement->isPaid());
-        $this->assertFalse($entitlement->hasFullLibrary());
-        $this->assertFalse($entitlement->canScaffold());
-        $this->assertSame(1, $entitlement->projectLimit());
     }
 
-    public function test_starter_full_library_no_scaffolding()
+    public function test_paid_order_entitles()
     {
         $user = User::factory()->create();
 
@@ -60,28 +52,30 @@ class EntitlementTest extends TestCase
 
         $this->assertSame(OrderPlan::Starter, $entitlement->plan());
         $this->assertTrue($entitlement->isPaid());
-        $this->assertTrue($entitlement->hasFullLibrary());
-        $this->assertFalse($entitlement->canScaffold());
-        $this->assertSame(3, $entitlement->projectLimit());
     }
 
-    public function test_pro_full_library_with_scaffolding()
+    public function test_latest_order_wins()
     {
         $user = User::factory()->create();
 
         Order::factory()->create([
             'user_id' => $user->id,
+            'plan' => OrderPlan::Starter,
+            'status' => OrderStatus::Expired,
+            'created_at' => now()->subYear(),
+        ]);
+
+        Order::factory()->create([
+            'user_id' => $user->id,
             'plan' => OrderPlan::Pro,
             'status' => OrderStatus::Active,
+            'created_at' => now()->subMonth(),
         ]);
 
         $entitlement = app(EntitlementService::class)->for($user);
 
         $this->assertSame(OrderPlan::Pro, $entitlement->plan());
         $this->assertTrue($entitlement->isPaid());
-        $this->assertTrue($entitlement->hasFullLibrary());
-        $this->assertTrue($entitlement->canScaffold());
-        $this->assertNull($entitlement->projectLimit());
     }
 
     public function test_cancelled_but_not_ended_keeps_access()
@@ -100,8 +94,6 @@ class EntitlementTest extends TestCase
 
         $this->assertSame(OrderPlan::Pro, $entitlement->plan());
         $this->assertTrue($entitlement->isPaid());
-        $this->assertTrue($entitlement->hasFullLibrary());
-        $this->assertTrue($entitlement->canScaffold());
     }
 
     public function test_expired_loses_paid_access()
@@ -120,9 +112,6 @@ class EntitlementTest extends TestCase
 
         $this->assertSame(OrderPlan::Free, $entitlement->plan());
         $this->assertFalse($entitlement->isPaid());
-        $this->assertFalse($entitlement->hasFullLibrary());
-        $this->assertFalse($entitlement->canScaffold());
-        $this->assertSame(1, $entitlement->projectLimit());
 
         // Cancelled with ends_at already past is Free as well.
         $lapsed = User::factory()->create();
@@ -145,6 +134,13 @@ class EntitlementTest extends TestCase
         ]);
 
         $this->assertSame(OrderPlan::Free, $service->for($pending)->plan());
+
+        // PastDue keeps access during dunning grace.
+        $pastDue = $this->subscriber(OrderPlan::Pro, OrderStatus::PastDue);
+        $entitlement = $service->for($pastDue);
+
+        $this->assertSame(OrderPlan::Pro, $entitlement->plan());
+        $this->assertTrue($entitlement->isPaid());
     }
 
     public function test_refunded_loses_paid_access()
@@ -161,8 +157,6 @@ class EntitlementTest extends TestCase
 
         $this->assertSame(OrderPlan::Free, $entitlement->plan());
         $this->assertFalse($entitlement->isPaid());
-        $this->assertFalse($entitlement->hasFullLibrary());
-        $this->assertFalse($entitlement->canScaffold());
     }
 
     public function test_lifetime_never_expires()
@@ -178,7 +172,7 @@ class EntitlementTest extends TestCase
             'ends_at' => null,
         ]);
 
-        $this->assertTrue(app(EntitlementService::class)->for($user)->hasFullLibrary());
+        $this->assertTrue(app(EntitlementService::class)->for($user)->isPaid());
 
         // ends_at = null means there is no expiry to pass.
         $this->travel(10)->years();
@@ -186,37 +180,7 @@ class EntitlementTest extends TestCase
         $entitlement = app(EntitlementService::class)->for($user);
 
         $this->assertSame(OrderPlan::Pro, $entitlement->plan());
-        $this->assertTrue($entitlement->hasFullLibrary());
-        $this->assertTrue($entitlement->canScaffold());
-    }
-
-    public function test_project_limits_read_from_settings()
-    {
-        $settings = app(Settings::class);
-
-        $user = User::factory()->create();
-
-        $this->assertSame(1, app(EntitlementService::class)->for($user)->projectLimit());
-        $this->assertSame(3, app(EntitlementService::class)->for($this->subscriber(OrderPlan::Starter))->projectLimit());
-        $this->assertNull(app(EntitlementService::class)->for($this->subscriber(OrderPlan::Pro))->projectLimit());
-
-        // Admin re-tunes the limits — reflected without a deploy.
-        $settings->set('plans.project_limit.free', 2);
-        $settings->set('plans.project_limit.starter', 5);
-        $settings->set('plans.project_limit.pro', 20);
-
-        $this->assertSame(2, app(EntitlementService::class)->for($user)->projectLimit());
-        $this->assertSame(5, app(EntitlementService::class)->for($this->subscriber(OrderPlan::Starter))->projectLimit());
-        $this->assertSame(20, app(EntitlementService::class)->for($this->subscriber(OrderPlan::Pro))->projectLimit());
-
-        // PastDue keeps full access during dunning grace.
-        $pastDue = $this->subscriber(OrderPlan::Pro, OrderStatus::PastDue);
-        $entitlement = app(EntitlementService::class)->for($pastDue);
-
-        $this->assertSame(OrderPlan::Pro, $entitlement->plan());
         $this->assertTrue($entitlement->isPaid());
-        $this->assertTrue($entitlement->hasFullLibrary());
-        $this->assertTrue($entitlement->canScaffold());
     }
 
     private function subscriber(OrderPlan $plan, OrderStatus $status = OrderStatus::Active): User

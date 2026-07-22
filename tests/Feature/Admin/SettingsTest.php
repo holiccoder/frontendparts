@@ -16,22 +16,13 @@ class SettingsTest extends TestCase
     {
         $settings = app(Settings::class);
 
-        $this->assertSame(1, $settings->get('plans.project_limit.free'));
-        $this->assertSame(3, $settings->get('plans.project_limit.starter'));
-        $this->assertNull($settings->get('plans.project_limit.pro'));
         $this->assertSame(14, $settings->get('billing.refund_window_days'));
-        $this->assertTrue($settings->get('features.preview_dark_toggle'));
-        $this->assertTrue($settings->get('features.tree_interactions'));
-        $this->assertFalse($settings->get('features.live_edit'));
-        $this->assertSame(100, $settings->get('goals.launch_component_target'));
-        $this->assertSame(20, $settings->get('goals.components_per_month'));
-        $this->assertSame(10000, $settings->get('goals.organic_visits_monthly'));
-        $this->assertSame(5, $settings->get('goals.signup_conversion_pct'));
-        $this->assertSame(3, $settings->get('goals.paid_conversion_pct_min'));
-        $this->assertSame(5, $settings->get('goals.paid_conversion_pct_max'));
-        $this->assertSame(5, $settings->get('goals.churn_max_pct'));
-        $this->assertSame(2000, $settings->get('goals.mrr_target_usd'));
         $this->assertSame(0.14, $settings->get('fx.cny_to_usd'));
+        $this->assertSame(30, $settings->get('affiliate.commission_rate'));
+        $this->assertSame(30, $settings->get('affiliate.cookie_days'));
+        $this->assertSame(12, $settings->get('affiliate.recurring_months'));
+        $this->assertSame(30, $settings->get('affiliate.holding_days'));
+        $this->assertSame(50, $settings->get('affiliate.payout_threshold'));
     }
 
     public function test_set_persists_and_flushes_cache()
@@ -57,21 +48,18 @@ class SettingsTest extends TestCase
         ]);
     }
 
-    public function test_typed_casts_int_bool_array()
+    public function test_typed_casts_round_trip()
     {
         $settings = app(Settings::class);
 
-        $settings->set('plans.project_limit.free', 5);
-        $this->assertSame(5, $settings->get('plans.project_limit.free'));
-
-        $settings->set('features.preview_dark_toggle', false);
-        $this->assertSame(false, $settings->get('features.preview_dark_toggle'));
+        $settings->set('billing.refund_window_days', 21);
+        $this->assertSame(21, $settings->get('billing.refund_window_days'));
 
         $settings->set('fx.cny_to_usd', 0.15);
         $this->assertSame(0.15, $settings->get('fx.cny_to_usd'));
 
-        $settings->set('plans.project_limit.pro', ['unlimited' => true]);
-        $this->assertSame(['unlimited' => true], $settings->get('plans.project_limit.pro'));
+        $settings->set('affiliate.payout_threshold', 75);
+        $this->assertSame(75, $settings->get('affiliate.payout_threshold'));
     }
 
     public function test_unknown_key_rejected()

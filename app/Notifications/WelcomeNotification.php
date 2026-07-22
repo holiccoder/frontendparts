@@ -2,36 +2,29 @@
 
 namespace App\Notifications;
 
-use App\Models\Component;
 use App\Notifications\Concerns\QueuesNotification;
 use Filament\Notifications\Notification as FilamentNotification;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
+/**
+ * Day-0 welcome (SPEC §16.2): sent on registration — the generic greeting
+ * every account gets, independent of any product surface.
+ */
 class WelcomeNotification extends Notification implements ShouldQueue
 {
     use QueuesNotification;
 
     public function toMail(object $notifiable): MailMessage
     {
-        $message = (new MailMessage)
-            ->subject('Welcome to FrontendParts')
+        $appName = config('app.name');
+
+        return (new MailMessage)
+            ->subject("Welcome to {$appName}")
             ->greeting("Hi {$notifiable->name},")
-            ->line('Thanks for creating your FrontendParts account — your library of production-ready React & Vue components is ready to explore.');
-
-        $components = $this->featuredComponents();
-
-        if ($components->count() === 3) {
-            $message->line('Here are three components to get you started:');
-
-            foreach ($components as $component) {
-                $message->line("- [{$component->name}]({$component->publicUrl()})");
-            }
-        }
-
-        return $message->action('Browse the catalog', route('components.index'));
+            ->line("Thanks for creating your {$appName} account — you're all set.")
+            ->action('Open your dashboard', route('dashboard'));
     }
 
     /**
@@ -40,20 +33,9 @@ class WelcomeNotification extends Notification implements ShouldQueue
     public function toDatabase(object $notifiable): array
     {
         return FilamentNotification::make()
-            ->title('Welcome to FrontendParts')
-            ->body('Your account is ready — browse the catalog to grab your first components.')
+            ->title('Welcome to '.config('app.name'))
+            ->body('Your account is ready — head to your dashboard to get started.')
             ->icon('heroicon-o-sparkles')
             ->getDatabaseMessage();
-    }
-
-    /**
-     * The three newest published components (SPEC §16.2 Day-0 welcome). The
-     * email fails soft to the plain catalog CTA when fewer than three exist.
-     *
-     * @return Collection<int, Component>
-     */
-    protected function featuredComponents(): Collection
-    {
-        return Component::published()->latest()->limit(3)->get();
     }
 }

@@ -7,7 +7,7 @@ use App\Enums\OrderPlan;
 use App\Enums\OrderStatus;
 use App\Models\Order;
 use App\Models\User;
-use App\Notifications\FreeOnboardingNotification;
+use App\Notifications\PaidOnboardingNotification;
 use App\Notifications\PasswordChangedNotification;
 use App\Services\Notifications\NotificationPreferences;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -19,54 +19,45 @@ class SequenceEngineTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_b1_day2_sent_only_to_users_registered_2_days_ago()
+    public function test_b3_day3_sent_only_to_users_activated_3_days_ago()
     {
         Notification::fake();
 
-        $dueUser = User::factory()->create(['created_at' => now()->subDays(2)]);
-        $tooEarly = User::factory()->create(['created_at' => now()->subDay()]);
-        $tooLate = User::factory()->create(['created_at' => now()->subDays(3)]);
+        $dueUser = $this->activatedUser(now()->subDays(3));
+        $tooEarly = $this->activatedUser(now()->subDays(2));
+        $tooLate = $this->activatedUser(now()->subDays(4));
 
-        // Paid users registered 2 days ago are out of the B1 audience — the
-        // drip stops once the user upgrades (SPEC §16.2).
-        $paidUser = User::factory()->create(['created_at' => now()->subDays(2)]);
-        Order::factory()->create([
-            'user_id' => $paidUser->id,
-            'plan' => OrderPlan::Pro,
-            'status' => OrderStatus::Active,
-            'billing_period' => BillingPeriod::Lifetime,
-            'starts_at' => now()->subDays(30),
-            'ends_at' => null,
-        ]);
+        // A free user registered 3 days ago is out of the B3 audience.
+        $freeUser = User::factory()->create(['created_at' => now()->subDays(3)]);
 
         $this->artisan('mail:run-sequences')->assertSuccessful();
 
         Notification::assertSentTo(
             $dueUser,
-            FreeOnboardingNotification::class,
-            fn (FreeOnboardingNotification $notification): bool => $notification->step === 'day-2',
+            PaidOnboardingNotification::class,
+            fn (PaidOnboardingNotification $notification): bool => $notification->step === 'day-3',
         );
-        Notification::assertNotSentTo($tooEarly, FreeOnboardingNotification::class);
-        Notification::assertNotSentTo($tooLate, FreeOnboardingNotification::class);
-        Notification::assertNotSentTo($paidUser, FreeOnboardingNotification::class);
+        Notification::assertNotSentTo($tooEarly, PaidOnboardingNotification::class);
+        Notification::assertNotSentTo($tooLate, PaidOnboardingNotification::class);
+        Notification::assertNotSentTo($freeUser, PaidOnboardingNotification::class);
     }
 
     public function test_idempotent_no_duplicate_sends()
     {
         Notification::fake();
 
-        $user = User::factory()->create(['created_at' => now()->subDays(2)]);
+        $user = $this->activatedUser(now()->subDays(3));
 
         $this->artisan('mail:run-sequences')->assertSuccessful();
         $this->artisan('mail:run-sequences')->assertSuccessful();
 
-        Notification::assertSentTimes(FreeOnboardingNotification::class, 1);
+        Notification::assertSentTimes(PaidOnboardingNotification::class, 1);
 
         $this->assertDatabaseCount('sequence_sends', 1);
         $this->assertDatabaseHas('sequence_sends', [
             'user_id' => $user->id,
-            'sequence' => 'b1-free-onboarding',
-            'step' => 'day-2',
+            'sequence' => 'b3-paid-onboarding',
+            'step' => 'day-3',
         ]);
     }
 
@@ -74,13 +65,13 @@ class SequenceEngineTest extends TestCase
     {
         Notification::fake();
 
-        $user = User::factory()->create(['created_at' => now()->subDays(2)]);
+        $user = $this->activatedUser(now()->subDays(3));
 
         app(NotificationPreferences::class)->update($user, ['product_updates' => false]);
 
         $this->artisan('mail:run-sequences')->assertSuccessful();
 
-        Notification::assertNotSentTo($user, FreeOnboardingNotification::class);
+        Notification::assertNotSentTo($user, PaidOnboardingNotification::class);
         $this->assertDatabaseCount('sequence_sends', 0);
     }
 
@@ -88,10 +79,10 @@ class SequenceEngineTest extends TestCase
     {
         Notification::fake();
 
-        $user = User::factory()->create(['created_at' => now()->subDays(2)]);
+        $user = $this->activatedUser(now()->subDays(3));
 
         // One-click unsubscribe (signed link, logged-out) opts the user out
-        // of ALL marketing categories (SPEC §16.3).
+        // of ALL marketing categories.
         $this->get(URL::signedRoute('unsubscribe', ['user' => $user->id]))->assertOk();
 
         $this->assertFalse($user->fresh()->wantsMarketing());
@@ -100,8 +91,7 @@ class SequenceEngineTest extends TestCase
 
         Notification::assertNothingSent();
 
-        // Transactional mail is mandatory and unaffected by preferences
-        // (SPEC §16.1/§16.3).
+        // Transactional mail is mandatory and unaffected by preferences.
         $this->actingAs($user)
             ->from('/settings/password')
             ->put('/settings/password', [
@@ -112,5 +102,25 @@ class SequenceEngineTest extends TestCase
             ->assertSessionHasNoErrors();
 
         Notification::assertSentTo($user, PasswordChangedNotification::class);
+    }
+
+    /**
+     * A user whose first paid order activated at the given time — the B3
+     * audience anchor.
+     */
+    private function activatedUser(\Illuminate\Support\Carbon $activatedAt): User
+    {
+        $user = User::factory()->create();
+
+        Order::factory()->create([
+            'user_id' => $user->id,
+            'plan' => OrderPlan::Pro,
+            'status' => OrderStatus::Active,
+            'billing_period' => BillingPeriod::Yearly,
+            'starts_at' => $activatedAt,
+            'ends_at' => $activatedAt->copy()->addYear(),
+        ]);
+
+        return $user;
     }
 }

@@ -100,15 +100,12 @@ class PricingPageTest extends TestCase
     {
         $this->get('/pricing')->assertInertia(fn (Assert $page) => $page
             ->component('pricing')
-            ->has('comparison', 8)
-            ->where('comparison.0', ['feature' => 'Browse + preview full catalog', 'free' => true, 'starter' => true, 'pro' => true])
-            ->where('comparison.1', ['feature' => 'Components copy/download', 'free' => 'Free subset (20–30%)', 'starter' => '100%', 'pro' => '100%'])
-            ->where('comparison.2', ['feature' => 'React + Vue versions', 'free' => 'Free subset', 'starter' => true, 'pro' => true])
-            ->where('comparison.3', ['feature' => 'Pack builder', 'free' => 'Free subset', 'starter' => true, 'pro' => true])
-            ->where('comparison.4', ['feature' => 'Projects', 'free' => '1', 'starter' => '3', 'pro' => 'Unlimited'])
-            ->where('comparison.5', ['feature' => 'Next.js / Nuxt scaffolding', 'free' => false, 'starter' => false, 'pro' => true])
-            ->where('comparison.6', ['feature' => 'New drops', 'free' => 'Free subset', 'starter' => true, 'pro' => 'Early access'])
-            ->where('comparison.7', ['feature' => 'Future pro features', 'free' => false, 'starter' => false, 'pro' => true])
+            ->has('comparison', 5)
+            ->where('comparison.0', ['feature' => 'Core features', 'free' => true, 'starter' => true, 'pro' => true])
+            ->where('comparison.1', ['feature' => 'Usage allowance', 'free' => 'Limited', 'starter' => 'Standard', 'pro' => 'Highest'])
+            ->where('comparison.2', ['feature' => 'Priority support', 'free' => false, 'starter' => true, 'pro' => true])
+            ->where('comparison.3', ['feature' => 'Advanced features', 'free' => false, 'starter' => false, 'pro' => true])
+            ->where('comparison.4', ['feature' => 'Early access to new features', 'free' => false, 'starter' => false, 'pro' => true])
         );
     }
 }

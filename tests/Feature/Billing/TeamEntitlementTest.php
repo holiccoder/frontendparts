@@ -9,7 +9,6 @@ use App\Models\Order;
 use App\Models\Organization;
 use App\Models\User;
 use App\Services\Billing\EntitlementService;
-use App\Support\Settings;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -41,10 +40,6 @@ class TeamEntitlementTest extends TestCase
 
         $this->assertSame(OrderPlan::Team, $entitlement->plan());
         $this->assertTrue($entitlement->isPaid());
-        $this->assertTrue($entitlement->hasFullLibrary());
-        $this->assertTrue($entitlement->canScaffold());
-        $this->assertTrue($entitlement->canExportToGithub());
-        $this->assertNull($entitlement->projectLimit());
     }
 
     public function test_member_inherits_team_entitlements_while_order_active()
@@ -58,8 +53,6 @@ class TeamEntitlementTest extends TestCase
 
         $this->assertSame(OrderPlan::Team, $entitlement->plan());
         $this->assertTrue($entitlement->isPaid());
-        $this->assertTrue($entitlement->hasFullLibrary());
-        $this->assertTrue($entitlement->canScaffold());
     }
 
     public function test_member_loses_entitlement_when_team_order_stops_entitling()
@@ -101,7 +94,7 @@ class TeamEntitlementTest extends TestCase
         $entitlement = $service->for($member);
 
         $this->assertSame(OrderPlan::Free, $entitlement->plan());
-        $this->assertFalse($entitlement->hasFullLibrary());
+        $this->assertFalse($entitlement->isPaid());
     }
 
     public function test_personal_paid_order_beats_organization_membership()
@@ -121,8 +114,7 @@ class TeamEntitlementTest extends TestCase
         $entitlement = app(EntitlementService::class)->for($member);
 
         $this->assertSame(OrderPlan::Starter, $entitlement->plan());
-        $this->assertFalse($entitlement->canScaffold());
-        $this->assertSame(3, $entitlement->projectLimit());
+        $this->assertTrue($entitlement->isPaid());
     }
 
     public function test_organization_membership_lifts_free_users_only()
@@ -151,22 +143,6 @@ class TeamEntitlementTest extends TestCase
         $outsider = User::factory()->create();
 
         $this->assertSame(OrderPlan::Free, app(EntitlementService::class)->for($outsider)->plan());
-    }
-
-    public function test_team_project_limit_reads_from_settings()
-    {
-        [$organization] = $this->teamOrganization(3);
-
-        $member = User::factory()->create();
-        $organization->members()->attach($member->id, ['role' => OrganizationRole::Member->value]);
-
-        // Default: unlimited, like Pro.
-        $this->assertNull(app(EntitlementService::class)->for($member)->projectLimit());
-
-        // Admin re-tunes the team limit — reflected without a deploy.
-        app(Settings::class)->set('plans.project_limit.team', 25);
-
-        $this->assertSame(25, app(EntitlementService::class)->for($member)->projectLimit());
     }
 
     /**

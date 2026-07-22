@@ -1,43 +1,26 @@
 ---
-title: Getting started with FrontendParts
-description: What FrontendParts is, how the component library is organized, and the fastest path from browsing to production code.
+title: Getting Started
+description: Create an account, pick a plan, and get oriented — dashboard, orders, team seats, support tickets and docs.
 ---
 
-# Getting started with FrontendParts
+# Getting Started
 
-FrontendParts is a library of production-ready website sections recreated from the best sites on the web. Every component ships as clean, hand-written code in **two frameworks — React (TSX) and Vue 3 (SFC)** — styled with Tailwind CSS 4 utilities only. You copy the sources into your project; there is no runtime dependency on FrontendParts itself.
+Welcome to the documentation. This page covers the chassis every account starts from; your product's own guides live alongside it as new sections in `docs/content/` (registered in `config/docs_nav.php`).
 
-## How the library is organized
+## Create your account
 
-Components come in four levels, each building on the one below:
+Register with your email address, verify it through the confirmation mail, and you land on your **dashboard** — the home for plan status, orders, team seats, affiliate tools and support tickets.
 
-| Level | What it is | Examples |
-|---|---|---|
-| Element | The smallest reusable unit | Buttons, badges, section titles |
-| Block | A small composition of elements | Pricing cards, testimonial cards |
-| Section | A full page section | Heroes, pricing sections, FAQ |
-| Page | A complete page layout | Landing pages, pricing pages |
+## Choose a plan
 
-The import order is always **elements → blocks → sections → pages**: parents import their children, never the other way around. When you download a section you get its full dependency closure — every block and element it uses — already wired in the right order.
+The [pricing page](/pricing) lists every plan and billing period (monthly, quarterly, yearly and lifetime where offered). Checkout runs through Paddle for international cards or Alipay / WeChat Pay QR for domestic buyers. Every purchase is covered by the refund window described in the [Refund Policy](/refund-policy).
 
-## Every component, twice
+## Manage billing
 
-The same slug exists once in the React library and once in the Vue library: same markup structure, same Tailwind classes, same params and sample data. Pick whichever stack your project uses — you never port a twin by hand. On every component page you can switch between the React and Vue implementations before you copy or download.
+- **Orders** — receipts, renewal dates and license state live under Dashboard → Orders.
+- **Cancel anytime** — Settings → Billing starts the cancel flow; access runs to the end of the paid term.
+- **Team seats** — the Team plan is priced per seat; invite and remove members from Dashboard → Team.
 
-## The fastest path
+## Get help
 
-1. **Browse the [catalog](/components)** by usage pattern (hero, pricing, navbar…) or by [industry](/industries).
-2. **Open a component** for the live preview at phone, tablet and desktop widths, the structure tree of its composition, and the Code / Data / Docs tabs.
-3. **Copy or download.** Free components need no account — copy a file straight from the Code tab, or download a zip of the whole closure with sample-data modules.
-4. **Paste into your project** and feed it your own content through props. See [Install for React](/docs/install/react) or [Install for Vue](/docs/install/vue).
-
-## Params and data in one minute
-
-Every component is driven by two files: a `params.json` contract (name, type, default and description per prop) and a `data.json` showcase file with realistic sample content. Values resolve in a strict order — **props you pass → `data.json` → param defaults** — so a component always renders on its own and you can always override anything. The full model is documented in [Params & data](/docs/using-components/params-and-data).
-
-## What to read next
-
-- [Installation & account](/docs/getting-started/installation) — plans, and the browsing/downloading flow in detail
-- [Install for React](/docs/install/react) · [Install for Vue](/docs/install/vue) · [Next.js](/docs/install/next) · [Nuxt](/docs/install/nuxt)
-- [Params & data](/docs/using-components/params-and-data) · [Customizing](/docs/using-components/customizing)
-- [Scaffolding & GitHub Export](/docs/exports/scaffolding-and-github) · [License FAQ](/docs/license/faq) · [Troubleshooting](/docs/troubleshooting/index)
+Open a **support ticket** from the dashboard and the team replies in the same thread — every step is mirrored by email. You can tune which product emails you receive under Settings → Notifications, or unsubscribe in one click from any marketing mail.

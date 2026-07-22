@@ -2,10 +2,8 @@
 
 namespace App\Services\Docs;
 
-use App\Models\DocsPage;
 use DOMDocument;
 use DOMXPath;
-use Illuminate\Support\Facades\Cache;
 use League\CommonMark\Environment\Environment;
 use League\CommonMark\Extension\CommonMark\CommonMarkCoreExtension;
 use League\CommonMark\Extension\GithubFlavoredMarkdownExtension;
@@ -23,13 +21,9 @@ use League\CommonMark\MarkdownConverter;
  * without visible anchor markup; the right-hand TOC is extracted from the
  * rendered HTML afterwards.
  *
- * Search runs through Laravel Scout (SPEC §13.2 — "search (basic at launch
- * → Meilisearch at P3)"): pages are synced from markdown into the
- * `docs_pages` table on demand (fingerprint-guarded, so a sync only runs
- * after the content actually changes), then matching is delegated to the
- * configured engine — `collection` locally, Meilisearch in production.
- * Ranking stays app-side so title hits outrank body hits in nav order on
- * every engine.
+ * Search runs file-based: pages are read straight from markdown and
+ * matched case-insensitively, with title hits outranking body hits in nav
+ * order.
  */
 class DocsRepository
 {
@@ -177,26 +171,16 @@ class DocsRepository
     }
 
     /**
-     * Cache key of the synced content fingerprint (see syncPages()).
-     */
-    private const SYNC_FINGERPRINT_CACHE_KEY = 'docs.search.fingerprint';
-
-    /**
-     * Full-text search over every configured page (SPEC §13.2 — Meilisearch
-     * at P3, via Laravel Scout). The markdown pages are first synced into
-     * the docs_pages table, then the configured Scout engine matches
-     * candidate pages: the collection engine does case-insensitive
-     * substring matching over title/body/keys, Meilisearch adds all-terms
-     * matching and typo tolerance. Results are re-ranked app-side — title
-     * matches before body matches, nav order within a bucket — each
-     * carrying a snippet around the first body hit.
+     * Full-text search over every configured page, file-based: each
+     * markdown page is reduced to plain text, then matched
+     * case-insensitively — phrase hits before all-terms hits, title hits
+     * before body hits, nav order within a bucket — each result carrying a
+     * snippet around the first body hit.
      *
      * @return list<array{section: string, page: string, title: string, url: string, snippet: string}>
      */
     public function search(string $query): array
     {
-        $this->syncPages();
-
         $query = trim((string) preg_replace('/\s+/', ' ', $query));
 
         if ($query === '') {
@@ -211,80 +195,9 @@ class DocsRepository
             'terms' => $terms !== [] && count(array_filter($terms, fn (string $term): bool => str_contains($haystack, $term))) === count($terms),
         ];
 
-        $navOrder = [];
-
-        foreach ($this->flatten() as $order => $entry) {
-            $navOrder[$entry['section'].'/'.$entry['page']] = $order;
-        }
-
         $ranked = [];
 
-        foreach (DocsPage::search($query)->get() as $docsPage) {
-            $inTitle = $matches(mb_strtolower($docsPage->title));
-            $inBody = $matches(mb_strtolower($docsPage->body));
-
-            $rank = match (true) {
-                $inTitle['phrase'] => 0,
-                $inTitle['terms'] => 1,
-                $inBody['phrase'] => 2,
-                $inBody['terms'] => 3,
-                // Engine-only hit (e.g. Meilisearch typo tolerance): ranked
-                // last rather than dropped, so fuzzier engines stay useful.
-                default => 4,
-            };
-
-            $ranked[] = [
-                'rank' => $rank,
-                'order' => $navOrder[$docsPage->section.'/'.$docsPage->page] ?? PHP_INT_MAX,
-                'result' => [
-                    'section' => $docsPage->section,
-                    'page' => $docsPage->page,
-                    'title' => $docsPage->title,
-                    'url' => $docsPage->publicUrl(),
-                    'snippet' => $this->snippet($docsPage->body, $phrase, $terms),
-                ],
-            ];
-        }
-
-        usort($ranked, fn (array $a, array $b): int => [$a['rank'], $a['order']] <=> [$b['rank'], $b['order']]);
-
-        return array_values(array_map(fn (array $hit): array => $hit['result'], $ranked));
-    }
-
-    /**
-     * Sync markdown pages into the docs_pages search table (SPEC §13.2):
-     * upsert every configured page and prune rows whose page vanished.
-     * Guarded by a content fingerprint (nav config + each file's mtime and
-     * size) so the sync only runs when the content actually changed — once
-     * per deploy in production, once per fixture in tests. Model events
-     * push the changed rows to the configured Scout engine.
-     */
-    private function syncPages(): void
-    {
-        $entries = $this->flatten();
-
-        $fingerprint = md5((string) json_encode([
-            'content_path' => config('docs.content_path'),
-            'pages' => array_map(function (array $entry): array {
-                $path = $this->path($entry['section'], $entry['page']);
-
-                return [
-                    'section' => $entry['section'],
-                    'page' => $entry['page'],
-                    'title' => $entry['title'],
-                    'mtime' => $path === null ? null : filemtime($path),
-                    'size' => $path === null ? null : filesize($path),
-                ];
-            }, $entries),
-        ]));
-
-        if (Cache::get(self::SYNC_FINGERPRINT_CACHE_KEY) === $fingerprint) {
-            return;
-        }
-
-        $keep = [];
-
-        foreach ($entries as $entry) {
+        foreach ($this->flatten() as $order => $entry) {
             $path = $this->path($entry['section'], $entry['page']);
 
             if ($path === null) {
@@ -293,21 +206,40 @@ class DocsRepository
 
             [$frontMatter, $body] = $this->extractFrontMatter((string) file_get_contents($path));
 
-            $page = DocsPage::query()->updateOrCreate(
-                ['section' => $entry['section'], 'page' => $entry['page']],
-                [
-                    'title' => $frontMatter['title'] ?? $this->firstHeading($body) ?? $entry['title'],
-                    'description' => $frontMatter['description'] ?? '',
-                    'body' => $this->stripMarkdown($body),
-                ],
-            );
+            $title = $frontMatter['title'] ?? $this->firstHeading($body) ?? $entry['title'];
+            $text = $this->stripMarkdown($body);
 
-            $keep[] = $page->id;
+            $inTitle = $matches(mb_strtolower($title));
+            $inBody = $matches(mb_strtolower($text));
+
+            $rank = match (true) {
+                $inTitle['phrase'] => 0,
+                $inTitle['terms'] => 1,
+                $inBody['phrase'] => 2,
+                $inBody['terms'] => 3,
+                default => null,
+            };
+
+            if ($rank === null) {
+                continue;
+            }
+
+            $ranked[] = [
+                'rank' => $rank,
+                'order' => $order,
+                'result' => [
+                    'section' => $entry['section'],
+                    'page' => $entry['page'],
+                    'title' => $title,
+                    'url' => $entry['url'],
+                    'snippet' => $this->snippet($text, $phrase, $terms),
+                ],
+            ];
         }
 
-        DocsPage::query()->whereNotIn('id', $keep)->get()->each->delete();
+        usort($ranked, fn (array $a, array $b): int => [$a['rank'], $a['order']] <=> [$b['rank'], $b['order']]);
 
-        Cache::forever(self::SYNC_FINGERPRINT_CACHE_KEY, $fingerprint);
+        return array_values(array_map(fn (array $hit): array => $hit['result'], $ranked));
     }
 
     /**

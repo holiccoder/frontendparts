@@ -27,79 +27,33 @@ class SettingsPageTest extends TestCase
         $settings = app(PlatformSettings::class);
 
         // Warm the resolved-value cache so the save proves it flushes.
-        $this->assertSame(1, $settings->get('plans.project_limit.free'));
         $this->assertSame(14, $settings->get('billing.refund_window_days'));
-        $this->assertTrue($settings->get('features.preview_dark_toggle'));
+        $this->assertSame(0.14, $settings->get('fx.cny_to_usd'));
+        $this->assertSame(30, $settings->get('affiliate.commission_rate'));
 
         Livewire::test(Settings::class)
             ->fillForm([
-                'plans_project_limit_free' => 2,
-                'plans_project_limit_starter' => 5,
-                'plans_project_limit_pro' => null,
                 'billing_refund_window_days' => 30,
-                'features_preview_dark_toggle' => false,
-                'features_tree_interactions' => false,
-                'features_live_edit' => true,
-                'goals_launch_component_target' => 120,
-                'goals_components_per_month' => 25,
-                'goals_organic_visits_monthly' => 20000,
-                'goals_signup_conversion_pct' => 7,
-                'goals_paid_conversion_pct_min' => 4,
-                'goals_paid_conversion_pct_max' => 6,
-                'goals_churn_max_pct' => 3,
-                'goals_mrr_target_usd' => 3000,
                 'fx_cny_to_usd' => 0.15,
+                'affiliate_commission_rate' => 25,
+                'affiliate_cookie_days' => 45,
+                'affiliate_recurring_months' => 6,
+                'affiliate_holding_days' => 14,
+                'affiliate_payout_threshold' => 100,
             ])
             ->call('save')
             ->assertHasNoFormErrors();
 
-        // Plans & limits
-        $this->assertSame(2, $settings->get('plans.project_limit.free'));
-        $this->assertSame(5, $settings->get('plans.project_limit.starter'));
-        $this->assertNull($settings->get('plans.project_limit.pro'), 'empty Pro limit must persist as unlimited (null)');
+        // Billing
         $this->assertSame(30, $settings->get('billing.refund_window_days'));
-
-        // Feature flags
-        $this->assertFalse($settings->get('features.preview_dark_toggle'));
-        $this->assertFalse($settings->get('features.tree_interactions'));
-        $this->assertTrue($settings->get('features.live_edit'));
-
-        // Goals
-        $this->assertSame(120, $settings->get('goals.launch_component_target'));
         $this->assertSame(0.15, $settings->get('fx.cny_to_usd'));
-    }
 
-    public function test_goal_targets_saved()
-    {
-        $admin = Admin::factory()->create();
-
-        $this->actingAs($admin, 'admin');
-
-        // The form mounts with current values, so only the goal fields need filling.
-        Livewire::test(Settings::class)
-            ->fillForm([
-                'goals_launch_component_target' => 150,
-                'goals_components_per_month' => 30,
-                'goals_organic_visits_monthly' => 50000,
-                'goals_signup_conversion_pct' => 8,
-                'goals_paid_conversion_pct_min' => 4,
-                'goals_paid_conversion_pct_max' => 7,
-                'goals_churn_max_pct' => 4,
-                'goals_mrr_target_usd' => 5000,
-            ])
-            ->call('save')
-            ->assertHasNoFormErrors();
-
-        $settings = app(PlatformSettings::class);
-
-        $this->assertSame(150, $settings->get('goals.launch_component_target'));
-        $this->assertSame(30, $settings->get('goals.components_per_month'));
-        $this->assertSame(50000, $settings->get('goals.organic_visits_monthly'));
-        $this->assertSame(8, $settings->get('goals.signup_conversion_pct'));
-        $this->assertSame(4, $settings->get('goals.paid_conversion_pct_min'));
-        $this->assertSame(7, $settings->get('goals.paid_conversion_pct_max'));
-        $this->assertSame(4, $settings->get('goals.churn_max_pct'));
-        $this->assertSame(5000, $settings->get('goals.mrr_target_usd'));
+        // Affiliate
+        $this->assertSame(25, $settings->get('affiliate.commission_rate'));
+        $this->assertSame(45, $settings->get('affiliate.cookie_days'));
+        $this->assertSame(6, $settings->get('affiliate.recurring_months'));
+        $this->assertSame(14, $settings->get('affiliate.holding_days'));
+        $this->assertSame(100, $settings->get('affiliate.payout_threshold'));
     }
 
     public function test_plan_price_crud_updates_checkout_amounts_without_deploy()

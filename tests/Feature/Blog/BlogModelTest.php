@@ -5,7 +5,6 @@ namespace Tests\Feature\Blog;
 use App\Models\Blog;
 use App\Models\BlogCategory;
 use App\Models\BlogTag;
-use App\Models\Component;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -35,24 +34,6 @@ class BlogModelTest extends TestCase
         $this->assertDatabaseHas('blog_tag', [
             'blog_id' => $post->id,
             'blog_tag_id' => $tags->first()->id,
-        ]);
-    }
-
-    public function test_related_components_pivot()
-    {
-        $post = Blog::factory()->published()->create();
-        $components = Component::factory()->count(2)->create();
-
-        $post->relatedComponents()->attach($components);
-
-        $related = $post->fresh()->relatedComponents;
-
-        $this->assertCount(2, $related);
-        $this->assertEqualsCanonicalizing($components->modelKeys(), $related->modelKeys());
-
-        $this->assertDatabaseHas('blog_component', [
-            'blog_id' => $post->id,
-            'component_id' => $components->first()->id,
         ]);
     }
 

@@ -17,7 +17,7 @@ return new class extends Migration
             // defaults (all opted in, weekly digest); transactional mail is
             // mandatory and never stored here. Resolved exclusively through
             // App\Services\Notifications\NotificationPreferences.
-            $table->json('notification_preferences')->nullable()->after('preview_layout');
+            $table->json('notification_preferences')->nullable();
         });
     }
 

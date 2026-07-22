@@ -78,23 +78,6 @@ class BlogPageTest extends TestCase
         $this->assertStringNotContainsString($scheduled->title, $feed);
     }
 
-    public function test_related_components_in_props()
-    {
-        $post = Blog::factory()->published()->create();
-        $published = Component::factory()->published()->create(['name' => 'Pricing Table 01']);
-        $draftComponent = Component::factory()->draft()->create(['name' => 'Hidden Draft 01']);
-
-        $post->relatedComponents()->attach([$published->id, $draftComponent->id]);
-
-        $this->get("/blog/{$post->slug}")
-            ->assertOk()
-            ->assertInertia(fn (Assert $page) => $page
-                ->has('relatedComponents', 1)
-                ->where('relatedComponents.0.name', 'Pricing Table 01')
-                ->where('relatedComponents.0.url', $published->publicUrl())
-            );
-    }
-
     public function test_article_structured_data_present()
     {
         $post = Blog::factory()->published()->create([
