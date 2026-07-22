@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\EnsureEmailIsVerified;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\NoIndex;
 use App\Http\Middleware\SkipInertiaSsr;
@@ -26,6 +27,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'noindex' => NoIndex::class,
             'ssr.skip' => SkipInertiaSsr::class,
+            // Env-flagged verification gate: passes through when
+            // auth.require_email_verification is false (local dev).
+            'verified' => EnsureEmailIsVerified::class,
         ]);
 
         // Paddle webhooks and domestic (Alipay / WeChat) notifies are

@@ -125,4 +125,18 @@ return [
 
     'password_timeout' => env('AUTH_PASSWORD_TIMEOUT', 10800),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Require Email Verification
+    |--------------------------------------------------------------------------
+    |
+    | When true (default), the `verified` middleware enforces Laravel's
+    | email-verification gate (SPEC §15.2). Set REQUIRE_EMAIL_VERIFICATION=
+    | false in local development to browse authenticated areas without
+    | verifying. Keep it true in production and CI.
+    |
+    */
+
+    'require_email_verification' => env('REQUIRE_EMAIL_VERIFICATION', true),
+
 ];

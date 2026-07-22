@@ -60,6 +60,8 @@ class EmailVerificationTest extends TestCase
 
     public function test_unverified_users_are_redirected_from_dashboard()
     {
+        config()->set('auth.require_email_verification', true);
+
         $user = User::factory()->unverified()->create();
 
         $this->actingAs($user)->get('/dashboard')->assertRedirect(route('verification.notice'));
@@ -68,6 +70,15 @@ class EmailVerificationTest extends TestCase
     public function test_verified_users_can_access_dashboard()
     {
         $user = User::factory()->create();
+
+        $this->actingAs($user)->get('/dashboard')->assertOk();
+    }
+
+    public function test_unverified_users_pass_when_verification_disabled()
+    {
+        config()->set('auth.require_email_verification', false);
+
+        $user = User::factory()->unverified()->create();
 
         $this->actingAs($user)->get('/dashboard')->assertOk();
     }
