@@ -1,12 +1,12 @@
 ---
 title: Cookie Policy
-description: The cookies and browser storage FrontendParts uses — strictly necessary session and security cookies plus optional interface preferences. No advertising or third-party analytics cookies.
+description: The cookies and browser storage the Service uses — strictly necessary session and security cookies plus optional interface preferences. No advertising or third-party analytics cookies.
 updated: 2026-07-21
 ---
 
 # Cookie Policy
 
-This policy explains which cookies and similar technologies (like browser local storage) FrontendParts uses, in line with the EU ePrivacy rules. The short version: **strictly necessary cookies to run the site, a couple of optional interface preferences, and no advertising or third-party analytics cookies at all.**
+This policy explains which cookies and similar technologies (like browser local storage) the Service uses, in line with the EU ePrivacy rules. The short version: **strictly necessary cookies to run the site, a couple of optional interface preferences, and no advertising or third-party analytics cookies at all.**
 
 ## Strictly necessary cookies
 
@@ -30,7 +30,7 @@ These remember interface choices. The site works without them — you just get t
 
 ## What we deliberately do not use
 
-- **No third-party analytics or tracking cookies.** Catalog usage stats (component views, copies, downloads) are recorded as first-party, server-side events — see the [Privacy Policy](/privacy) — not via cookies or third-party scripts.
+- **No third-party analytics or tracking cookies.** Usage stats are recorded as first-party, server-side events — see the [Privacy Policy](/privacy) — not via cookies or third-party scripts.
 - **No advertising, retargeting, or social-media pixels.**
 - **No cookie banner dark patterns.** Because only strictly necessary cookies are set, no consent wall blocks the site.
 

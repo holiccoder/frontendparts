@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils';
-import type { Paginated } from '@/types/catalog';
+import type { Paginated } from '@/types/shared';
 import { Link } from '@inertiajs/react';
 
 /**

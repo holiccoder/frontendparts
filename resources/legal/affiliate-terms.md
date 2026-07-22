@@ -1,12 +1,12 @@
 ---
 title: Affiliate Program Terms
-description: The rules of the FrontendParts affiliate program — FTC disclosure duties, no brand-bidding or spam, clawbacks, and how commissions, holding periods and payouts work.
+description: The rules of the affiliate program — FTC disclosure duties, no brand-bidding or spam, clawbacks, and how commissions, holding periods and payouts work.
 updated: 2026-07-21
 ---
 
 # Affiliate Program Terms
 
-These terms govern participation in the FrontendParts affiliate program. By joining the program from your [dashboard](/dashboard/affiliate) you accept these terms in addition to the [Terms of Service](/terms). The program lets you earn a commission on qualifying purchases made by buyers you refer through your tracked link.
+These terms govern participation in the affiliate program for the Service. By joining the program from your [dashboard](/dashboard/affiliate) you accept these terms in addition to the [Terms of Service](/terms). The program lets you earn a commission on qualifying purchases made by buyers you refer through your tracked link.
 
 ## Joining and your referral link
 
@@ -14,18 +14,18 @@ Any registered user may join self-serve from the dashboard. On joining you recei
 
 ## Disclosure requirement (FTC)
 
-You **must clearly and conspicuously disclose** that you earn a commission whenever you promote FrontendParts — in every blog post, video, social post, newsletter, comparison page or any other content that contains your referral link. Disclosure must be unambiguous and placed close to the link ("I earn a commission if you buy through this link" is fine; a vague "this post may contain affiliate links" buried in a footer is not). This follows the U.S. FTC Endorsement Guides; equivalent rules apply in many other jurisdictions, and you are responsible for complying with the law wherever your audience is.
+You **must clearly and conspicuously disclose** that you earn a commission whenever you promote the Service — in every blog post, video, social post, newsletter, comparison page or any other content that contains your referral link. Disclosure must be unambiguous and placed close to the link ("I earn a commission if you buy through this link" is fine; a vague "this post may contain affiliate links" buried in a footer is not). This follows the U.S. FTC Endorsement Guides; equivalent rules apply in many other jurisdictions, and you are responsible for complying with the law wherever your audience is.
 
 ## Promotional rules
 
 The following are **prohibited** and lead to suspension and voided commissions:
 
-- **Brand-bidding and trademark ads** — no paid advertising that bids on or targets "FrontendParts", our trademarks, misspellings of them, or "FrontendParts + modifier" keywords (e.g. "FrontendParts coupon"), on any ad network or search engine.
-- **Impersonation** — no ads, domains, social accounts or pages that present themselves as official FrontendParts properties, and no framing or mirroring of our site.
+- **Brand-bidding and trademark ads** — no paid advertising that bids on or targets our brand name, our trademarks, misspellings of them, or "brand + modifier" keywords (e.g. "brand coupon"), on any ad network or search engine.
+- **Impersonation** — no ads, domains, social accounts or pages that present themselves as official properties of ours, and no framing or mirroring of our site.
 - **Spam** — no unsolicited bulk email, comment spam, forum spam or automated posting; email promotions must comply with CAN-SPAM / GDPR / PIPL as applicable and go only to recipients who opted in to hear from you.
 - **Cookie-stuffing and forced clicks** — no iframes, pop-ups, redirects, browser extensions or any other technique that drops the tracking cookie without a genuine user click.
 - **Self-referral** — purchases made by you, by accounts sharing your email address, or through your own link for your own use never earn commission.
-- **Misrepresentation** — no false claims about FrontendParts features, pricing, discounts or licensing, and no invented coupons or deals.
+- **Misrepresentation** — no false claims about the Service's features, pricing, discounts or licensing, and no invented coupons or deals.
 
 ## Commissions
 

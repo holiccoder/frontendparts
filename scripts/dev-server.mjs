@@ -1,5 +1,5 @@
 /**
- * FrontendParts dev server (Kimi Work preview entry point).
+ * Dev server (Kimi Work preview entry point).
  *
  * `npm run dev` boots the full local stack and forwards CLI host/port args:
  *
@@ -8,7 +8,7 @@
  * Children (all killed on exit — nothing detached, nothing backgrounded):
  *   1. php artisan serve   → the Laravel app on the forwarded host/port
  *   2. vite (node)         → asset dev server with HMR on port 5173
- *   3. php artisan queue:work → pack zips, scaffolds, preview rebuilds, mail
+ *   3. php artisan queue:work → queued jobs (mail, billing webhooks, …)
  *
  * PHP is not on PATH on every machine; resolution order:
  *   FP_PHP_BINARY → Herd per-user install (Windows) → bare `php`.
@@ -114,4 +114,4 @@ for (const child of children) {
     });
 }
 
-console.log(`[dev-server] FrontendParts on http://${host}:${port} (vite HMR on 5173, queue worker on)`);
+console.log(`[dev-server] app on http://${host}:${port} (vite HMR on 5173, queue worker on)`);

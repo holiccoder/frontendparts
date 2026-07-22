@@ -1,7 +1,7 @@
 import SeoHead from '@/components/seo-head';
 import PublicLayout from '@/layouts/public-layout';
 import type { SharedData } from '@/types';
-import type { PageMeta } from '@/types/catalog';
+import type { PageMeta } from '@/types/shared';
 import { Link, usePage } from '@inertiajs/react';
 
 interface TocEntry {

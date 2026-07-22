@@ -40,7 +40,7 @@ class DomesticGateway
         $this->configure();
 
         $outTradeNo = $order->out_trade_no ?? self::outTradeNoFor($order);
-        $subject = "FrontendParts {$order->plan->value} plan ({$order->billing_period->value})";
+        $subject = config('app.name')." {$order->plan->value} plan ({$order->billing_period->value})";
 
         $qrContent = match ($channel) {
             DomesticChannel::Alipay => (string) Pay::alipay()->scan([

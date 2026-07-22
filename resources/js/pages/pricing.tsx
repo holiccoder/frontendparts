@@ -1,6 +1,6 @@
 import SeoHead from '@/components/seo-head';
 import PublicLayout from '@/layouts/public-layout';
-import type { PageMeta } from '@/types/catalog';
+import type { PageMeta } from '@/types/shared';
 import { Link, router } from '@inertiajs/react';
 import { Check, Minus } from 'lucide-react';
 import { useState } from 'react';
@@ -240,10 +240,10 @@ export default function Pricing({ periods, plans, currency, currencySwitchUrl, c
                         Pricing
                     </span>
                     <h1 className="mx-auto mt-6 max-w-2xl text-4xl font-semibold tracking-tight text-balance sm:text-5xl">
-                        One library, every future drop
+                        Simple pricing that scales with you
                     </h1>
                     <p className="mx-auto mt-6 max-w-xl text-lg leading-8 text-neutral-500">
-                        Start free with a rotating subset. Upgrade for the entire catalog in React and Vue — monthly, yearly, or once for lifetime.
+                        Start free and upgrade when you're ready — monthly, quarterly, yearly, or once for lifetime.
                     </p>
 
                     <div className="mt-10 flex justify-center">
@@ -313,7 +313,7 @@ export default function Pricing({ periods, plans, currency, currencySwitchUrl, c
                             <span className="text-4xl font-semibold tracking-tight">$0</span>
                         </div>
                         <p className="mt-1 text-xs text-neutral-400">No card required.</p>
-                        <p className="mt-3 text-sm leading-6 text-neutral-500">A rotating 20–30% subset of the catalog to try everything.</p>
+                        <p className="mt-3 text-sm leading-6 text-neutral-500">The essentials to explore everything — no card required.</p>
                         <Link
                             href="/register"
                             className="mt-8 inline-flex items-center justify-center rounded-md border border-neutral-300 px-4 py-2.5 text-sm font-semibold text-neutral-700 transition hover:border-neutral-400 hover:bg-neutral-50"
@@ -333,7 +333,7 @@ export default function Pricing({ periods, plans, currency, currencySwitchUrl, c
 
                 <p className="mt-8 text-center text-xs leading-5 text-neutral-400">
                     {period === 'lifetime'
-                        ? 'Lifetime is a permanent offering — pay once and keep access to the full library and every future drop, forever.'
+                        ? 'Lifetime is a permanent offering — pay once and keep your access forever.'
                         : currency === 'CNY'
                           ? 'Prices in CNY · 支持支付宝、微信支付 · 每个周期一次性付款，到期前邮件提醒续费。'
                           : 'Prices in USD · Secure payments by Paddle, our merchant of record · Cancel anytime, keep access until the period ends.'}
@@ -344,7 +344,7 @@ export default function Pricing({ periods, plans, currency, currencySwitchUrl, c
             <section className="border-y border-neutral-100 bg-neutral-50/60">
                 <div className="mx-auto max-w-5xl px-4 py-20 sm:px-6 lg:px-8">
                     <h2 className="text-center text-2xl font-semibold tracking-tight sm:text-3xl">Compare plans</h2>
-                    <p className="mx-auto mt-3 max-w-xl text-center text-neutral-500">Every plan reads the full catalog. Paid plans unlock it.</p>
+                    <p className="mx-auto mt-3 max-w-xl text-center text-neutral-500">Every paid plan unlocks more. Cancel anytime.</p>
                     <div className="mt-10 overflow-x-auto rounded-2xl border border-neutral-200 bg-white">
                         <table className="w-full min-w-[560px] text-sm">
                             <thead>

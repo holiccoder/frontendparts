@@ -91,7 +91,7 @@ export default function TeamPage({ organization, memberships }: TeamPageProps) {
             <div className="flex h-full flex-1 flex-col gap-6 rounded-xl p-4">
                 <HeadingSmall
                     title="Team"
-                    description="Your organization and its seats. Every member gets the full library, scaffolding and exports while your team plan is active."
+                    description="Your organization and its seats. Every member gets the full team feature set while your team plan is active."
                 />
 
                 {flash?.notice && <p className="text-sm text-green-600 dark:text-green-400">{flash.notice}</p>}

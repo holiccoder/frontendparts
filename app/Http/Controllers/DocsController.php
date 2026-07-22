@@ -38,10 +38,10 @@ class DocsController extends Controller
             'nav' => $this->docs->navTree($section, $page),
             'pagination' => $this->docs->neighbours($section, $page),
             'meta' => [
-                'title' => $doc['title'].' · FrontendParts Docs',
+                'title' => $doc['title'].' · '.config('app.name').' Docs',
                 'description' => $doc['description'] !== ''
                     ? $doc['description']
-                    : "FrontendParts documentation — {$doc['title']}.",
+                    : config('app.name')." documentation — {$doc['title']}.",
                 'canonical' => route('docs.show', ['section' => $section, 'page' => $page]),
                 'og_image' => URL::to('/brand/logo.png'),
             ],
@@ -62,8 +62,8 @@ class DocsController extends Controller
             'results' => $this->docs->search($query),
             'nav' => $this->docs->navTree(),
             'meta' => [
-                'title' => ($query === '' ? 'Search the docs' : "Docs search: {$query}").' · FrontendParts Docs',
-                'description' => 'Search the FrontendParts documentation — install guides, params & data, exports, license and troubleshooting.',
+                'title' => ($query === '' ? 'Search the docs' : "Docs search: {$query}").' · '.config('app.name').' Docs',
+                'description' => 'Search the '.config('app.name').' documentation — guides, billing, team and troubleshooting.',
                 'canonical' => route('docs.search'),
                 'og_image' => URL::to('/brand/logo.png'),
                 'robots' => 'noindex',

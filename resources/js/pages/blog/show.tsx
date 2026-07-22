@@ -1,25 +1,22 @@
 import { PostCard } from '@/components/blog/post-card';
-import { ComponentGrid } from '@/components/catalog/component-card';
 import SeoHead from '@/components/seo-head';
 import PublicLayout from '@/layouts/public-layout';
 import type { BlogArticle, BlogPostCard } from '@/types/blog';
-import type { ComponentCardData, PageMeta } from '@/types/catalog';
+import type { PageMeta } from '@/types/shared';
 import { Head, Link } from '@inertiajs/react';
 
 interface BlogShowProps {
     post: BlogArticle;
     relatedPosts: BlogPostCard[];
-    relatedComponents: ComponentCardData[];
     jsonLd: Record<string, unknown>;
     meta: PageMeta;
 }
 
 /**
- * Blog article `/blog/{slug}` (SPEC §13.1): SSR long-form page with a
- * heading-derived TOC, Article structured data, related posts and the
- * catalog cross-linking mechanic (related components).
+ * Blog article `/blog/{slug}`: SSR long-form page with a heading-derived
+ * TOC, Article structured data and related posts.
  */
-export default function BlogShow({ post, relatedPosts, relatedComponents, jsonLd, meta }: BlogShowProps) {
+export default function BlogShow({ post, relatedPosts, jsonLd, meta }: BlogShowProps) {
     const primaryCategory = post.categories[0] ?? null;
 
     return (
@@ -106,16 +103,6 @@ export default function BlogShow({ post, relatedPosts, relatedComponents, jsonLd
                         )}
                     </aside>
                 </div>
-
-                {relatedComponents.length > 0 && (
-                    <section className="mt-20 border-t border-neutral-100 pt-12">
-                        <h2 className="text-2xl font-semibold tracking-tight">Components featured in this article</h2>
-                        <p className="mt-2 text-sm text-neutral-500">Every example is live in the catalog — preview it, then copy the code.</p>
-                        <div className="mt-8">
-                            <ComponentGrid components={relatedComponents} />
-                        </div>
-                    </section>
-                )}
 
                 {relatedPosts.length > 0 && (
                     <section className="mt-20 border-t border-neutral-100 pt-12">

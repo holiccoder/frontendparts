@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0">
     <channel>
-        <title>FrontendParts Blog</title>
+        <title>{{ config('app.name') }} Blog</title>
         <link>{{ route('blog.index') }}</link>
-        <description>Design teardowns and industry × usage keyword articles, recreated as production-ready React &amp; Vue components.</description>
+        <description>Articles, guides and product updates from the {{ config('app.name') }} team.</description>
         <language>en-us</language>
         <lastBuildDate>{{ now()->toRfc2822String() }}</lastBuildDate>
 @foreach ($posts as $post)

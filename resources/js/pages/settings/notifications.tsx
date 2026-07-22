@@ -1,6 +1,6 @@
-import { type BreadcrumbItem } from '@/types';
+import { type BreadcrumbItem, type SharedData } from '@/types';
 import { Transition } from '@headlessui/react';
-import { Head, useForm } from '@inertiajs/react';
+import { Head, useForm, usePage } from '@inertiajs/react';
 import { FormEventHandler } from 'react';
 
 import HeadingSmall from '@/components/heading-small';
@@ -28,6 +28,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function Notifications({ preferences }: { preferences: NotificationPreferences }) {
+    const { name } = usePage<SharedData>().props;
     const { data, setData, patch, errors, processing, recentlySuccessful } = useForm<NotificationPreferences>({
         product_updates: preferences.product_updates,
         blog: preferences.blog,
@@ -46,11 +47,11 @@ export default function Notifications({ preferences }: { preferences: Notificati
 
             <SettingsLayout>
                 <div className="space-y-6">
-                    <HeadingSmall title="Email preferences" description="Choose which emails FrontendParts sends you" />
+                    <HeadingSmall title="Email preferences" description={`Choose which emails ${name} sends you`} />
 
                     <form onSubmit={submit} className="space-y-6">
                         <div className="grid gap-2">
-                            <Label htmlFor="digest_frequency">New-drops digest</Label>
+                            <Label htmlFor="digest_frequency">Digest</Label>
 
                             <Select value={data.digest_frequency} onValueChange={(value) => setData('digest_frequency', value as DigestFrequency)}>
                                 <SelectTrigger id="digest_frequency" className="mt-1 w-full">
@@ -63,7 +64,7 @@ export default function Notifications({ preferences }: { preferences: Notificati
                                 </SelectContent>
                             </Select>
 
-                            <p className="text-sm text-neutral-500">New components and blog highlights, rounded up per period.</p>
+                            <p className="text-sm text-neutral-500">Product updates and blog highlights, rounded up per period.</p>
 
                             <InputError className="mt-2" message={errors.digest_frequency} />
                         </div>

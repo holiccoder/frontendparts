@@ -88,7 +88,7 @@ export default function OrdersPage({ orders }: OrdersPageProps) {
                 {orders.length === 0 ? (
                     <div className="border-sidebar-border/70 dark:border-sidebar-border flex flex-col items-center gap-3 rounded-xl border border-dashed p-12 text-center">
                         <ReceiptText className="size-8 text-neutral-400" />
-                        <p className="text-sm text-neutral-500">No orders yet — upgrade to unlock the full library.</p>
+                        <p className="text-sm text-neutral-500">No orders yet — upgrade to unlock everything a paid plan includes.</p>
                         <Button asChild size="sm">
                             <Link href="/pricing">View pricing</Link>
                         </Button>

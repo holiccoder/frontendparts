@@ -1,7 +1,7 @@
 import DocsSidebar, { type DocsNavSection } from '@/components/docs/docs-sidebar';
 import SeoHead from '@/components/seo-head';
 import PublicLayout from '@/layouts/public-layout';
-import type { PageMeta } from '@/types/catalog';
+import type { PageMeta } from '@/types/shared';
 import { Link } from '@inertiajs/react';
 
 interface DocsSearchResult {

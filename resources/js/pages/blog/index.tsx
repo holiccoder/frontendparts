@@ -1,9 +1,9 @@
 import { PostCard } from '@/components/blog/post-card';
-import { Pagination } from '@/components/catalog/pagination';
+import { Pagination } from '@/components/pagination';
 import SeoHead from '@/components/seo-head';
 import PublicLayout from '@/layouts/public-layout';
 import type { BlogCategoryWithCount, BlogPostCard } from '@/types/blog';
-import type { PageMeta, Paginated } from '@/types/catalog';
+import type { PageMeta, Paginated } from '@/types/shared';
 import { Link } from '@inertiajs/react';
 
 interface BlogIndexProps {
@@ -25,7 +25,7 @@ export default function BlogIndex({ posts, categories, meta }: BlogIndexProps) {
                 <header className="max-w-2xl">
                     <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Blog</h1>
                     <p className="mt-3 leading-7 text-neutral-500">
-                        Design teardowns and industry × usage articles — every example recreated as a production-ready component in the catalog.
+                        Articles, guides and product updates from the team.
                     </p>
                 </header>
 

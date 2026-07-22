@@ -1,9 +1,9 @@
 import { PostCard } from '@/components/blog/post-card';
-import { Pagination } from '@/components/catalog/pagination';
+import { Pagination } from '@/components/pagination';
 import SeoHead from '@/components/seo-head';
 import PublicLayout from '@/layouts/public-layout';
 import type { BlogCategoryWithCount, BlogPostCard } from '@/types/blog';
-import type { PageMeta, Paginated } from '@/types/catalog';
+import type { PageMeta, Paginated } from '@/types/shared';
 import { Link } from '@inertiajs/react';
 
 interface BlogCategoryProps {

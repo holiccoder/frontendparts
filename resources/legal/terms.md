@@ -1,12 +1,12 @@
 ---
 title: Terms of Service
-description: The terms that govern your FrontendParts account — subscriptions, acceptable use, termination and how the component license fits in.
+description: The terms that govern your account — subscriptions, acceptable use, termination and how the license fits in.
 updated: 2026-07-21
 ---
 
 # Terms of Service
 
-These Terms of Service ("Terms") govern your access to and use of FrontendParts ("FrontendParts", "we", "us") — the website, the component library, and the related services (together, the "Service"). By creating an account, browsing the catalog, or purchasing a plan, you agree to these Terms.
+These Terms of Service ("Terms") govern your access to and use of the service — the website and the related services (together, the "Service", "we", "us"). By creating an account, browsing the site, or purchasing a plan, you agree to these Terms.
 
 The operator of the Service is identified in our [Legal Notice](/legal-notice). When you buy a plan, Paddle.com acts as our merchant of record and your purchase is also subject to Paddle's buyer terms shown at checkout.
 
@@ -14,11 +14,11 @@ The operator of the Service is identified in our [Legal Notice](/legal-notice). 
 
 You must be at least 18 years old (or the age of majority in your jurisdiction) to create an account. You agree to provide accurate registration details, keep your credentials confidential, and take responsibility for everything that happens under your account. Tell us promptly via a [support ticket](/dashboard/tickets/new) if you suspect unauthorized access.
 
-One account = one developer. Accounts are personal and may not be shared, resold, or transferred (see the [Component License](/license) for the single-seat rule).
+One account = one person. Accounts are personal and may not be shared, resold, or transferred; team plans assign one seat per member (see the [License](/license)).
 
 ## 2. Plans, billing and renewal
 
-- **Free plan.** Browse and preview the full catalog and copy/download the free subset. No card required.
+- **Free plan.** A no-card-required way to explore the Service before upgrading.
 - **Paid plans (Starter, Pro).** Billed monthly, quarterly, yearly, or as a one-time lifetime payment, as selected at checkout. Prices are shown on the [pricing page](/pricing) and may change prospectively; changes never affect a period you already paid for.
 - **Merchant of record.** Payments are processed by Paddle.com ("Paddle") as our merchant of record. Paddle appears on your card statement and invoices, collects applicable taxes, and its buyer terms apply to the transaction.
 - **Renewal.** Subscriptions renew automatically at the end of each period until cancelled. You can cancel anytime from your dashboard; cancellation stops the next renewal and you keep access until the paid period ends.
@@ -29,37 +29,35 @@ One account = one developer. Accounts are personal and may not be shared, resold
 You agree not to:
 
 - break the law or infringe third-party rights using the Service;
-- scrape, crawl, or bulk-download the catalog by automated means beyond the export features we provide;
+- scrape, crawl, or bulk-export the Service's content by automated means beyond the features we provide;
 - probe, scan, or attack the Service, interfere with its infrastructure, or bypass access controls (including plan gating);
-- upload malicious code, or use the preview/build pipeline to attack third parties;
-- redistribute, resell, or sublicense the components, or publish them as a competing library — the details live in the [Component License](/license);
+- upload malicious code, or use the Service's infrastructure to attack third parties;
+- redistribute, resell, or sublicense access to the Service itself — the details live in the [License](/license);
 - misrepresent the operator of the Service or your affiliation with it.
 
-## 4. Components and the license
+## 4. The license
 
-Every component is licensed under the single [Component License](/license), which forms part of these Terms. In short: unlimited personal and commercial projects including client work; no redistribution, resale, sublicensing, or publishing as a competing library; code you downloaded stays usable after your plan lapses; one seat per account.
+Your use of the Service is licensed under the [License](/license), which forms part of these Terms. In short: use everything your plan unlocks for personal and commercial purposes; no abuse, resale of access, or circumvention of plan limits; paid access continues to the end of the paid term.
 
-Components are **recreated layouts inspired by** third-party websites and are attributed on each component page. We never copy code, images, text, logos, or trademarks — see the [Copyright & Takedown Policy](/copyright) for how sourcing works and how rights holders can reach us.
+## 5. Your content
 
-## 5. Your content and projects
-
-Projects you build with the components are yours. You retain every right in your own markup, styles, content, and data. You grant us no rights over your projects beyond what is technically required to operate the Service (for example, storing a project you saved to your account).
+Content you create with or store in the Service is yours. You retain every right in your own data, markup, styles, and content. You grant us no rights over it beyond what is technically required to operate the Service.
 
 ## 6. Intellectual property
 
-The Service itself — the site, brand, preview and build pipeline, and the library's organization — is owned by the operator and protected by applicable law. Components are licensed, not sold, under the [Component License](/license). Nothing in these Terms transfers ownership of the Service or the library to you.
+The Service itself — the site, brand, and underlying platform — is owned by the operator and protected by applicable law. The Service is licensed, not sold, under the [License](/license). Nothing in these Terms transfers ownership of the Service to you.
 
 ## 7. Termination
 
 You may delete your account at any time from the settings area. We may suspend or terminate an account that breaches these Terms — in particular the acceptable-use and license rules — with notice where reasonably possible. On termination:
 
-- your right to access the Service and download components ends immediately;
-- usage rights in code you lawfully downloaded survive per the [Component License](/license), unless the account was terminated for license breach or the underlying purchase was refunded;
+- your right to access the Service ends immediately;
+- paid access already granted survives per the [License](/license), unless the account was terminated for breach or the underlying purchase was refunded;
 - we may delete account data after a reasonable grace period, subject to the [Privacy Policy](/privacy).
 
 ## 8. Disclaimers
 
-The Service is provided "as is" and "as available". Components are intended as production-ready starting points, but we do not warrant that they are error-free, fit for every purpose, or compatible with every toolchain. Previews are illustrative; you are responsible for testing components in your own projects before shipping them.
+The Service is provided "as is" and "as available". We do not warrant that it is error-free, fit for every purpose, or available without interruption; you are responsible for how you use it.
 
 ## 9. Limitation of liability
 

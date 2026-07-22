@@ -1,16 +1,16 @@
 ---
 title: Legal Notice
-description: Operator identity and contact details for FrontendParts, and how Paddle appears as merchant of record on your invoices.
+description: Operator identity and contact details, and how Paddle appears as merchant of record on your invoices.
 updated: 2026-07-21
 ---
 
 # Legal Notice
 
-This page identifies the operator of FrontendParts and provides the legally required contact information (imprint-style notice, e.g. under German §5 DDG and equivalent EU rules).
+This page identifies the operator of the Service and provides the legally required contact information (imprint-style notice, e.g. under German §5 DDG and equivalent EU rules).
 
 ## Operator
 
-**FrontendParts**
+**[Product / brand name]**
 
 [Operator legal name — to be added before public launch]
 [Registered street address]
@@ -21,7 +21,7 @@ This page identifies the operator of FrontendParts and provides the legally requ
 - VAT ID: [to be added if applicable]
 - Responsible for content under applicable press law: [name, address — to be added if applicable]
 
-The bracketed details are finalized when the operating entity is registered; the product trades publicly as "FrontendParts".
+The bracketed details are finalized when the operating entity is registered.
 
 ## Merchant of record
 
@@ -39,6 +39,6 @@ The European Commission provides an Online Dispute Resolution platform. We are n
 
 ## Liability for content and links
 
-Component pages cite the third-party sites that inspired each layout ("layout reference"). Those sites are external content we do not control; their operators are solely responsible for them. Citations were checked when the component was published — if you find a link that is broken or points at changed, problematic content, tell us via a [support ticket](/dashboard/tickets/new) and we will fix the citation.
+The Service may link to external sites we do not control; their operators are solely responsible for them. Links were checked when published — if you find one that is broken or points at changed, problematic content, tell us via a [support ticket](/dashboard/tickets/new) and we will fix it.
 
 See also: [Terms of Service](/terms) · [Privacy Policy](/privacy) · [Copyright & Takedown Policy](/copyright)

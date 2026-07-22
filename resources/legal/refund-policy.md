@@ -1,6 +1,6 @@
 ---
 title: Refund Policy
-description: Every FrontendParts purchase is covered by a 14-day, no-questions-asked refund window — how to request a refund and what happens afterwards.
+description: Every purchase is covered by a 14-day, no-questions-asked refund window — how to request a refund and what happens afterwards.
 updated: 2026-07-21
 ---
 
@@ -23,8 +23,8 @@ Outside the {{ refund_window_days }}-day window, refunds are at our discretion �
 ## What happens after a refund
 
 - Your plan access ends when the refund is issued.
-- The [Component License](/license) for the refunded purchase ends with it — you must stop using paid components obtained under that purchase and remove them from projects where feasible. (This is different from a normal lapse, where downloaded code stays usable forever.)
-- Free components and anything you built that uses only free components are unaffected.
+- The [License](/license) for the refunded purchase ends with it — the access that purchase granted stops with the refund.
+- Anything on the Free plan is unaffected.
 
 ## Chargebacks
 

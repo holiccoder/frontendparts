@@ -35,35 +35,35 @@ class LegalPages
     private const PAGES = [
         'terms' => [
             'title' => 'Terms of Service',
-            'description' => 'The terms that govern your FrontendParts account — subscriptions, acceptable use, termination and how the component license fits in.',
+            'description' => 'The terms that govern your account — subscriptions, acceptable use, termination and how the license fits in.',
         ],
         'privacy' => [
             'title' => 'Privacy Policy',
-            'description' => 'What data FrontendParts collects, why, and your rights under GDPR, CCPA/CPRA and PIPL — including accounts, GitHub tokens, analytics and Paddle as merchant of record.',
+            'description' => 'What data we collect, why, and your rights under GDPR, CCPA/CPRA and PIPL — including accounts, connected-account tokens, analytics and Paddle as merchant of record.',
         ],
         'license' => [
-            'title' => 'Component License',
-            'description' => 'One license for every paid plan — unlimited commercial and client work, no redistribution or resale, code you download stays yours after a lapse, single seat.',
+            'title' => 'License',
+            'description' => 'The license and acceptable-use terms for the service — what your plan entitles you to, what is not allowed, and what happens when a plan lapses or is refunded.',
         ],
         'refund-policy' => [
             'title' => 'Refund Policy',
-            'description' => 'Every FrontendParts purchase is covered by a 14-day, no-questions-asked refund window — how to request a refund and what happens afterwards.',
+            'description' => 'Every purchase is covered by a 14-day, no-questions-asked refund window — how to request a refund and what happens afterwards.',
         ],
         'cookie-policy' => [
             'title' => 'Cookie Policy',
-            'description' => 'The cookies and browser storage FrontendParts uses — strictly necessary session and security cookies plus optional interface preferences. No advertising or third-party analytics cookies.',
+            'description' => 'The cookies and browser storage the Service uses — strictly necessary session and security cookies plus optional interface preferences. No advertising or third-party analytics cookies.',
         ],
         'copyright' => [
             'title' => 'Copyright & Takedown Policy',
-            'description' => 'How FrontendParts sources components — recreated layouts, always attributed, never copied — and how rights holders can request a takedown with a defined response SLA.',
+            'description' => 'How we handle intellectual property and how rights holders can request a takedown with a defined response SLA.',
         ],
         'legal-notice' => [
             'title' => 'Legal Notice',
-            'description' => 'Operator identity and contact details for FrontendParts, and how Paddle appears as merchant of record on your invoices.',
+            'description' => 'Operator identity and contact details, and how Paddle appears as merchant of record on your invoices.',
         ],
         'affiliate-terms' => [
             'title' => 'Affiliate Program Terms',
-            'description' => 'The rules of the FrontendParts affiliate program — FTC disclosure duties, no brand-bidding or spam, clawbacks, and how commissions, holding periods and payouts work.',
+            'description' => 'The rules of the affiliate program — FTC disclosure duties, no brand-bidding or spam, clawbacks, and how commissions, holding periods and payouts work.',
         ],
     ];
 

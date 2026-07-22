@@ -1,13 +1,13 @@
 import { LucideIcon } from 'lucide-react';
 
-export interface PreviewLayoutPreference {
-    side: 'left' | 'right';
-    split: number;
+export interface Entitlements {
+    plan: string;
+    is_paid: boolean;
 }
 
 export interface Auth {
     user: User;
-    preview_layout: PreviewLayoutPreference | null;
+    entitlements: Entitlements;
 }
 
 export interface BreadcrumbItem {

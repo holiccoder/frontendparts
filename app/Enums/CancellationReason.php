@@ -74,7 +74,7 @@ enum CancellationReason: string
             ],
             self::JustTesting => [
                 'type' => 'none',
-                'title' => 'Thanks for trying FrontendParts',
+                'title' => 'Thanks for trying '.config('app.name'),
                 'body' => 'No hard feelings — confirm below to cancel. Your access stays active until the end of the current billing period.',
             ],
         };
