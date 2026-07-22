@@ -7,6 +7,8 @@ use App\Models\Blog;
 use App\Models\BlogCategory;
 use App\Services\Blog\PostContent;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
@@ -34,7 +36,7 @@ class BlogController extends Controller
             ->through(fn (Blog $post): array => $this->card($post));
 
         return Inertia::render('blog/index', [
-            'posts' => $posts,
+            'posts' => $this->paginatedCards($posts),
             'categories' => $this->categoryList(),
             'meta' => [
                 'title' => 'Blog — FrontendParts',
@@ -63,7 +65,7 @@ class BlogController extends Controller
                 'slug' => $category->slug,
                 'description' => $category->description,
             ],
-            'posts' => $posts,
+            'posts' => $this->paginatedCards($posts),
             'categories' => $this->categoryList(),
             'meta' => [
                 'title' => "{$category->name} — FrontendParts Blog",
@@ -138,6 +140,25 @@ class BlogController extends Controller
                 'og_type' => 'article',
             ],
         ]);
+    }
+
+    /**
+     * Shape a card-mapped paginator as the `{data, meta}` structure the
+     * frontend `Paginated` type + `Pagination` component expect (the same
+     * shape API resource collections produce). A raw paginator serializes
+     * flat, without the nested `meta` key.
+     *
+     * @param  LengthAwarePaginator<int, array<string, mixed>>  $posts
+     * @return array{data: array<int, array<string, mixed>>, meta: array<string, mixed>}
+     */
+    private function paginatedCards(LengthAwarePaginator $posts): array
+    {
+        $array = $posts->toArray();
+
+        return [
+            'data' => $array['data'],
+            'meta' => Arr::except($array, ['data']),
+        ];
     }
 
     /**

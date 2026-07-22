@@ -27,6 +27,10 @@ class BlogPageTest extends TestCase
                 ->has('posts.data', 1)
                 ->where('posts.data.0.title', 'Ten SaaS Pricing Pages')
                 ->where('posts.data.0.url', route('blog.show', ['slug' => $post->slug]))
+                // The Pagination component consumes posts.meta (last_page,
+                // links) — a raw paginator would serialize flat and crash it.
+                ->has('posts.meta.last_page')
+                ->has('posts.meta.links')
             );
 
         $response = $this->get("/blog/{$post->slug}");
