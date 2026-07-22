@@ -2,16 +2,11 @@
 
 namespace App\Providers\Filament;
 
-use App\Filament\Widgets\CatalogStatsWidget;
-use App\Filament\Widgets\CoverageMatrixWidget;
-use App\Filament\Widgets\DraftsReviewWidget;
 use App\Filament\Widgets\LatestOrdersWidget;
 use App\Filament\Widgets\PlanMixChartWidget;
-use App\Filament\Widgets\PopularityStatsWidget;
 use App\Filament\Widgets\RevenueStatsWidget;
 use App\Filament\Widgets\RevenueTrendChartWidget;
 use App\Filament\Widgets\SystemHealthWidget;
-use App\Filament\Widgets\TopComponentsWidget;
 use App\Models\Admin;
 use DutchCodingCompany\FilamentDeveloperLogins\FilamentDeveloperLoginsPlugin;
 use Filament\Http\Middleware\Authenticate;
@@ -51,16 +46,11 @@ class AdminPanelProvider extends PanelProvider
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
             ->widgets([
                 AccountWidget::class,
-                CatalogStatsWidget::class,
-                DraftsReviewWidget::class,
-                CoverageMatrixWidget::class,
                 SystemHealthWidget::class,
                 RevenueStatsWidget::class,
                 RevenueTrendChartWidget::class,
                 PlanMixChartWidget::class,
                 LatestOrdersWidget::class,
-                PopularityStatsWidget::class,
-                TopComponentsWidget::class,
             ])
             ->navigationGroups([
                 'Library',

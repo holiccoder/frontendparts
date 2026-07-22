@@ -1,5 +1,0 @@
-@import 'tailwindcss';
-
-/* Preview dark toggle (SPEC §5.3): the runtime script toggles `dark` on
-   <html>, so the built CSS needs a class-based dark variant. */
-@custom-variant dark (&:where(.dark, .dark *));

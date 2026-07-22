@@ -1,6 +1,0 @@
-{
-    "name": "email",
-    "type": "email",
-    "placeholder": "Enter your work email",
-    "ariaLabel": "Email address"
-}

@@ -2,7 +2,6 @@
 
 namespace App\Filament\Resources\Components\Pages;
 
-use App\Filament\Resources\Components\Actions\GenerateVariantAction;
 use App\Filament\Resources\Components\Actions\PreviewComponentAction;
 use App\Filament\Resources\Components\Actions\PublishComponentAction;
 use App\Filament\Resources\Components\Actions\RejectComponentAction;
@@ -17,7 +16,6 @@ class ViewComponent extends ViewRecord
     {
         return [
             PreviewComponentAction::make(),
-            GenerateVariantAction::make(),
             PublishComponentAction::make(),
             RejectComponentAction::make(),
         ];

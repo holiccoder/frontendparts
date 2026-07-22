@@ -45,12 +45,6 @@ return [
             'throw' => false,
         ],
 
-        'previews' => [
-            'driver' => 'local',
-            'root' => storage_path('app/previews'),
-            'throw' => false,
-        ],
-
         // Queued pack zip exports (SPEC §6.2) — private, streamed only
         // through the authorized download route.
         'exports' => [
