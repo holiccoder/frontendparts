@@ -73,7 +73,7 @@
 
                 @php $failedJobs = $this->failedJobsCount(); @endphp
 
-                <div class="flex items-center gap-2">
+                <div class="mb-3 flex items-center gap-2">
                     <span class="text-2xl font-bold text-gray-950 dark:text-white">{{ $failedJobs }}</span>
                     @if ($failedJobs > 0)
                         <x-filament::badge color="danger">Needs attention</x-filament::badge>
@@ -81,6 +81,22 @@
                         <x-filament::badge color="success">Clear</x-filament::badge>
                     @endif
                 </div>
+
+                @if ($failedJobs > 0)
+                    <ul class="space-y-2">
+                        @foreach ($this->recentFailedJobs() as $job)
+                            <li class="rounded-lg border border-gray-200 p-2 text-xs dark:border-white/10">
+                                <div class="flex items-center justify-between gap-2">
+                                    <span class="font-medium text-gray-950 dark:text-white">{{ $job->queue }} / {{ Str::limit($job->connection, 20) }}</span>
+                                    <x-filament::badge color="warning" size="sm">{{ $job->failed_at ? Carbon\Carbon::parse($job->failed_at)->diffForHumans() : '-' }}</x-filament::badge>
+                                </div>
+                                <p class="mt-1 line-clamp-2 text-gray-500 dark:text-gray-400">
+                                    {{ Str::limit($job->exception, 120) }}
+                                </p>
+                            </li>
+                        @endforeach
+                    </ul>
+                @endif
             </div>
         </div>
     </x-filament::section>

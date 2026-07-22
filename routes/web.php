@@ -321,11 +321,18 @@ Route::middleware(['auth', 'verified', 'ssr.skip', 'noindex'])->group(function (
         Route::delete('/{project}', [ProjectController::class, 'destroy'])->name('destroy');
         Route::post('/{project}/components', [ProjectComponentController::class, 'store'])->name('components.store');
         Route::delete('/{project}/components/{component}', [ProjectComponentController::class, 'destroy'])->name('components.destroy');
-        Route::post('/{project}/export', ProjectExportController::class)->name('export');
-        Route::post('/{project}/scaffold', ProjectScaffoldController::class)->name('scaffold');
-        Route::post('/{project}/github-export', ProjectGithubExportController::class)->name('github-export');
+        Route::post('/{project}/export', ProjectExportController::class)
+            ->middleware('throttle:5,1')
+            ->name('export');
+        Route::post('/{project}/scaffold', ProjectScaffoldController::class)
+            ->middleware('throttle:5,1')
+            ->name('scaffold');
+        Route::post('/{project}/github-export', ProjectGithubExportController::class)
+            ->middleware('throttle:5,1')
+            ->name('github-export');
         Route::get('/{project}/export/{export}/download', ProjectExportDownloadController::class)
             ->scopeBindings()
+            ->middleware('throttle:30,1')
             ->name('export.download');
         Route::get('/{project}/forks/{fork}/preview', [ComponentForkPreviewController::class, 'show'])
             ->scopeBindings()
@@ -367,7 +374,9 @@ Route::middleware(['auth', 'verified', 'ssr.skip', 'noindex'])->group(function (
             ->name('store');
         Route::get('/{ticket}', [TicketController::class, 'show'])->name('show');
         Route::patch('/{ticket}', [TicketController::class, 'update'])->name('update');
-        Route::post('/{ticket}/messages', [TicketMessageController::class, 'store'])->name('messages.store');
+        Route::post('/{ticket}/messages', [TicketMessageController::class, 'store'])
+            ->middleware('throttle:10,1')
+            ->name('messages.store');
     });
 
     /*

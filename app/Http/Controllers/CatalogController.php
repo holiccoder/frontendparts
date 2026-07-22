@@ -13,7 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
-use Inertia\Response;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Catalog index + usage landing pages (SPEC §15.1, FR-1). Filters are
@@ -72,7 +72,7 @@ class CatalogController extends Controller
             ->paginate(12)
             ->withQueryString();
 
-        return Inertia::render('catalog/index', [
+        return $this->cachedResponse(Inertia::render('catalog/index', [
             'components' => ComponentCardResource::collection($components),
             'filters' => $this->filterLists(),
             'active' => [
@@ -89,10 +89,10 @@ class CatalogController extends Controller
                 'canonical' => URL::to('/components'),
                 'og_image' => URL::to('/brand/logo.png'),
             ],
-        ]);
+        ]), $request);
     }
 
-    public function usage(string $usage): Response
+    public function usage(Request $request, string $usage): Response
     {
         $category = Category::query()
             ->where('type', CategoryType::Usage)
@@ -121,7 +121,7 @@ class CatalogController extends Controller
             ->values()
             ->all();
 
-        return Inertia::render('catalog/usage', [
+        return $this->cachedResponse(Inertia::render('catalog/usage', [
             'usage' => [
                 'name' => $category->name,
                 'slug' => $category->slug,
@@ -138,7 +138,7 @@ class CatalogController extends Controller
                 'canonical' => route('components.usage', ['usage' => $category->slug]),
                 'og_image' => URL::to('/brand/logo.png'),
             ],
-        ]);
+        ]), $request);
     }
 
     /**

@@ -6,16 +6,17 @@ use App\Enums\CategoryType;
 use App\Http\Resources\ComponentCardResource;
 use App\Models\Category;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\URL;
 use Inertia\Inertia;
-use Inertia\Response;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Industry index + curated per-industry landing pages (SPEC §15.1).
  */
 class IndustryController extends Controller
 {
-    public function index(): Response
+    public function index(Request $request): Response
     {
         $industries = Category::query()
             ->where('type', CategoryType::Industry)
@@ -32,7 +33,7 @@ class IndustryController extends Controller
             ->values()
             ->all();
 
-        return Inertia::render('industries/index', [
+        return $this->cachedResponse(Inertia::render('industries/index', [
             'industries' => $industries,
             'meta' => [
                 'title' => 'Components by industry — SaaS, ecommerce, fintech & more',
@@ -40,10 +41,10 @@ class IndustryController extends Controller
                 'canonical' => route('industries.index'),
                 'og_image' => URL::to('/brand/logo.png'),
             ],
-        ]);
+        ]), $request);
     }
 
-    public function show(string $industry): Response
+    public function show(Request $request, string $industry): Response
     {
         $category = Category::query()
             ->where('type', CategoryType::Industry)
@@ -57,7 +58,7 @@ class IndustryController extends Controller
             ->paginate(12)
             ->withQueryString();
 
-        return Inertia::render('industries/show', [
+        return $this->cachedResponse(Inertia::render('industries/show', [
             'industry' => [
                 'name' => $category->name,
                 'slug' => $category->slug,
@@ -72,6 +73,6 @@ class IndustryController extends Controller
                 'canonical' => route('industries.show', ['industry' => $category->slug]),
                 'og_image' => URL::to('/brand/logo.png'),
             ],
-        ]);
+        ]), $request);
     }
 }

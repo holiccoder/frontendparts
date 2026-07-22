@@ -16,3 +16,6 @@ Schedule::command('mail:run-sequences')->daily();
 // Affiliate commission release (SPEC §17.1 step 5): pending commissions
 // become payable once the refund window + holding period have elapsed.
 Schedule::command('affiliates:mark-payable')->daily();
+
+// Daily database backup to the configured `backups` disk (SPEC §4.2.3).
+Schedule::command('db:backup')->dailyAt('03:00');

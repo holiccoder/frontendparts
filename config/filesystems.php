@@ -59,6 +59,14 @@ return [
             'throw' => false,
         ],
 
+        // Daily DB backups (SPEC §4.2.3). In production this can be swapped
+        // for an S3-backed disk without changing the backup command.
+        'backups' => [
+            'driver' => 'local',
+            'root' => storage_path('app/backups'),
+            'throw' => false,
+        ],
+
         's3' => [
             'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),

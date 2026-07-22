@@ -8,7 +8,7 @@ use App\Services\Catalog\ComponentRouteResolver;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
-use Inertia\Response;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Component detail `/components/{usage}/{slug}` (SPEC §15.1, FR-1.6).
@@ -34,7 +34,7 @@ class ComponentController extends Controller
         $ogImage = $component->screenshotUrl('react', 1280) ?? url('/brand/logo.png');
         $categoryName = $component->usageCategory->name;
 
-        return Inertia::render('catalog/component', [
+        return $this->cachedResponse(Inertia::render('catalog/component', [
             'component' => $resource,
             'framework' => $validated['framework'] ?? 'react',
             'meta' => [
@@ -44,6 +44,6 @@ class ComponentController extends Controller
                 'og_image' => $ogImage,
                 'og_type' => 'article',
             ],
-        ]);
+        ]), $request);
     }
 }

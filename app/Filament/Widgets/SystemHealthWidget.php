@@ -45,6 +45,18 @@ class SystemHealthWidget extends Widget
     }
 
     /**
+     * @return Collection<int, \stdClass>
+     */
+    public function recentFailedJobs(): Collection
+    {
+        return DB::table('failed_jobs')
+            ->select(['id', 'uuid', 'connection', 'queue', 'exception', 'failed_at'])
+            ->orderByDesc('failed_at')
+            ->limit(5)
+            ->get();
+    }
+
+    /**
      * Re-dispatch the preview build for one recorded failure; a successful
      * build clears its failure rows (see BuildComponentPreview).
      */
