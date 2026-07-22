@@ -32,3 +32,4 @@ yarn-error.log
 /tests/Browser/.cache/
 /tests/Browser/results/
 /tests/Browser/report/
+/database/database.sqlite*
