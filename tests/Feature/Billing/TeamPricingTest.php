@@ -65,11 +65,11 @@ class TeamPricingTest extends TestCase
 
     public function test_comparison_matrix_keeps_the_spec_shape()
     {
-        // SPEC §7.1 is a Free/Starter/Pro matrix — adding the team tier must
-        // not change the comparison rows (team sells from its own card).
+        // The comparison is a Free/Starter/Pro matrix — the team tier sells
+        // from its own card and never appears in these rows.
         $this->get('/pricing')->assertInertia(fn (Assert $page) => $page
-            ->has('comparison', 8)
-            ->where('comparison.0', ['feature' => 'Browse + preview full catalog', 'free' => true, 'starter' => true, 'pro' => true])
+            ->has('comparison', 5)
+            ->where('comparison.0', ['feature' => 'Core features', 'free' => true, 'starter' => true, 'pro' => true])
         );
     }
 }

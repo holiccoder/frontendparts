@@ -30,8 +30,8 @@ class CheckoutSuccessController extends Controller
                 'ends_at' => $order->ends_at?->toIso8601String(),
             ],
             'nextSteps' => [
-                ['label' => 'Browse the library', 'href' => route('components.index')],
                 ['label' => 'Open your dashboard', 'href' => route('dashboard')],
+                ['label' => 'Review your orders', 'href' => route('dashboard.orders.index')],
             ],
         ]);
     }
